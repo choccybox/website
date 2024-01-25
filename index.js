@@ -10,16 +10,16 @@ app.use((req, res, next) => {
 
 // Serve index.html at root
 app.get('/', (req, res) => {
-    // display index without dirname
-    res.sendFile('index.html', { root: __dirname });
+    // show hi
+    res.send('hi');
     }
 );
 
-// Connect server.js
+/* // Connect server.js
 const discord = require('./api/discord.js');
 const player = require('./api/player.js');
 app.use(discord);
-app.use(player);
+app.use(player); */
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
