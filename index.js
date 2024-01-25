@@ -15,11 +15,7 @@ app.get('/', (req, res) => {
     }
 );
 
-/* // Connect server.js
-const discord = require('./api/discord.js');
-const player = require('./api/player.js');
-app.use(discord);
-app.use(player); */
+
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
