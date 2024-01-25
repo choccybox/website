@@ -11,13 +11,19 @@ app.use((req, res, next) => {
 
 // Serve index.html at root
 app.get('/', (req, res) => {
-    // show hi
-    res.send('hi');
+    res.sendFile(__dirname + '/index.html');
     }
 );
 
+// serve player.js
+app.get('/player', (req, res) => {
+    res.sendFile(__dirname + '/api/player.js');
+    }
+);
+// server discord.js
+app.get('/discorduser', (req, res) => {
+    res.sendFile(__dirname + '/api/discord.js');
+    }
+);
 
-
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-});
+app.listen(process.env.PORT, () => console.log(`Listening on port ${process.env.PORT}`));
