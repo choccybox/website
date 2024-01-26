@@ -1,14 +1,21 @@
-// api server code
 const express = require('express');
-const app = express();
+const axios = require('axios');
+const fs = require('fs');
+const discord = require('./api/discord');  // Import your discord module
+const player = require('./api/player');  // Import your player module
+const dotenv = require('dotenv');
 
-// import ./api/discord.js
-const discord = require('./api/player.js');
+const app = express();
+const port = 3000;
+
+// Serve static files from the same directory as index.js
+app.use(express.static(__dirname));
 
 // use discord
 app.use(discord);
+app.use(player);
+// Define your server logic here
 
-// start server
-app.listen(process.env.PORT || 3000, () => {
-  console.log(`Server started on port ${process.env.PORT || 3000}`);
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });

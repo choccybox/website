@@ -1,4 +1,4 @@
-@media only screen and (max-width: 936px) {
+@media screen and (max-width: 936px) {
   #main_top {
     flex-wrap: wrap;
   }
@@ -14,6 +14,13 @@
   #socials {
     flex-wrap: wrap;
   }
+
+  #player {
+    height: 280px !important;
+    padding-top: 40px !important;
+    margin-top: -40px !important;
+  }
+
   .panel {
     width: 280px !important;
     margin: 10 !important;

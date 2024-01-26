@@ -150,47 +150,34 @@ async function getNowPlaying() {
   }
 
   try {
-    // Make a request to Last.fm for the last played song
-    const lastFmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
-    const lastPlayed = lastFmResponse.data.recenttracks.track[0];
-
-    // Extract relevant information for the last played track
-    const simplifiedLastPlayed = {
-      name: lastPlayed.name,
-      artist: lastPlayed.artist['#text'],
-    };
-
-    // Search for the last played track on Spotify
-    const spotifySearchResponse = await axios.get('https://api.spotify.com/v1/search', {
+    const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
-      params: {
-        q: `${simplifiedLastPlayed.name} ${simplifiedLastPlayed.artist}`,
-        type: 'track',
-        limit: 1,
-      },
     });
 
-    const spotifySearchResults = spotifySearchResponse.data.tracks.items;
+    if (response.data && response.data.item) {
+      const { name, artists, album, duration_ms } = response.data.item;
 
-    // Check if there are search results on Spotify
-    if (spotifySearchResults.length > 0) {
-      const spotifyResult = spotifySearchResults[0];
+      // Check if is_playing and progress_ms are available in the response
+      const isPlaying = response.data.is_playing || false;
+      const progress = response.data.progress_ms || 0;
 
-      // Extract relevant information for the corresponding Spotify track
-      const simplifiedSpotifyResult = {
-        name: spotifyResult.name,
-        artist: spotifyResult.artists[0].name,
-        imageUrl: spotifyResult.album.images.length > 0 ? spotifyResult.album.images[0].url : null,
-        url: spotifyResult.external_urls.spotify,
-        duration_ms: spotifyResult.duration_ms,
+      const simplifiedResponse = {
+        isPlaying: isPlaying,
+        name: name,
+        artist: artists.splice && artists.splice(0, 1).map(artist => artist.name).join(', '),
+        albumArt: album.images.length > 0 ? album.images[0].url : null,
+        url: response.data.item.external_urls.spotify,
+        progress: progress,
+        duration: duration_ms,
+        // check if tracks is on spotify or local
+        isLocal: response.data.item.is_local,
       };
 
-      return { isPlaying: false, nowPlaying: simplifiedSpotifyResult };
+      return simplifiedResponse;
     } else {
-      // If no corresponding track found on Spotify, return null
-      return { isPlaying: false, nowPlaying: null };
+      return null;
     }
   } catch (error) {
     if (error.response && error.response.status === 401) {
@@ -201,6 +188,8 @@ async function getNowPlaying() {
     throw error;
   }
 }
+
+
 
 
 
