@@ -40,7 +40,7 @@ function saveTokensToFile() {
   }
 }
 
-player.get('/spotifyauth', (req, res) => {
+/* player.get('/spotifyauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: clientId,
@@ -81,7 +81,7 @@ player.get('/playercallback', async (req, res) => {
     }, 5000);
   }
 });
-
+ */
 player.get('/player', async (req, res) => {
   try {
     const nowPlayingResponse = await getNowPlaying();

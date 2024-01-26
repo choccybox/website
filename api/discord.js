@@ -94,7 +94,7 @@ async function refreshAccessToken(refreshToken) {
   }
 }
 
-// OAuth2 endpoint
+/* // OAuth2 endpoint
 discord.get('/discordauth', (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`);
 });
@@ -154,7 +154,7 @@ discord.get('/discordcallback', async (req, res) => {
     res.status(400).send('Authorization code not provided.');
   }
 });
-
+ */
 
 discord.get('/discorduser', async (req, res) => {
   try {
