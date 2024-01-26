@@ -1,26 +1,21 @@
 const express = require('express');
 const app = express();
 const http = require('http');
-const discord = require('./api/discord');
-const player = require('./api/player');
-// port from env
-process.env.PORT = 3000;
-
-// Allow CORS for all routes
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    next();
-});
-
-// http
 const server = http.createServer(app);
-// display index.html
-app.get('/', (req, res) => {
+
+// use static html files
+app.use(express.static('public'));
+
+app.use('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
-});
+    }
+);
 
 // use ./api/discord.js
-app.use('/api/discord', discord);
-app.use('/api/player', player);
+app.use('/api/discord', require('./api/discord'));
+app,use('/api/player', require('./api/player'));
 
-server.listen(process.env.PORT, () => console.log(`Listening on port ${process.env.PORT}`));
+// listen to env port
+app.listen(process.env.PORT || 3000, () => {
+    console.log('Server started');
+});
