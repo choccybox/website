@@ -1,19 +1,14 @@
 const express = require('express');
 const app = express();
-const http = require('http');
-const server = http.createServer(app);
 
-// use static html files
-app.use(express.static('public'));
-
-app.use('/', (req, res) => {
+// use index.html to display the website, dont use static
+app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
-    }
-);
+});
 
 // use ./api/discord.js
 app.use('/api/discord', require('./api/discord'));
-app,use('/api/player', require('./api/player'));
+app.use('/api/player', require('./api/player'));
 
 // listen to env port
 app.listen(process.env.PORT || 3000, () => {
