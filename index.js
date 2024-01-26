@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const http = require('http');
+const discord = require('./api/discord');
+const player = require('./api/player');
 // port from env
 process.env.PORT = 3000;
 
@@ -16,4 +18,9 @@ const server = http.createServer(app);
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
+
+// use ./api/discord.js
+app.use('/api/discord', discord);
+app.use('/api/player', player);
+
 server.listen(process.env.PORT, () => console.log(`Listening on port ${process.env.PORT}`));
