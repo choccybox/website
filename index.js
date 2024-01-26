@@ -3,7 +3,7 @@ const axios = require('axios');
 const fs = require('fs');
 const discord = require('./api/discord');  // Import your discord module
 const player = require('./api/player');  // Import your player module
-const dotenv = require('dotenv');
+const soundcloud = require('./api/soundcloud');  // Import your soundcloud module
 
 const app = express();
 const port = 3000;
@@ -14,7 +14,7 @@ app.use(express.static(__dirname));
 // use discord
 app.use(discord);
 app.use(player);
-// Define your server logic here
+app.use(soundcloud);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

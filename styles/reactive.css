@@ -1,38 +1,45 @@
 @media screen and (max-width: 936px) {
   #main_top {
     flex-wrap: wrap;
-  }
+    overflow-y: scroll;
+    overflow-x: hidden;
+    width: 300px !important;
+}
   #main_content {
-    height: fit-content !important;
+    max-height: calc(100% - 50px) !important;
+    height: auto !important;
     width: 445px;
   }
   #main_bottom {
     position: relative !important;
+    width: 145px !important;
     margin: 10px;
-    margin-left: 0% !important;
+    margin-left: 0px !important;
+    overflow-y: scroll !important;
   }
   #socials {
     flex-wrap: wrap;
   }
+  .social_button {
+    height: 135px !important;
+  }
 
   #player {
     height: 280px !important;
-    padding-top: 40px !important;
+    padding-top: 40px;
     margin-top: -40px !important;
+  }
+  #player_title {
+    margin-top: -24px !important;
   }
 
   .panel {
-    width: 280px !important;
-    margin: 10 !important;
-    margin-top: 0 !important;
+    margin-right: 0 !important;
   }
-  .panel:first-child {
-    margin-top: 10px !important;
+  .panel:last-child {
+    margin-bottom: 0px !important;
   }
-  .panel:not(:first-child) {
-    margin-left: 10px !important;
-  }
-  #player_title {
-    margin-top: -327px !important;
+  #player_timeline {
+    margin-top: -322px !important;
   }
 }

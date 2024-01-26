@@ -8,14 +8,33 @@
     <link rel="stylesheet" href="styles/page.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    ::-webkit-scrollbar {
+        width: 0px;
+    }
+
+    .noselect {
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+    }
+</style>
 </head>
 <body>
-    <div id="main">
-        <div id="main_content">
+        <div id="main_content" class="noselect">
             <div id="main_top">
-                    <img id="avatar" class="panel" src="styles/blank.png"></img>
+                <img id="avatar" class="panel noselect" src="styles/blank.png"></img>
 
-                    <div id="text" class="panel">
+                    <div id="text" class="panel noselect">
                         <div id="text_inner">
                             <h1>choccy</h1>
                             <p id="quotes"></p>
@@ -28,12 +47,19 @@
                     </div>
 
                     <div id="player" class="panel">
-                        <a id="player_link" target="_blank">
-                            <img id="player_image" src="./styles/blank.png"></img>
+                        <a id="player_link" target="_blank" class="noselect">
+                            <img id="player_image" class="noselect" src="./styles/blank.png"></img>
                         </a>
-                        <p id="player_title"></p>
-                    </div>
+                       
+                        <div id="player_timeline">
+                            <div id="player_progress"></div>
+                            <p id="player_title" class="noselect"></p>
 
+                        </div>
+                    </div>
+                    
+<!--                     <div class="panel"></div> -->
+                    
             </div>
 
             <div id="main_bottom">
@@ -46,7 +72,6 @@
                     <a><div class="social_button"><div class="icon"></div></div></a>
                 </div>
             </div>
-</div>
 </div>
 
 <script src="scripts/player.js"></script>

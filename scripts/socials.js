@@ -20,6 +20,7 @@ fetch ("/discorduser")
             var socialButton = document.createElement("a");
             socialButton.setAttribute("href", data.connections[i].url);
             socialButton.setAttribute("target", "_blank");
+            socialButton.classList.add("noselect");
             socialButton.innerHTML = `<div class="social_button"><i class="fa-brands fa-${data.connections[i].type}"></i></div>`;
             socialHolder.appendChild(socialButton);
         }

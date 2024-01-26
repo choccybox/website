@@ -1,6 +1,8 @@
 @media (prefers-color-scheme: dark) {
     :root {
         --background: #2e2f37;
+        --timeline: #2a2b33;
+        --progress: #57575b;
         --foreground:  #3e3f4b;
         --panel: #505161;
         --text: white;
@@ -11,14 +13,7 @@
 body {
     overflow: hidden;
     color: var(--text);
-}
-
-#main {
     background-color: var(--background);
-    margin: -8px;
-    height: 100%;
-    width: 100%;
-    position: absolute;
 }
 
 #main_content {
@@ -26,7 +21,7 @@ body {
     max-width: 880px;
     margin-right: 60px;
     height: 445px;
-    position: relative;
+    position: absolute;
     display: flex;
     top: 50%;
     left: 50%;
@@ -38,6 +33,18 @@ body {
     display: flex;
     position: relative;
     width: 100%;
+    margin: 10px;
+    border-radius: var(--radius);
+}
+
+#main_top_inner {
+    display: flex;
+    flex-wrap: wrap;
+    overflow-y: scroll;
+}
+
+#main_top_inner {
+    background-color: red;
 }
 
 #main_bottom {
@@ -52,21 +59,19 @@ body {
 }
 
 .panel {
-    margin: 10px;
     width: 280px;
     height: 280px;
     border-radius: var(--radius);
     background-color: var(--panel);
     display: none;
-}
-
-.panel:not(:first-child) {
-    margin-left: 0%;
+    margin-bottom: 10px;
+    margin-right: 10px;
 }
 
 #text_inner {
-    margin: 15px;
+    padding: 15px;
 }
+
 
 #avatar {
     object-fit: cover;
@@ -110,33 +115,50 @@ body {
 }
 
 
+#player{
+   background-color: transparent;
+   height: 320px;
+}
+
 #player_image {
     height: 280px;
-    width: 100%;
-    border-radius: var(--radius);
-    background-color: var(--foreground);
-}
-
-#player {
-    height: 320px;
-    background-color: transparent;
-}
-
-#player:hover #player_title {
+    width: 280px;
+    position: relative;
     display: block;
+    background-color: transparent;
+    border-radius: var(--radius);
 }
 
-#player_title {
-    font-size: 1rem;
-    height: 22px;
-    background-color: var(--background);
+#player_timeline {
+    background-color: var(--timeline);
+    height: 32px;
     border-radius: var(--radius);
-    text-align: center;
+    width: 100%;
     z-index: 9999;
     position: relative;
+    margin-top: 10px;
+    display: none;
+    overflow: hidden;
+}
+
+#player_progress {
+    background-color: var(--progress);
+    height: 32px;
+    width: 0%;
+    border-top-left-radius: var(--radius);
+    border-bottom-left-radius: var(--radius);
+}
+
+#player:hover #player_timeline {
+    display: block;
+}
+#player_title {
+    font-size: 1rem;
+    margin-top: -26px;
+    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-top: 6px;
-    display: none;
+    width: calc(100% - 12px);
+    margin-left: 6px;
 }
