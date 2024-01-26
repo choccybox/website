@@ -1,16 +1,29 @@
-const express = require('express');
-const app = express();
+const http = require('http');
+const fs = require('fs');
+const port = 3000;
 
-// use index.html to display the website, dont use static
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+// Import the Discord bot logic
+require('./api/discord.js');
+
+// Your existing server code
+const server = http.createServer(function(req, res) {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    fs.readFile('main.html', function(error, data) {
+        if (error) {
+            res.writeHead(404);
+            res.write('Error: File not found');
+        } else {
+            res.write(data);
+        }
+        res.end();
+    });
 });
 
-// use ./api/discord.js
-app.use('/api/discord', require('./api/discord'));
-app.use('/api/player', require('./api/player'));
-
-// listen to env port
-app.listen(process.env.PORT || 3000, () => {
-    console.log('Server started');
+// Start the server
+server.listen(port, function(error) {
+    if (error) {
+        console.log('An error has occurred', error);
+    } else {
+        console.log('Server is running on port ' + port);
+    }
 });
