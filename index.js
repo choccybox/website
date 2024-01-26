@@ -3,7 +3,7 @@ const axios = require('axios');
 const fs = require('fs');
 const discord = require('./api/discord');  // Import your discord module
 const player = require('./api/player');  // Import your player module
-const soundcloud = require('./api/soundcloud');  // Import your soundcloud module
+const soundcloud = require('./api/soundcloud.js');  // Import your soundcloud module
 
 const app = express();
 const port = 3000;
