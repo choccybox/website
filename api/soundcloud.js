@@ -30,7 +30,7 @@ async function loadSoundcloudToken() {
   }
 }
 
-soundcloud.get('/soundauth', (req, res) => {
+/* soundcloud.get('/soundauth', (req, res) => {
   // Redirect the user to the SoundCloud authorization URL
   const authorizeUrl = `https://soundcloud.com/connect?client_id=${process.env.SOUNDCLOUD_CLIENT_ID}&redirect_uri=${process.env.SOUNDCLOUD_REDIRECT_URI}&response_type=code&scope=non-expiring`;
   res.redirect(authorizeUrl);
@@ -66,7 +66,7 @@ soundcloud.get('/soundcallback', async (req, res) => {
     console.error('Error exchanging code for token:', error.message);
     res.status(500).send('Error during authentication');
   }
-});
+}); */
 
 soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
   try {
