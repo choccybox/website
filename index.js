@@ -19,8 +19,8 @@ const server = http.createServer(function(req, res) {
     });
 });
 
-// Start the server
-server.listen(port, function(error) {
+// Start the server, use environment variable for port if available
+server.listen(process.env.PORT || port, function(error) {
     if (error) {
         console.log('An error has occurred', error);
     } else {
