@@ -6,10 +6,9 @@ function fetchAndDisplayTime() {
         .then(response => response.json())
         .then(data => {
             if (data.isPlaying == true) {
-                if (data.albumArt != null) {
-                    document.getElementById("player_image").src = data.albumArt;
-                } else {
-                    document.getElementById("player_image").src = "./styles/blank.png";
+
+                if (data.albumArt === null) {
+                    console.log("local file");
                 }
 
                 document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
@@ -17,11 +16,7 @@ function fetchAndDisplayTime() {
 
                 currentProgress = data.progress;
                 currentDuration = data.duration;
-
-                console.log(`Now playing: ${data.name} by ${data.artist}\nArt: ${data.albumArt}\nUrl: ${data.url}\n`);
             } else {
-                console.log("Playback stopped.");
-
                 document.getElementById("player_image").src = data.albumArt;
                 document.getElementById("player_title").innerHTML = "[LAST PLAYED] " + data.name + " • " + data.artist;
                 document.getElementById("player_link").href = data.url;

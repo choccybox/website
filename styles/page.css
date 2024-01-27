@@ -37,16 +37,6 @@ body {
     border-radius: var(--radius);
 }
 
-#main_top_inner {
-    display: flex;
-    flex-wrap: wrap;
-    overflow-y: scroll;
-}
-
-#main_top_inner {
-    background-color: red;
-}
-
 #main_bottom {
     display: block;
     position: absolute;
@@ -154,7 +144,7 @@ body {
 }
 #player_title {
     font-size: 1rem;
-    margin-top: -26px;
+    margin-top: -25px;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
