@@ -22,7 +22,6 @@ const client = new Client({
 // Discord Bot Token
 const token = process.env.DISCORD_BOT_TOKEN;
 // Redirect URI for OAuth2
-// use process.env.BASE_URL
 const redirectUri = `${process.env.BASE_URL}/discordcallback`;
 
 // Scopes for OAuth2
@@ -93,14 +92,14 @@ async function refreshAccessToken(refreshToken) {
     throw error;
   }
 }
-
-/* // OAuth2 endpoint
-discord.get('/discordauth', (req, res) => {
+/*
+// OAuth2 endpoint
+discord.get('/userinfoauth', (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`);
 });
 
 // Discord
-discord.get('/discordcallback', async (req, res) => {
+discord.get('/userinfocallback', async (req, res) => {
   const code = req.query.code;
 
   if (code) {
@@ -156,7 +155,7 @@ discord.get('/discordcallback', async (req, res) => {
 });
  */
 
-discord.get('/discorduser', async (req, res) => {
+discord.get('/userinfo', async (req, res) => {
   try {
     // Load the access token from the JSON file
     let savedAccessToken = loadAccessToken();
@@ -197,7 +196,6 @@ discord.get('/discorduser', async (req, res) => {
 
     // Mock Last.fm connection data
     const mockLastfmConnection = {
-      name: process.env.LASTFM_USER,
       type: 'lastfm',
       url: `https://last.fm/user/${process.env.LASTFM_USER}`,
     };
@@ -233,7 +231,6 @@ discord.get('/discorduser', async (req, res) => {
       }
 
       return {
-        name: connection.name,
         type: connection.type,
         url: url,
       };
@@ -252,13 +249,6 @@ discord.get('/discorduser', async (req, res) => {
     console.error(error);
     res.status(500).send('Error fetching user information.');
   }
-});
-
-
-// Event when the bot is ready
-client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}`);
-
 });
 
 // Log in to Discord

@@ -1,18 +1,16 @@
 //fetch output of express server
-fetch ("/discorduser")
+fetch ("/userinfo")
     .then(response => response.json())
     .then(data => {
         var socialHolder = document.getElementById("socials");
 
-        // console all connections, filter out visibility = 0 and domain, dont ignore spotify, keep it in
+        // ignore domain type 
         for (var i = 0; i < data.connections.length; i++) {
-            if (data.connections[i].visibility == 0 && data.connections[i].type != "spotify" || data.connections[i].type === "domain") {
+            if (data.connections[i].type == "domain") {
                 data.connections.splice(i, 1);
-                i--;
             }
         }
 
-        // clear html
         socialHolder.innerHTML = "";
         // create social buttons
         for (var i = 0; i < data.connections.length; i++) {

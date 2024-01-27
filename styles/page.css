@@ -10,6 +10,18 @@
       }
 }
 
+@media (prefers-color-scheme: light) {
+    :root {
+        --background: #e2dfdf;
+        --timeline: #dad9d9;
+        --progress: #999999;
+        --foreground:  #cecccc;
+        --panel: #b9b6b6;
+        --text: #333333;
+        --radius: 12px;
+      }
+}
+
 body {
     overflow: hidden;
     color: var(--text);
@@ -169,7 +181,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     width: calc(100% - 10px);
-    background-color: var(--background);
+    background-color: var(--timeline);
     z-index: 9999;
     border-radius: var(--radius);
     height: 32px;
