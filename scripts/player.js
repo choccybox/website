@@ -6,57 +6,50 @@ function fetchAndDisplayTime() {
         .then(response => response.json())
         .then(data => {
             if (data.isPlaying == true) {
-
                 if (data.albumArt === null) {
-                    console.log("local file");
-                
-                    // Assuming you have name and artist properties in the 'data' object
-                    const name = data.name; // Replace 'name' with the actual property name from your data
-                    const artist = data.artist; // Replace 'artist' with the actual property name from your data
-                
-                    // Function to fetch data with both track name and artist name
-                    const fetchWithArtist = (trackName, artistName) => {
-                        return fetch(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(trackName)}/${encodeURIComponent(artistName)}`)
-                            .then(response => response.json());
-                    };
-                
-                    // Attempt to fetch with both track name and artist name
-                    fetchWithArtist(name, artist)
-                        .then(result => {
-                            // Assuming the result contains the new albumArt property
-                            const newAlbumArt = result.albumArt; // Replace 'albumArt' with the actual property name from the new result
-                
-                            // Update the player_image element with the new albumArt
-                            document.getElementById("player_image").src = newAlbumArt;
+                    const name = data.name;
+                    const artist = data.artist;
+
+                    // Use Promise.all to wait for both fetch operations to complete
+                    Promise.all([
+                        fetch(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(name)}/${encodeURIComponent(artist)}`)
+                            .then(response => response.json()),
+                        new Promise(resolve => {
+                            // Resolve immediately if albumArt is present
+                            if (data.albumArt) {
+                                resolve({ art: data.albumArt, url: data.url });
+                            } else {
+                                resolve();
+                            }
+                        })
+                    ])
+                        .then(results => {
+                            const result = results[0];
+                            console.log(`name: ${result[0].title} by ${result[0].artist}\nurl: ${result[0].url}\nart: ${result[0].art}`);
+                            document.getElementById("player_image").src = result[0].art;
+                            document.getElementById("player_link").href = result[0].url;
+
+                            // Update the rest of the elements
+                            document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
+                            document.getElementById("player_link").href = data.url;
+
+                            currentProgress = data.progress;
+                            currentDuration = data.duration;
                         })
                         .catch(error => {
-                            console.error('Error fetching data with artist name:', error);
-                
-                            // If the fetch with artist name fails, try fetching without artist name
-                            fetchWithArtist(name, '')
-                                .then(result => {
-                                    // Assuming the result contains the new albumArt property
-                                    const newAlbumArt = result.albumArt; // Replace 'albumArt' with the actual property name from the new result
-                
-                                    // Update the player_image element with the new albumArt
-                                    document.getElementById("player_image").src = newAlbumArt;
-                                })
-                                .catch(secondError => {
-                                    console.error('Error fetching data without artist name:', secondError);
-                                });
+                            console.error('Error fetching data:', error);
                         });
                 } else {
+                    console.log(`name: ${data.title} by ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
                     document.getElementById("player_image").src = data.albumArt;
+
+                    // Update the rest of the elements
+                    document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
+                    document.getElementById("player_link").href = data.url;
+
+                    currentProgress = data.progress;
+                    currentDuration = data.duration;
                 }
-                
-                
-                
-
-                document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
-                document.getElementById("player_link").href = data.url;
-
-                currentProgress = data.progress;
-                currentDuration = data.duration;
             } else {
                 document.getElementById("player_image").src = data.albumArt;
                 document.getElementById("player_title").innerHTML = "[LAST PLAYED] " + data.name + " • " + data.artist;
@@ -71,13 +64,6 @@ function fetchAndDisplayTime() {
 function updateFakeProgressBar() {
     // Calculate the progress percentage
     const progressPercentage = (currentProgress / currentDuration) * 100;
-
-    // calculate how many updates are need by comparing the current progress to the duration
-    const durationComp = currentDuration - currentProgress;
-    const duration = Math.round(durationComp / 1000);
-    const songLength = Math.round(currentDuration / 1000);
-/*     console.log(`Duration: ${duration}\nSong length: ${songLength}`); */
-
 
     // Update the progress bar
     document.getElementById("player_progress").style.width = progressPercentage + "%";

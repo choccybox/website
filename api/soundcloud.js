@@ -107,11 +107,10 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
       const tracks = searchResponse.data.collection.map(track => {
         const largerArtworkUrl = track.artwork_url.replace('large.jpg', 't500x500.jpg');
         return {
-          title: track.title,
+          name: track.title,
           artist: track.user.username,
           url: track.permalink_url,
-          art: largerArtworkUrl,
-          duration: track.duration,
+          albumArt: largerArtworkUrl,
         };
       });
 

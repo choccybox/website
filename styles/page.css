@@ -119,6 +119,27 @@ body {
     border-radius: var(--radius);
 }
 
+
+#player_title {
+    font-size: 1rem;
+    margin-top: -25px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: calc(100% - 12px);
+    margin-left: 6px;
+}
+
+#player_progress {
+    background-color: var(--progress);
+    height: 32px;
+    width: 0%;
+    transition: 0.3s;
+    border-top-left-radius: var(--radius);
+    border-bottom-left-radius: var(--radius);
+}
+
 #player_timeline {
     background-color: var(--timeline);
     height: 32px;
@@ -131,26 +152,9 @@ body {
     overflow: hidden;
 }
 
-#player_progress {
-    background-color: var(--progress);
-    height: 32px;
-    width: 0%;
-    border-top-left-radius: var(--radius);
-    border-bottom-left-radius: var(--radius);
-}
 
 #player:hover #player_timeline {
     display: block;
-}
-#player_title {
-    font-size: 1rem;
-    margin-top: -25px;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: calc(100% - 12px);
-    margin-left: 6px;
 }
 
 #avatar:hover #avatar_credit {
