@@ -150,34 +150,64 @@ async function getNowPlaying() {
   }
 
   try {
-    const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
+    const spotifyResponse = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
     });
 
-    if (response.data && response.data.item) {
-      const { name, artists, album, duration_ms } = response.data.item;
-
-      // Check if is_playing and progress_ms are available in the response
-      const isPlaying = response.data.is_playing || false;
-      const progress = response.data.progress_ms || 0;
+    if (spotifyResponse.data && spotifyResponse.data.item && spotifyResponse.data.is_playing) {
+      const { name, artists, album, duration_ms } = spotifyResponse.data.item;
+      const isPlaying = true;
+      const progress = spotifyResponse.data.progress_ms || 0;
 
       const simplifiedResponse = {
-        isPlaying: isPlaying,
-        name: name,
+        isPlaying,
+        isLocal: spotifyResponse.data.item.is_local,
+        name,
         artist: artists.splice && artists.splice(0, 1).map(artist => artist.name).join(', '),
         albumArt: album.images.length > 0 ? album.images[0].url : null,
-        url: response.data.item.external_urls.spotify,
-        progress: progress,
+        url: spotifyResponse.data.item.external_urls.spotify,
+        progress,
         duration: duration_ms,
-        // check if tracks is on spotify or local
-        isLocal: response.data.item.is_local,
       };
 
       return simplifiedResponse;
     } else {
-      return null;
+      // If no song is playing on Spotify, use last.fm to get the last played song
+      const lastFmResponse = await axios.get('https://ws.audioscrobbler.com/2.0/', {
+        params: {
+          method: 'user.getrecenttracks',
+          user: process.env.LASTFM_USERNAME,
+          api_key: process.env.LASTFM_API_KEY,
+          format: 'json',
+          limit: 1,
+        },
+      });
+
+      if (
+        lastFmResponse.data &&
+        lastFmResponse.data.recenttracks &&
+        lastFmResponse.data.recenttracks.track &&
+        lastFmResponse.data.recenttracks.track.length > 0
+      ) {
+        const lastPlayedTrack = lastFmResponse.data.recenttracks.track[0];
+
+        const simplifiedResponse = {
+          isPlaying: false,
+          name: lastPlayedTrack.name,
+          artist: lastPlayedTrack.artist['#text'],
+          albumArt: lastPlayedTrack.image.length > 0 ? lastPlayedTrack.image[0]['#text'] : null,
+          url: lastPlayedTrack.url,
+          progress: 0,
+          duration: lastPlayedTrack.duration,
+          isLocal: false,
+        };
+
+        return simplifiedResponse;
+      } else {
+        return null; // No song playing on both Spotify and last.fm
+      }
     }
   } catch (error) {
     if (error.response && error.response.status === 401) {
@@ -188,8 +218,6 @@ async function getNowPlaying() {
     throw error;
   }
 }
-
-
 
 
 
