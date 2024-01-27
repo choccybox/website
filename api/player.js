@@ -197,12 +197,15 @@ async function getNowPlaying() {
           isPlaying: false,
           name: lastPlayedTrack.name,
           artist: lastPlayedTrack.artist['#text'],
-          albumArt: lastPlayedTrack.image.length > 0 ? lastPlayedTrack.image[0]['#text'] : null,
+          // get size extralarge for better quality
+          albumArt: lastPlayedTrack.image.find(image => image.size === 'extralarge')['#text'],
           url: lastPlayedTrack.url,
           progress: 0,
           duration: lastPlayedTrack.duration,
           isLocal: false,
         };
+
+        // log response from last.fm
 
         return simplifiedResponse;
       } else {
