@@ -152,3 +152,29 @@ body {
     width: calc(100% - 12px);
     margin-left: 6px;
 }
+
+#avatar:hover #avatar_credit {
+    display: block;
+}
+
+#avatar_credit {
+    font-size: 1rem;
+    margin-top: -28px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: calc(100% - 10px);
+    background-color: var(--background);
+    z-index: 9999;
+    border-radius: var(--radius);
+    height: 32px;
+    margin-top: 10px;
+    position: relative;
+    display: none;
+}
+
+#avatar_credit_text {
+    font-size: 1rem;
+    margin-top: 5px;
+}

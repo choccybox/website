@@ -10,7 +10,6 @@ fetch("https://en.pronouns.page/api/profile/get/choccymilk?version=2&props=prono
         for (var i = 0; i < data.profiles.en.flags.length; i++) {
             flags.push(data.profiles.en.flags[i].toLowerCase());
         }
-        console.log(`pronouns: ${pronouns}\nflags: ${flags}`);
 
         // Join the pronouns array into a string
         var pronounsString = pronouns.join(', ');

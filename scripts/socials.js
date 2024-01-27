@@ -2,7 +2,6 @@
 fetch ("/discorduser")
     .then(response => response.json())
     .then(data => {
-        console.log(data);
         var socialHolder = document.getElementById("socials");
 
         // console all connections, filter out visibility = 0 and domain, dont ignore spotify, keep it in
@@ -43,7 +42,8 @@ fetch ("/discorduser")
         for (var i = 0; i < split.length; i++) {
             split[i].style.display = "block";
         }
-        document.getElementById("avatar").src = data.avatar;
+        document.getElementById("avatar_image").src = data.avatar;
+        document.getElementById("avatar_credit_text").innerHTML = data.avatarCredit;
 
 /*         document.getElementById("main_right").style.display = "flex";
         document.getElementById("avatar").style.display = "block";

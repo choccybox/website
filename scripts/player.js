@@ -9,7 +9,48 @@ function fetchAndDisplayTime() {
 
                 if (data.albumArt === null) {
                     console.log("local file");
+                
+                    // Assuming you have name and artist properties in the 'data' object
+                    const name = data.name; // Replace 'name' with the actual property name from your data
+                    const artist = data.artist; // Replace 'artist' with the actual property name from your data
+                
+                    // Function to fetch data with both track name and artist name
+                    const fetchWithArtist = (trackName, artistName) => {
+                        return fetch(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(trackName)}/${encodeURIComponent(artistName)}`)
+                            .then(response => response.json());
+                    };
+                
+                    // Attempt to fetch with both track name and artist name
+                    fetchWithArtist(name, artist)
+                        .then(result => {
+                            // Assuming the result contains the new albumArt property
+                            const newAlbumArt = result.albumArt; // Replace 'albumArt' with the actual property name from the new result
+                
+                            // Update the player_image element with the new albumArt
+                            document.getElementById("player_image").src = newAlbumArt;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching data with artist name:', error);
+                
+                            // If the fetch with artist name fails, try fetching without artist name
+                            fetchWithArtist(name, '')
+                                .then(result => {
+                                    // Assuming the result contains the new albumArt property
+                                    const newAlbumArt = result.albumArt; // Replace 'albumArt' with the actual property name from the new result
+                
+                                    // Update the player_image element with the new albumArt
+                                    document.getElementById("player_image").src = newAlbumArt;
+                                })
+                                .catch(secondError => {
+                                    console.error('Error fetching data without artist name:', secondError);
+                                });
+                        });
+                } else {
+                    document.getElementById("player_image").src = data.albumArt;
                 }
+                
+                
+                
 
                 document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
                 document.getElementById("player_link").href = data.url;
@@ -35,7 +76,7 @@ function updateFakeProgressBar() {
     const durationComp = currentDuration - currentProgress;
     const duration = Math.round(durationComp / 1000);
     const songLength = Math.round(currentDuration / 1000);
-    console.log(`Duration: ${duration}\nSong length: ${songLength}`);
+/*     console.log(`Duration: ${duration}\nSong length: ${songLength}`); */
 
 
     // Update the progress bar

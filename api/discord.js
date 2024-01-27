@@ -243,6 +243,7 @@ discord.get('/discorduser', async (req, res) => {
     const userInfo = {
       // check if image has a_, if so, use .gif, otherwise use .png
       avatar: userResponse.data.avatar ? `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar.startsWith('a_') ? userResponse.data.avatar : `${userResponse.data.avatar}.png?size=512`}` : null,
+      avatarCredit: "made by " + process.env.AVATAR_CREDIT,
       connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
     };
 

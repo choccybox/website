@@ -2,6 +2,10 @@ const express = require('express');
 const discord = require('./api/discord');  // Import your discord module
 const player = require('./api/player');  // Import your player module
 const soundcloud = require('./api/soundcloud.js');  // Import your soundcloud module
+const cors = require('cors');
+
+// enable cors on all requests
+app.use(cors());
 
 const app = express();
 const port = 3000;

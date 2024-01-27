@@ -24,6 +24,14 @@
     height: 135px !important;
   }
 
+  #avatar {
+    height: 290px;
+  }
+
+  #avatar_credit {
+    width: 100% !important;
+  }
+
   #player {
     height: 280px !important;
     padding-top: 40px;
