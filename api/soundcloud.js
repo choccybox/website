@@ -8,12 +8,9 @@ const PORT = 20003;
 const TOKEN_FILE = 'soundcloud.json';
 
 // Function to save the access token and refresh token to a JSON file
-async function saveSoundcloudToken(accessToken, refreshToken, expiresIn) {
-  const expirationTime = Date.now() + expiresIn * 1000;
-  const dataToSave = { access_token: accessToken, refresh_token: refreshToken, expires_at: expirationTime };
-
+async function saveSoundcloudToken(accessToken, refreshToken) {
   try {
-    await fs.writeFile(TOKEN_FILE, JSON.stringify(dataToSave));
+    await fs.writeFile(TOKEN_FILE, JSON.stringify({ access_token: accessToken, refresh_token: refreshToken }));
     console.log('SoundCloud tokens saved successfully.');
   } catch (error) {
     console.error('Error saving SoundCloud tokens:', error);
@@ -24,45 +21,12 @@ async function saveSoundcloudToken(accessToken, refreshToken, expiresIn) {
 async function loadSoundcloudToken() {
   try {
     const data = await fs.readFile(TOKEN_FILE);
-    const { access_token: accessToken, refresh_token: refreshToken, expires_at: expiresAt } = JSON.parse(data);
-
-    if (expiresAt && expiresAt < Date.now()) {
-      // Access token has expired, refresh it
-      return refreshAccessToken(refreshToken);
-    }
-
+    const { access_token: accessToken, refresh_token: refreshToken } = JSON.parse(data);
     console.log('SoundCloud tokens loaded successfully.');
     return { accessToken, refreshToken };
   } catch (error) {
     console.error('Error loading SoundCloud tokens:', error);
     return null;
-  }
-}
-
-// Function to refresh the access token using the refresh token
-async function refreshAccessToken(refreshToken) {
-  const tokenUrl = 'https://api.soundcloud.com/oauth2/token';
-  const params = new URLSearchParams({
-    client_id: process.env.SOUNDCLOUD_CLIENT_ID,
-    client_secret: process.env.SOUNDCLOUD_CLIENT_SECRET,
-    refresh_token: refreshToken,
-    grant_type: 'refresh_token',
-  });
-
-  try {
-    const response = await axios.post(tokenUrl, params);
-    const accessToken = response.data.access_token;
-    const refreshToken = response.data.refresh_token;
-    const expiresIn = response.data.expires_in;
-
-    // Store the new access token and refresh token
-    await saveSoundcloudToken(accessToken, refreshToken, expiresIn);
-
-    console.log('Access token refreshed successfully.');
-    return { accessToken, refreshToken };
-  } catch (error) {
-    console.error('Error refreshing access token:', error.message);
-    throw error;
   }
 }
 
@@ -90,10 +54,9 @@ soundcloud.get('/soundcallback', async (req, res) => {
     const response = await axios.post(tokenUrl, params);
     const accessToken = response.data.access_token;
     const refreshToken = response.data.refresh_token;
-    const expiresIn = response.data.expires_in;
 
     // Store the access token and refresh token in sound_token.json
-    await saveSoundcloudToken(accessToken, refreshToken, expiresIn);
+    await saveSoundcloudToken(accessToken, refreshToken);
 
     // Display user data in JSON format
     res.json('success');
@@ -118,17 +81,7 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
       return res.status(401).send('Access token not found. Please authorize.');
     }
 
-    let accessToken = tokens.accessToken;
-
-    if (accessTokenIsExpired) {
-      // If the access token is expired, refresh it
-      try {
-        accessToken = await refreshAccessToken(tokens.refreshToken);
-      } catch (refreshError) {
-        return res.status(500).send('Error refreshing access token');
-      }
-    }
-
+    const accessToken = tokens.accessToken;
 
     // Extract parameters from the request URL
     const { trackname, artistname } = req.params;
