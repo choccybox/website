@@ -182,12 +182,14 @@ async function getNowPlaying() {
         try {
           const artistNameModified = simplifiedResponse.artist.replace(/\s*\([^)]*\)\s*/g, '').trim();
 
+          const tokens = await loadSoundcloudToken();
           // Use the SoundCloud API to search for the song
           const soundcloudSearchResponse = await axios (`https://api.soundcloud.com/tracks?q=${encodeURIComponent(simplifiedResponse.name)} ${encodeURIComponent(artistNameModified)}&limit=1&offset=0&linked_partitioning=true` ,{
             headers: {
-              'Authorization': `OAuth ${accessToken}`,
+              'Authorization': `OAuth ${tokens.accessToken}`,
             },
           });
+
 
          console.log(soundcloudSearchResponse);
 /* 
@@ -207,10 +209,10 @@ async function getNowPlaying() {
         const trackName = encodeURIComponent(lastPlayedTrack.name);
         const artistName = encodeURIComponent(lastPlayedTrack.artist['#text']);
 
-        // Use the SoundCloud API to search for the song
+        const tokens = await loadSoundcloudToken();
         const soundcloudSearchResponse = await axios (`https://api.soundcloud.com/tracks?q=${encodeURIComponent(trackName)} ${encodeURIComponent(artistName)}&limit=1&offset=0&linked_partitioning=true` ,{
           headers: {
-            'Authorization': `OAuth ${accessToken}`,
+            'Authorization': `OAuth ${tokens.accessToken}`,
           },
         });
 
