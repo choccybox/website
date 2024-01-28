@@ -3,7 +3,7 @@ const axios = require('axios');
 const fs = require('fs');
 const { Client, GatewayIntentBits } = require('discord.js');
 const dotenv = require('dotenv');
-const discord = express();
+const userinfo = express();
 
 // Load environment variables from .env file
 dotenv.config();
@@ -94,12 +94,12 @@ async function refreshAccessToken(refreshToken) {
 }
 /*
 // OAuth2 endpoint
-discord.get('/userinfoauth', (req, res) => {
+userinfo.get('/userinfoauth', (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`);
 });
 
 // Discord
-discord.get('/userinfocallback', async (req, res) => {
+userinfo.get('/userinfocallback', async (req, res) => {
   const code = req.query.code;
 
   if (code) {
@@ -155,7 +155,7 @@ discord.get('/userinfocallback', async (req, res) => {
 });
  */
 
-discord.get('/userinfo', async (req, res) => {
+userinfo.get('/userinfo', async (req, res) => {
   try {
     // Load the access token from the JSON file
     let savedAccessToken = loadAccessToken();
@@ -254,8 +254,8 @@ discord.get('/userinfo', async (req, res) => {
 // Log in to Discord
 client.login(token);
 
-discord.listen(port, () => {
-  console.log(`discord running: ${port}`);
+userinfo.listen(port, () => {
+  console.log(`userinfo running: ${port}`);
 });
 
-module.exports = discord;
+module.exports = userinfo;
