@@ -8,9 +8,12 @@ const PORT = 20003;
 const TOKEN_FILE = 'soundcloud.json';
 
 // Function to save the access token and refresh token to a JSON file
-async function saveSoundcloudToken(accessToken, refreshToken) {
+async function saveSoundcloudToken(accessToken, refreshToken, expiresIn) {
+  const expirationTime = Date.now() + expiresIn * 1000;
+  const dataToSave = { access_token: accessToken, refresh_token: refreshToken, expires_at: expirationTime };
+
   try {
-    await fs.writeFile(TOKEN_FILE, JSON.stringify({ access_token: accessToken, refresh_token: refreshToken }));
+    await fs.writeFile(TOKEN_FILE, JSON.stringify(dataToSave));
     console.log('SoundCloud tokens saved successfully.');
   } catch (error) {
     console.error('Error saving SoundCloud tokens:', error);
@@ -21,7 +24,13 @@ async function saveSoundcloudToken(accessToken, refreshToken) {
 async function loadSoundcloudToken() {
   try {
     const data = await fs.readFile(TOKEN_FILE);
-    const { access_token: accessToken, refresh_token: refreshToken } = JSON.parse(data);
+    const { access_token: accessToken, refresh_token: refreshToken, expires_at: expiresAt } = JSON.parse(data);
+
+    if (expiresAt && expiresAt < Date.now()) {
+      // Access token has expired, refresh it
+      return refreshAccessToken(refreshToken);
+    }
+
     console.log('SoundCloud tokens loaded successfully.');
     return { accessToken, refreshToken };
   } catch (error) {
@@ -42,14 +51,15 @@ async function refreshAccessToken(refreshToken) {
 
   try {
     const response = await axios.post(tokenUrl, params);
-    const newAccessToken = response.data.access_token;
-    const newRefreshToken = response.data.refresh_token;
+    const accessToken = response.data.access_token;
+    const refreshToken = response.data.refresh_token;
+    const expiresIn = response.data.expires_in;
 
-    // Update the stored tokens with the new access token and refresh token
-    await saveSoundcloudToken(newAccessToken, newRefreshToken);
+    // Store the new access token and refresh token
+    await saveSoundcloudToken(accessToken, refreshToken, expiresIn);
 
     console.log('Access token refreshed successfully.');
-    return newAccessToken;
+    return { accessToken, refreshToken };
   } catch (error) {
     console.error('Error refreshing access token:', error.message);
     throw error;
@@ -80,9 +90,10 @@ soundcloud.get('/soundcallback', async (req, res) => {
     const response = await axios.post(tokenUrl, params);
     const accessToken = response.data.access_token;
     const refreshToken = response.data.refresh_token;
+    const expiresIn = response.data.expires_in;
 
     // Store the access token and refresh token in sound_token.json
-    await saveSoundcloudToken(accessToken, refreshToken);
+    await saveSoundcloudToken(accessToken, refreshToken, expiresIn);
 
     // Display user data in JSON format
     res.json('success');
