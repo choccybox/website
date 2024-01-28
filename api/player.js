@@ -40,7 +40,7 @@ function saveTokensToFile() {
   }
 }
 
-/* player.get('/spotifyauth', (req, res) => {
+player.get('/spotifyauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: clientId,
@@ -81,7 +81,7 @@ player.get('/playercallback', async (req, res) => {
     }, 5000);
   }
 });
- */
+
 player.get('/player', async (req, res) => {
   try {
     const nowPlayingResponse = await getNowPlaying();
@@ -144,7 +144,6 @@ async function getSearchResults(trackname, artistname) {
   }
 }
 
-let cachedNowPlaying = null;
 
 async function getNowPlaying() {
   if (!accessToken) {
@@ -160,7 +159,6 @@ async function getNowPlaying() {
     });
 
     if (spotifyResponse.data && spotifyResponse.data.item && spotifyResponse.data.is_playing) {
-/*       console.log('playing'); */
       const { name, artists, album, duration_ms } = spotifyResponse.data.item;
       const isPlaying = true;
       const progress = spotifyResponse.data.progress_ms || 0;
@@ -177,20 +175,24 @@ async function getNowPlaying() {
       };
 
       if (simplifiedResponse.isLocal === true) {
-        // If the song is local, use SoundCloud API to search for the song and get its data
         try {
+          console.log('Local track detected, fetching data from SoundCloud API...');
 
           const artistNameModified =  simplifiedResponse.artist.replace(/\s*\([^)]*\)\s*/g, '').trim();
 
-          // If no matches are found on Spotify, use SoundCloud API to search for the song and get its data
+          console.log('Modified Artist Name:', artistNameModified);
+
+
           const soundcloudSearchResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(name)}/${encodeURIComponent(artistNameModified)}`);
       
+          console.log(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(name)}/${encodeURIComponent(artistNameModified)}`)
+
           simplifiedResponse.url = soundcloudSearchResponse.data[0].url;
           simplifiedResponse.art = soundcloudSearchResponse.data[0].art;
         
         } catch (soundcloudError) {
-          // Handle error if SoundCloud API call fails
           console.error('Error fetching data from SoundCloud:', soundcloudError.message);
+          console.log('man what the fuck');
         }
       }
       

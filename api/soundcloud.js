@@ -60,12 +60,6 @@ soundcloud.get('/soundcallback', async (req, res) => {
 
     // Display user data in JSON format
     res.json('success');
-    // log the tokens
-    console.log(`Access token: ${accessToken}`);
-    // log the .json file
-    console.log(`Refresh token: ${refreshToken}`);
-    // log how the json file is being saved (format)
-    console.log(`Tokens saved to ${TOKEN_FILE}`);
   } catch (error) {
     console.error('Error exchanging code for token:', error.message);
     res.status(500).send('Error during authentication');

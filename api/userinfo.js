@@ -92,7 +92,7 @@ async function refreshAccessToken(refreshToken) {
     throw error;
   }
 }
-/*
+
 // OAuth2 endpoint
 userinfo.get('/userinfoauth', (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`);
@@ -153,7 +153,7 @@ userinfo.get('/userinfocallback', async (req, res) => {
     res.status(400).send('Authorization code not provided.');
   }
 });
- */
+
 
 userinfo.get('/userinfo', async (req, res) => {
   try {
