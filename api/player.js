@@ -39,7 +39,7 @@ function saveTokensToFile() {
     console.error('Error saving tokens to file:', err.message);
   }
 }
-
+/* 
 player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
@@ -80,7 +80,7 @@ player.get('/playercallback', async (req, res) => {
       return res.redirect('/error');
     }, 5000);
   }
-});
+}); */
 
 player.get('/player', async (req, res) => {
   try {
@@ -91,59 +91,6 @@ player.get('/player', async (req, res) => {
     res.status(error.response ? error.response.status : 500).send('Error occurred while fetching currently playing track.');
   }
 });
-
-player.get('/spotify-search/:trackname/:artistname?', async (req, res) => {
-  const { trackname, artistname } = req.params;
-
-  try {
-    const spotifySearch = await getSearchResults(trackname, artistname);
-    res.json(spotifySearch);
-  } catch (error) {
-    console.error('Error:', error.response ? error.response.data : error.message);
-    res.status(error.response ? error.response.status : 500).send('Error occurred while searching for track.');
-  }
-});
-
-
-async function getSearchResults(trackname, artistname) {
-  if (!accessToken) {
-    throw new Error('Access token not available.');
-  }
-
-  try {
-    const response = await axios.get('https://api.spotify.com/v1/search', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      params: {
-        q: `track:${trackname} ${artistname ? `artist:${artistname}` : ''}`,
-        type: 'track',
-        limit: 5,
-      },
-    });
-
-    // Extract relevant information for each search result
-    const simplifiedSearchResults = response.data.tracks.items.map((item) => {
-      return {
-        name: item.name,
-        artist: item.artists.map(artist => artist.name).join(', '),
-        image: item.album.images.length > 0 ? item.album.images[0].url : null,
-        url: item.external_urls.spotify,
-        duration: item.duration_ms,
-      };
-    });
-
-    return simplifiedSearchResults;
-  } catch (error) {
-    if (error.response && error.response.status === 401) {
-      // Access token expired, refresh the token and retry the request
-      await refreshAccessToken();
-      return getSearchResults(trackname, artistname);
-    }
-    throw error;
-  }
-}
-
 
 async function getNowPlaying() {
   if (!accessToken) {
@@ -176,23 +123,17 @@ async function getNowPlaying() {
 
       if (simplifiedResponse.isLocal === true) {
         try {
-          console.log('Local track detected, fetching data from SoundCloud API...');
+          console.log(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(name)}/${encodeURIComponent(artistNameModified)}`)
 
           const artistNameModified =  simplifiedResponse.artist.replace(/\s*\([^)]*\)\s*/g, '').trim();
 
-          console.log('Modified Artist Name:', artistNameModified);
-
-
           const soundcloudSearchResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(name)}/${encodeURIComponent(artistNameModified)}`);
       
-          console.log(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(name)}/${encodeURIComponent(artistNameModified)}`)
-
           simplifiedResponse.url = soundcloudSearchResponse.data[0].url;
           simplifiedResponse.art = soundcloudSearchResponse.data[0].art;
         
         } catch (soundcloudError) {
           console.error('Error fetching data from SoundCloud:', soundcloudError.message);
-          console.log('man what the fuck');
         }
       }
       
@@ -200,15 +141,11 @@ async function getNowPlaying() {
       return simplifiedResponse;
     // spotify is not playing, use lastfm, fetch data with either spotify or soundcloud
   } else if (spotifyResponse.data && spotifyResponse.data.item && !spotifyResponse.data.is_playing) {
-/*     console.log('not playing'); */
     console.log(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USER}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
     const lastFmResponse = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USER}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
-    // Last.fm has a recently played track
     const lastPlayedTrack = lastFmResponse.data.recenttracks.track[0];
 
-    // Use Last.fm data to search for a matching track on the Spotify API
     try {
-      // Sanitize and simplify the search parameters
       const trackName = encodeURIComponent(lastPlayedTrack.name);
       const artistName = encodeURIComponent(lastPlayedTrack.artist['#text']);
       const searchUrl = `https://api.spotify.com/v1/search?q=track:${trackName} artist:${artistName}&type=track&limit=1`;

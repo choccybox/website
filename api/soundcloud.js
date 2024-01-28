@@ -99,12 +99,11 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
     if (searchResponse.data.collection) {
       // simplify the data
       const tracks = searchResponse.data.collection.map(track => {
-        const largerArtworkUrl = track.artwork_url.replace('large.jpg', 't500x500.jpg');
         return {
           name: track.title,
           artist: track.user.username,
           url: track.permalink_url,
-          art: largerArtworkUrl,
+          art: track.artwork_url,
         };
       });
 
