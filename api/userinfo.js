@@ -22,7 +22,7 @@ const client = new Client({
 // Discord Bot Token
 const token = process.env.DISCORD_BOT_TOKEN;
 // Redirect URI for OAuth2
-const redirectUri = `${process.env.BASE_URL}/discordcallback`;
+const redirectUri = `http://localhost:3000/userinfocallback`;
 
 // Scopes for OAuth2
 const scopes = ['identify', 'connections'];
@@ -144,7 +144,7 @@ userinfo.get('/userinfocallback', async (req, res) => {
 
       client.token = accessToken;
 
-      res.redirect('/discorduser');
+      res.redirect('/userinfo');
     } catch (error) {
       console.error('Error during authorization:', error);
       res.status(500).send('Error during authorization.');

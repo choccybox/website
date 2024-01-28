@@ -104,7 +104,7 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
           name: track.title,
           artist: track.user.username,
           url: track.permalink_url,
-          albumArt: largerArtworkUrl,
+          art: largerArtworkUrl,
         };
       });
 

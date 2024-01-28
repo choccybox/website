@@ -11,7 +11,7 @@ const PORT = 20002;
 
 const clientId = process.env.SPOTIFY_CLIENT_ID;
 const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-const redirectUri = `${process.env.BASE_URL}/spotifycallback`;
+const redirectUri = `http://localhost:3000/playercallback`;
 const scopes = 'user-read-currently-playing user-library-read user-read-recently-played user-top-read user-read-playback-state';
 
 try {
@@ -40,7 +40,7 @@ function saveTokensToFile() {
   }
 }
 
-player.get('/spotifyauth', (req, res) => {
+player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: clientId,
@@ -70,7 +70,7 @@ player.get('/playercallback', async (req, res) => {
     accessToken = access_token;
     refreshToken = refresh_token;
 
-    res.redirect('/spotifyplayer');
+    res.redirect('/player');
     saveTokensToFile();
   } catch (error) {
     console.error('Error:', error.response ? error.response.data : error.message);
