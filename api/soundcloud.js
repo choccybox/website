@@ -30,6 +30,32 @@ async function loadSoundcloudToken() {
   }
 }
 
+// Function to refresh the access token using the refresh token
+async function refreshAccessToken(refreshToken) {
+  const tokenUrl = 'https://api.soundcloud.com/oauth2/token';
+  const params = new URLSearchParams({
+    client_id: process.env.SOUNDCLOUD_CLIENT_ID,
+    client_secret: process.env.SOUNDCLOUD_CLIENT_SECRET,
+    refresh_token: refreshToken,
+    grant_type: 'refresh_token',
+  });
+
+  try {
+    const response = await axios.post(tokenUrl, params);
+    const newAccessToken = response.data.access_token;
+    const newRefreshToken = response.data.refresh_token;
+
+    // Update the stored tokens with the new access token and refresh token
+    await saveSoundcloudToken(newAccessToken, newRefreshToken);
+
+    console.log('Access token refreshed successfully.');
+    return newAccessToken;
+  } catch (error) {
+    console.error('Error refreshing access token:', error.message);
+    throw error;
+  }
+}
+
 soundcloud.get('/soundauth', (req, res) => {
   // Redirect the user to the SoundCloud authorization URL
   const authorizeUrl = `https://soundcloud.com/connect?client_id=${process.env.SOUNDCLOUD_CLIENT_ID}&redirect_uri=${process.env.SOUNDCLOUD_REDIRECT_URI}&response_type=code&scope=non-expiring`;
@@ -81,7 +107,17 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
       return res.status(401).send('Access token not found. Please authorize.');
     }
 
-    const accessToken = tokens.accessToken;
+    let accessToken = tokens.accessToken;
+
+    if (accessTokenIsExpired) {
+      // If the access token is expired, refresh it
+      try {
+        accessToken = await refreshAccessToken(tokens.refreshToken);
+      } catch (refreshError) {
+        return res.status(500).send('Error refreshing access token');
+      }
+    }
+
 
     // Extract parameters from the request URL
     const { trackname, artistname } = req.params;
@@ -110,7 +146,7 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
           name: track.title,
           artist: track.user.username,
           url: track.permalink_url,
-          albumArt: largerArtworkUrl,
+          art: largerArtworkUrl,
         };
       });
 

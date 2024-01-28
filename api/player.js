@@ -144,8 +144,6 @@ async function getSearchResults(trackname, artistname) {
   }
 }
 
-let cachedNowPlaying = null;
-
 async function getNowPlaying() {
   if (!accessToken) {
     throw new Error('Access token not available.');
@@ -193,18 +191,15 @@ async function getNowPlaying() {
           console.error('Error fetching data from SoundCloud:', soundcloudError.message);
         }
       }
-      
 
       return simplifiedResponse;
     // spotify is not playing, use lastfm, fetch data with either spotify or soundcloud
   } else if (spotifyResponse.data && spotifyResponse.data.item && !spotifyResponse.data.is_playing) {
-/*     console.log('not playing'); */
+  /*console.log('not playing'); */
     console.log(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USER}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
     const lastFmResponse = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USER}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
-    // Last.fm has a recently played track
     const lastPlayedTrack = lastFmResponse.data.recenttracks.track[0];
 
-    // Use Last.fm data to search for a matching track on the Spotify API
     try {
       // Sanitize and simplify the search parameters
       const trackName = encodeURIComponent(lastPlayedTrack.name);
@@ -217,7 +212,7 @@ async function getNowPlaying() {
       });
 
       if (spotifySearchResponse.data.tracks.total === 0) {
-/*         console.log('No matches found on Spotify.'); */
+        /*console.log('No matches found on Spotify.'); */
         try {
           // remove (@) from artist name (if it exists)
           const artistNameModified =  artistName.replace(/\s*\([^)]*\)\s*/g, '').trim();
@@ -240,12 +235,10 @@ async function getNowPlaying() {
           return simplifiedResponse;
         }
         catch (soundcloudError) {
-          // Handle error if SoundCloud API call fails
           console.error('Error fetching data from SoundCloud:', soundcloudError.message);
           return null;
         }
       } else {
-        // Process Spotify results as before if there are matches
         const spotifyTrack = spotifySearchResponse.data.tracks.items[0];
 
         const simplifiedResponse = {
@@ -268,7 +261,6 @@ async function getNowPlaying() {
   }
 } catch (error) {
   if (error.response && error.response.status === 401) {
-    // Access token expired, refresh the token and retry the request
     await refreshAccessToken();
     return getNowPlaying();
   }
