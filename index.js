@@ -1,7 +1,7 @@
 const express = require('express');
 const userinfo = require('./api/userinfo.js');  // Import your discord module
 const player = require('./api/player');  // Import your player module
-/* const soundcloud = require('./api/soundcloud.js');  // Import your soundcloud module */
+const soundcloud = require('./api/soundcloud.js');  // Import your soundcloud module
 // cors
 const cors = require('cors');
 
@@ -18,7 +18,7 @@ app.use(express.static(__dirname));
 // use discord
 app.use(userinfo);
 app.use(player);
-/* app.use(soundcloud); */
+app.use(soundcloud);
 
 app.listen(port, () => {
   console.log(`Server is running ${port}`);

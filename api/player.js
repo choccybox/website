@@ -144,6 +144,8 @@ async function getSearchResults(trackname, artistname) {
   }
 }
 
+let cachedNowPlaying = null;
+
 async function getNowPlaying() {
   if (!accessToken) {
     throw new Error('Access token not available.');
