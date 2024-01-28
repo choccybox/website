@@ -161,8 +161,9 @@ async function getNowPlaying() {
     });
 
     if (spotifyResponse.data && spotifyResponse.data.item && spotifyResponse.data.is_playing) {
-      const trackName = encodeURIComponent(spotifyResponse.data.item.name);
-      const artistName = encodeURIComponent(spotifyResponse.data.item.artists[0]?.name || '');
+      const trackName = spotifyResponse.data.item.name;
+      // splice to one artist
+      const artistName = spotifyResponse.data.item.artists.splice(0, 1)[0].name;
       const { album, duration_ms } = spotifyResponse.data.item;
       const isPlaying = true;
       const progress = spotifyResponse.data.progress_ms || 0;
