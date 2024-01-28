@@ -3,6 +3,9 @@ const axios = require('axios');
 const querystring = require('querystring');
 const player = express();
 const fs = require('fs');
+const { promisify } = require('util');
+const readFileAsync = promisify(fs.readFile);
+const writeFileAsync = promisify(fs.writeFile);
 
 const PORT = 20002;
 
@@ -42,17 +45,16 @@ function saveTokensToFile() {
 // Function to save the access token and refresh token to a JSON file
 async function saveSoundcloudToken(accessToken, refreshToken) {
   try {
-    await fs.writeFile(TOKEN_FILE, JSON.stringify({ access_token: accessToken, refresh_token: refreshToken }));
+    await writeFileAsync(TOKEN_FILE, JSON.stringify({ access_token: accessToken, refresh_token: refreshToken }));
     console.log('SoundCloud tokens saved successfully.');
   } catch (error) {
     console.error('Error saving SoundCloud tokens:', error);
   }
 }
 
-// Function to load the access token and refresh token from a JSON file
 async function loadSoundcloudToken() {
   try {
-    const data = await fs.readFile(TOKEN_FILE);
+    const data = await readFileAsync(TOKEN_FILE);
     const { access_token: accessToken, refresh_token: refreshToken } = JSON.parse(data);
     console.log('SoundCloud tokens loaded successfully.');
     return { accessToken, refreshToken };
@@ -193,9 +195,9 @@ async function getNowPlaying() {
 
 
          console.log(soundcloudSearchResponse);
-/* 
+         
           simplifiedResponse.url = soundcloudSearchResponse.url;
-          simplifiedResponse.art = soundcloudSearchResponse.art; */
+          simplifiedResponse.art = soundcloudSearchResponse.art;
         } catch (soundcloudError) {
           console.error('Error fetching data from SoundCloud:', soundcloudError.message);
         }
