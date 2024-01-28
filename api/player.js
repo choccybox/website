@@ -161,15 +161,17 @@ async function getNowPlaying() {
     });
 
     if (spotifyResponse.data && spotifyResponse.data.item && spotifyResponse.data.is_playing) {
-      const { name, artists, album, duration_ms } = spotifyResponse.data.item;
+      const trackName = encodeURIComponent(spotifyResponse.data.item.name);
+      const artistName = encodeURIComponent(spotifyResponse.data.item.artists[0]?.name || '');
+      const { album, duration_ms } = spotifyResponse.data.item;
       const isPlaying = true;
       const progress = spotifyResponse.data.progress_ms || 0;
 
       const simplifiedResponse = {
         isPlaying,
         isLocal: spotifyResponse.data.item.is_local,
-        name,
-        artist: artists.splice && artists.splice(0, 1).map(artist => artist.name).join(', '),
+        name: trackName,
+        artist: artistName,
         art: album.images.length > 0 ? album.images[0].url : null,
         url: spotifyResponse.data.item.external_urls.spotify,
         progress,
@@ -181,10 +183,16 @@ async function getNowPlaying() {
           const artistNameModified = simplifiedResponse.artist.replace(/\s*\([^)]*\)\s*/g, '').trim();
 
           // Use the SoundCloud API to search for the song
-          const soundcloudSearchResponse = await searchOnSoundCloud(name, artistNameModified);
+          const soundcloudSearchResponse = await axios (`https://api.soundcloud.com/tracks?q=${encodeURIComponent(simplifiedResponse.name)} ${encodeURIComponent(artistNameModified)}&limit=1&offset=0&linked_partitioning=true` ,{
+            headers: {
+              'Authorization': `OAuth ${accessToken}`,
+            },
+          });
 
+         console.log(soundcloudSearchResponse);
+/* 
           simplifiedResponse.url = soundcloudSearchResponse.url;
-          simplifiedResponse.art = soundcloudSearchResponse.art;
+          simplifiedResponse.art = soundcloudSearchResponse.art; */
         } catch (soundcloudError) {
           console.error('Error fetching data from SoundCloud:', soundcloudError.message);
         }
@@ -200,7 +208,11 @@ async function getNowPlaying() {
         const artistName = encodeURIComponent(lastPlayedTrack.artist['#text']);
 
         // Use the SoundCloud API to search for the song
-        const soundcloudSearchResponse = await searchOnSoundCloud(trackName, artistName);
+        const soundcloudSearchResponse = await axios (`https://api.soundcloud.com/tracks?q=${encodeURIComponent(trackName)} ${encodeURIComponent(artistName)}&limit=1&offset=0&linked_partitioning=true` ,{
+          headers: {
+            'Authorization': `OAuth ${accessToken}`,
+          },
+        });
 
         const simplifiedResponse = {
           isPlaying: false,
@@ -227,37 +239,6 @@ async function getNowPlaying() {
     throw error;
   }
 }
-
-async function searchOnSoundCloud(trackName, artistName) {
-  const soundcloudSearchUrl = `https://api.soundcloud.com/tracks?q=${trackName} ${artistName}&limit=1&linked_partitioning=true`;
-
-  try {
-    const soundcloudSearchResponse = await axios.get(soundcloudSearchUrl, {
-      headers: {
-        Authorization: `Bearer ${process.env.SOUNDCLOUD_ACCESS_TOKEN}`,
-      },
-    });
-
-    if (soundcloudSearchResponse.data.collection) {
-      const track = soundcloudSearchResponse.data.collection[0];
-      const largerArtworkUrl = track.artwork_url.replace('large.jpg', 't500x500.jpg');
-
-      return {
-        name: track.title,
-        artist: track.user.username,
-        url: track.permalink_url,
-        art: largerArtworkUrl,
-      };
-    } else {
-      console.error('Unexpected response format:', soundcloudSearchResponse.data);
-      throw new Error('Unexpected response format');
-    }
-  } catch (error) {
-    console.error('Error searching tracks on SoundCloud:', error.message);
-    throw new Error('Error searching tracks on SoundCloud');
-  }
-}
-
 
 async function refreshAccessToken() {
   try {

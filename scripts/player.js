@@ -6,8 +6,13 @@ function fetchAndDisplayTime() {
         .then(response => response.json())
         .then(data => {
             if (data.isPlaying == true) {
-                    console.log(`name: ${data.title} by ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
-                    document.getElementById("player_image").src = data.art;
+                    console.log(`name: ${data.name} by ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
+
+                    if (data.art === null) {
+                        document.getElementById("player_image").src = "./styles/spong.png";
+                    } else {
+                        document.getElementById("player_image").src = data.art;
+                    }
 
                     // Update the rest of the elements
                     document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
