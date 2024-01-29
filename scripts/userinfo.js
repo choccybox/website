@@ -40,8 +40,13 @@ fetch ("/userinfo")
         for (var i = 0; i < split.length; i++) {
             split[i].style.display = "block";
         }
+
+        const avatarCreditFormatted = new URL(data.avatarCredit).pathname.split('/').pop();
+
         document.getElementById("avatar_image").src = data.avatar;
-        document.getElementById("avatar_credit_text").innerHTML = data.avatarCredit;
+        document.getElementById("avatar_credit_text").innerHTML = `made by <a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${avatarCreditFormatted}</a>`;
+
+
 
 /*         document.getElementById("main_right").style.display = "flex";
         document.getElementById("avatar").style.display = "block";

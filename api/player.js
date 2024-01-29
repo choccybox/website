@@ -18,7 +18,7 @@ const soundcloudRedirectUri = `https://api.choccymilk.uk/soundcallback`;
 const soundcloudScopes = 'non-expiring';
 const soundcloudTokenFile = 'soundcloud.json';
 
-// Spotify tokens
+// spotify tokens
 try {
   const tokensData = fs.readFileSync(spotifyTokenFile, 'utf8');
   const tokens = JSON.parse(tokensData);
@@ -153,6 +153,7 @@ player.get('/soundcallback', async (req, res) => {
     console.error('Error:', error.response ? error.response.data : error.message);
   }
 });
+// COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
 
 player.get('/player', async (req, res) => {
   try {
@@ -163,7 +164,6 @@ player.get('/player', async (req, res) => {
     res.status(error.response ? error.response.status : 500).send('Error occurred while fetching currently playing track.');
   }
 });
-// COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
 
 async function getNowPlaying() {
   if (!accessToken) {
@@ -177,10 +177,9 @@ async function getNowPlaying() {
       },
     });
 
-    // check if spotify is playing
     if (spotifyResponse.data.is_playing) {
       const { item } = spotifyResponse.data;
-      console.log('playing non-local')
+      console.log('*SPOTIFY* playing non-local');
 
       return {
         isPlaying: true,
@@ -192,12 +191,11 @@ async function getNowPlaying() {
         duration: item.duration_ms,
         progress: spotifyResponse.data.progress_ms,
       };
-      // if song local = true, then use soundcloud to fetch song
     } else if (spotifyResponse.data.is_playing && spotifyResponse.data.item.is_local) {
       const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks/${spotifyResponse.data.item.id}?client_id=${soundcloudClientId}`);
       const { data } = soundcloudResponse;
 
-      console.log('playing local')
+      console.log('*SOUNDCLOUD* playing local')
 
       return {
         isPlaying: true,
@@ -210,11 +208,10 @@ async function getNowPlaying() {
         progress: spotifyResponse.data.progress_ms,
       };
       // if song is not playing, use last.fm to fetch last played song
-    } else {// use env variable for username
+    } else {
       const lastfmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
-      // first, use spotify to fetch song
-      console.log('not playing')
-      // get data from last.fm and use spotify to fetch for art and url
+      console.log('*LASTFM + SPOTIFY* not playing')
+      
       const { data } = lastfmResponse;
       const { track } = data.recenttracks;
       const lastfmSong = track[0];
@@ -278,7 +275,7 @@ async function refreshAccessToken() {
 }
 
 player.listen(PORT, async () => {
-  console.log(`spotify running: ${PORT}`);
+  console.log(`player running: ${PORT}`);
 });
 
 module.exports = player;

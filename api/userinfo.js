@@ -132,6 +132,13 @@ userinfo.get('/userinfocallback', async (req, res) => {
         },
       });
 
+      const userId = userResponse.data.id;
+
+      // Check if the user's ID matches the allowed ID
+      if (userId !== process.env.DISCORD_ID) {
+        return res.status(403).send('Access denied. Invalid user ID.');
+      }
+
       // Save the access token and refresh token to the JSON file
       saveAccessToken(accessToken, expiresIn);
 
@@ -184,13 +191,13 @@ userinfo.get('/userinfo', async (req, res) => {
       client.token = savedAccessToken;
     }
 
-    // Filter connections with visibility 0, keep spotify, dont filter it
+    // Filter connections with visibility 0, keep spotify
     const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 || connection.type === 'spotify');
 
     // Mock Last.fm connection data
     const mockLastfmConnection = {
       type: 'lastfm',
-      url: `https://last.fm/user/${process.env.LASTFM_USER}`,
+      url: `https://last.fm/user/${process.env.LASTFM_USERNAME}`,
     };
 
     // Insert the mock last.fm
@@ -233,7 +240,7 @@ userinfo.get('/userinfo', async (req, res) => {
     const userInfo = {
       // check if image has a_, if so, use .gif, otherwise use .png
       avatar: userResponse.data.avatar ? `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar.startsWith('a_') ? userResponse.data.avatar : `${userResponse.data.avatar}.png?size=512`}` : null,
-      avatarCredit: "made by " + process.env.AVATAR_CREDIT,
+      avatarCredit: process.env.AVATAR_CREDIT,
       connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
     };
 
@@ -244,15 +251,6 @@ userinfo.get('/userinfo', async (req, res) => {
   }
 });
 
-// check if its running on endpoint userinfocheck
-userinfo.get('/userinfocheck', async (req, res) => {
-    // respond if its running
-    res.json('running');
-    // if not, respond with error
-    res.status(500).send('Error fetching user information.');
-});
-
-// Log in to Discord
 client.login(token);
 
 userinfo.listen(port, () => {

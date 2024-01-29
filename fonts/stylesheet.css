@@ -54,6 +54,14 @@ p {
     margin: 0px;
 }
 
+a {
+    font-family: 'Rubik', sans-serif;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text);
+}
+
 .fa-brands {
     font-size: 115px;
     margin: 10px;
