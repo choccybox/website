@@ -14,7 +14,7 @@ const spotifyTokenFile = 'spotify.json';
 
 const soundcloudClientId = process.env.SOUNDCLOUD_CLIENT_ID;
 const soundcloudClientSecret = process.env.SOUNDCLOUD_CLIENT_SECRET;
-const soundcloudRedirectUri = `http://localhost:3000/soundcallback`;
+const soundcloudRedirectUri = `https://api.choccymilk.uk/soundcallback`;
 const soundcloudScopes = 'non-expiring';
 const soundcloudTokenFile = 'soundcloud.json';
 
@@ -116,7 +116,6 @@ player.get('/playercallback', async (req, res) => {
     }, 2000);
   }
 });
-// COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
 
 player.get('/soundauth', (req, res) => {
   const authorizeUrl = `https://soundcloud.com/connect?${querystring.stringify({
@@ -154,6 +153,7 @@ player.get('/soundcallback', async (req, res) => {
     console.error('Error:', error.response ? error.response.data : error.message);
   }
 });
+
 player.get('/player', async (req, res) => {
   try {
     const nowPlayingResponse = await getNowPlaying();
@@ -163,6 +163,7 @@ player.get('/player', async (req, res) => {
     res.status(error.response ? error.response.status : 500).send('Error occurred while fetching currently playing track.');
   }
 });
+// COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
 
 async function getNowPlaying() {
   if (!accessToken) {
@@ -213,6 +214,32 @@ async function getNowPlaying() {
       const lastfmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
       // first, use spotify to fetch song
       console.log('not playing')
+      // get data from last.fm and use spotify to fetch for art and url
+      const { data } = lastfmResponse;
+      const { track } = data.recenttracks;
+      const lastfmSong = track[0];
+      const lastfmArtist = lastfmSong.artist['#text'];
+      
+      const spotifyResponse = await axios.get(`https://api.spotify.com/v1/search?q=${lastfmSong.name} ${lastfmArtist}&type=track&limit=1`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      const { items } = spotifyResponse.data.tracks;
+      const spotifySong = items[0];
+
+      return {
+        isPlaying: false,
+        isLocal: false,
+        name: lastfmSong.name,
+        artist: lastfmSong.artist['#text'],
+        art: spotifySong.album.images[0].url,
+        url: spotifySong.external_urls.spotify,
+        duration: null,
+        progress: null,
+      };
+      
     }
 } catch (error) {
   if (error.response && error.response.status === 401) {

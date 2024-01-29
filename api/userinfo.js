@@ -132,13 +132,6 @@ userinfo.get('/userinfocallback', async (req, res) => {
         },
       });
 
-      const userId = userResponse.data.id;
-
-      // Check if the user's ID matches the allowed ID
-      if (userId !== process.env.DISCORD_ID) {
-        return res.status(403).send('Access denied. Invalid user ID.');
-      }
-
       // Save the access token and refresh token to the JSON file
       saveAccessToken(accessToken, expiresIn);
 
