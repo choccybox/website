@@ -41,7 +41,13 @@ fetch ("/userinfo")
             split[i].style.display = "block";
         }
 
-        const avatarCreditFormatted = new URL(data.avatarCredit).pathname.split('/').pop();
+        // remove https://twitter.com from avatar credit
+        const url = new URL(data.avatarCredit);
+        const pathSegments = url.pathname.split('/');
+        const lastSegment = pathSegments[pathSegments.length - 1];
+        
+        const avatarCreditFormatted = lastSegment;
+        
 
         document.getElementById("avatar_image").src = data.avatar;
         document.getElementById("avatar_credit_text").innerHTML = `made by <a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${avatarCreditFormatted}</a>`;
