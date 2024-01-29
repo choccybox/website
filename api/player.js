@@ -169,8 +169,6 @@ async function getNowPlaying() {
     throw new Error('Access token not available.');
   }
 
-  // song is playing
-  // fetch api url
   try {
     const spotifyResponse = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
@@ -178,113 +176,44 @@ async function getNowPlaying() {
       },
     });
 
-    // if is playing, fetch data
-    if (spotifyResponse.data && spotifyResponse.data.item && spotifyResponse.data.is_playing) {
-      console.log(`playing, using spotify`);
-      const { name, artists, album, duration_ms } = spotifyResponse.data.item;
-      const isPlaying = true;
-      const progress = spotifyResponse.data.progress_ms || 0;
+    // check if spotify is playing
+    if (spotifyResponse.data.is_playing) {
+      const { item } = spotifyResponse.data;
+      console.log('playing non-local')
 
-      const simplifiedResponse = {
-        isPlaying,
-        isLocal: spotifyResponse.data.item.is_local,
-        name,
-        artist: artists.splice && artists.splice(0, 1).map(artist => artist.name).join(', '),
-        art: album.images.length > 0 ? album.images[0].url : null,
-        url: spotifyResponse.data.item.external_urls.spotify,
-        progress,
-        duration: duration_ms,
+      return {
+        isPlaying: true,
+        isLocal: item.is_local,
+        name: item.name,
+        artist: item.artists[0].name,
+        art: item.album.images[0].url,
+        url: item.external_urls.spotify,
+        duration: item.duration_ms,
+        progress: spotifyResponse.data.progress_ms,
       };
+      // if song local = true, then use soundcloud to fetch song
+    } else if (spotifyResponse.data.is_playing && spotifyResponse.data.item.is_local) {
+      const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks/${spotifyResponse.data.item.id}?client_id=${soundcloudClientId}`);
+      const { data } = soundcloudResponse;
 
-      // if track is local, its not on spotify, use soundcloud api to get data
-      if (simplifiedResponse.isLocal === true) {
-        try {
-          console.log(`playing, but using soundcloud`);
-          const artistNameModified =  simplifiedResponse.artist.replace(/\s*\([^)]*\)\s*/g, '').trim();
-          const soundcloudSearchResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(name)}/${encodeURIComponent(artistNameModified)}`);
-      
-          simplifiedResponse.url = soundcloudSearchResponse.data[0].url;
-          simplifiedResponse.art = soundcloudSearchResponse.data[0].art;
-        
-        } catch (soundcloudError) {
-          console.error('something fucked up when using soundcloud, fuck:', soundcloudError.message);
-        }
-      }
-      
-      return simplifiedResponse;
+      console.log('playing local')
 
-    // spotify is not playing
-    // last.fm api to fetch last played track
-  } else if (
-    // defining all kinds of ways to tell this dumbass code "hey no music is playing"
-    (spotifyResponse.data && spotifyResponse.data.item && !spotifyResponse.data.is_playing) ||
-    (spotifyResponse.data === "EMPTY_RESPONSE" || spotifyResponse.data === "")) {
-    const lastFmResponse = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USER}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
-    const lastPlayedTrack = lastFmResponse.data.recenttracks.track[0];
-
-    console.log("not playing, using spotify first");
-
-    try {
-      // defining stuff
-      const trackName = encodeURIComponent(lastPlayedTrack.name);
-      const artistName = encodeURIComponent(lastPlayedTrack.artist['#text']);
-      const searchUrl = `https://api.spotify.com/v1/search?q=track:${trackName} artist:${artistName}&type=track&limit=1`;
-      const spotifySearchResponse = await axios.get(searchUrl, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
-
-      // if there are no matches on spotify, use soundcloud
-      // uses soundcloud first, please dont ask why
-      if (spotifySearchResponse.data.tracks.total === 0) {
-        try {
-          console.log("it wasnt on spotify, using soundcloud");
-
-          // remove (@) from artist name (if it exists)
-          const artistNameModified =  artistName.replace(/\s*\([^)]*\)\s*/g, '').trim();
-          const soundcloudSearchResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${trackName}/${artistNameModified}`);
-      
-          const simplifiedResponse = {
-            isPlaying: false,
-            isLocal: null,
-            name: soundcloudSearchResponse.data[0].name,
-            artist: soundcloudSearchResponse.data[0].artist,
-            art: soundcloudSearchResponse.data[0].art,
-            url: soundcloudSearchResponse.data[0].url,
-            progress: null,
-            duration: null
-          };
-        
-          return simplifiedResponse;
-        }
-        catch (soundcloudError) {
-          // Handle error if SoundCloud API call fails
-          console.error('soundcloud fucked up again:', soundcloudError.message);
-          return null;
-        }
-      } else {
-        // Process Spotify results as before if there are matches
-        const spotifyTrack = spotifySearchResponse.data.tracks.items[0];
-
-        const simplifiedResponse = {
-          isPlaying: false,
-          isLocal: null,
-          name: spotifyTrack.name,
-          artist: spotifyTrack.artists.splice && spotifyTrack.artists.splice(0, 1).map(artist => artist.name).join(', '),
-          art: spotifyTrack.album.images.length > 0 ? spotifyTrack.album.images[0].url : null,
-          url: spotifyTrack.external_urls.spotify,
-          progress: null,
-          duration: null
-        };
-
-        return simplifiedResponse;
-      }
-    } catch (spotifyError) {
-      console.error('spotify fucked up, again.:', spotifyError.message);
-      return null;
-    } 
-  }
+      return {
+        isPlaying: true,
+        isLocal: data.is_local,
+        name: data.title,
+        artist: data.user.username,
+        art: data.artwork_url,
+        url: data.permalink_url,
+        duration: data.duration,
+        progress: spotifyResponse.data.progress_ms,
+      };
+      // if song is not playing, use last.fm to fetch last played song
+    } else {// use env variable for username
+      const lastfmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
+      // first, use spotify to fetch song
+      console.log('not playing')
+    }
 } catch (error) {
   if (error.response && error.response.status === 401) {
     // Access token expired, refresh the token and retry the request

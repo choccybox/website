@@ -251,6 +251,14 @@ userinfo.get('/userinfo', async (req, res) => {
   }
 });
 
+// check if its running on endpoint userinfocheck
+userinfo.get('/userinfocheck', async (req, res) => {
+    // respond if its running
+    res.json('running');
+    // if not, respond with error
+    res.status(500).send('Error fetching user information.');
+});
+
 // Log in to Discord
 client.login(token);
 
