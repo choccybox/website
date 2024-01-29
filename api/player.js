@@ -192,7 +192,11 @@ async function getNowPlaying() {
         progress: spotifyResponse.data.progress_ms,
       };
     } else if (spotifyResponse.data.is_playing && spotifyResponse.data.item.is_local) {
-      const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks/${spotifyResponse.data.item.id}?client_id=${soundcloudClientId}`);
+      const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks/${spotifyResponse.data.item.id}?client_id=${soundcloudClientId}`, {
+        headers: {
+            Authorization: `Bearer ${soundcloudAccessToken}`
+          }
+      });
       const { data } = soundcloudResponse;
 
       console.log('*SOUNDCLOUD* playing local')
