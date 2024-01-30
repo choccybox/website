@@ -50,6 +50,7 @@ fetch ("/userinfo")
         
 
         document.getElementById("avatar_image").src = data.avatar;
+        document.getElementById("avatar_link").href = data.userUrl;
         document.getElementById("avatar_credit_text").innerHTML = `made by <a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${avatarCreditFormatted}</a>`;
 
 

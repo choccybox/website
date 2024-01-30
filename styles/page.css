@@ -198,6 +198,11 @@ body {
 #avatar_credit_link:hover {
     filter: brightness(.8);
 }
+
+#avatar_link {
+    text-decoration: none;
+}
+
 #flag_name:hover {
     filter: brightness(.8);
 }
