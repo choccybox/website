@@ -18,6 +18,9 @@ const soundcloudRedirectUri = `https://api.choccymilk.uk/soundcallback`;
 const soundcloudScopes = 'non-expiring';
 const soundcloudTokenFile = 'soundcloud.json';
 
+let soundcloudAccessToken;
+let soundcloudRefreshToken;
+
 // spotify tokens
 try {
   const tokensData = fs.readFileSync(spotifyTokenFile, 'utf8');
@@ -49,10 +52,11 @@ function saveSpotifyTokensToFile() {
 // soundcloud tokens
 try {
   const tokensData = fs.readFileSync(soundcloudTokenFile, 'utf8');
-  const tokens = JSON.parse(tokensData);
+  const soundcloudTokens = JSON.parse(tokensData);
 
-  soundcloudAccessToken = tokens.accessToken;
-  soundcloudRefreshToken = tokens.refreshToken;
+  soundcloudAccessToken = soundcloudTokens.accessToken;
+  soundcloudRefreshToken = soundcloudTokens.refreshToken;
+  
 
   console.log('soundcloud token loaded');
 } catch (err) {
@@ -147,6 +151,10 @@ player.get('/soundcallback', async (req, res) => {
     soundcloudAccessToken = access_token;
     soundcloudRefreshToken = refresh_token;
 
+    // log tokens
+    console.log('soundcloud access token:', soundcloudAccessToken);
+    console.log('soundcloud refresh token:', soundcloudRefreshToken);
+
     res.json('success');
     saveSoundcloudTokensToFile();
   } catch (error) {
@@ -181,9 +189,21 @@ async function getNowPlaying() {
       const { item } = spotifyResponse.data;
       console.log('*SPOTIFY* playing non-local');
 
+      // Extract the track name or any other relevant information from the Spotify response
+      const trackName = item.name;
+
+      // Use the extracted information in the SoundCloud API request
+      const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${trackName}`, {
+        headers: {
+          Authorization: `Bearer ${soundcloudAccessToken}`,
+        },
+      });
+
+      const { data } = soundcloudResponse;
+
       return {
         isPlaying: true,
-        isLocal: item.is_local,
+        isLocal: data.is_local,
         name: item.name,
         artist: item.artists[0].name,
         art: item.album.images[0].url,
@@ -191,15 +211,16 @@ async function getNowPlaying() {
         duration: item.duration_ms,
         progress: spotifyResponse.data.progress_ms,
       };
+      
     } else if (spotifyResponse.data.is_playing && spotifyResponse.data.item.is_local) {
       const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks/${spotifyResponse.data.item.id}?client_id=${soundcloudClientId}`, {
         headers: {
-            Authorization: `Bearer ${soundcloudAccessToken}`
-          }
+          Authorization: `Bearer ${soundcloudAccessToken}`,
+        },
       });
-      const { data } = soundcloudResponse;
 
-      console.log('*SOUNDCLOUD* playing local')
+      const { data } = soundcloudResponse;
+      console.log('*SOUNDCLOUD* playing local');
 
       return {
         isPlaying: true,
@@ -211,16 +232,14 @@ async function getNowPlaying() {
         duration: data.duration,
         progress: spotifyResponse.data.progress_ms,
       };
-      // if song is not playing, use last.fm to fetch last played song
     } else {
       const lastfmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
-      console.log('*LASTFM + SPOTIFY* not playing')
-      
+      console.log('*LASTFM + SPOTIFY* not playing');
+
       const { data } = lastfmResponse;
-      const { track } = data.recenttracks;
-      const lastfmSong = track[0];
+      const lastfmSong = data.recenttracks.track[0];
       const lastfmArtist = lastfmSong.artist['#text'];
-      
+
       const spotifyResponse = await axios.get(`https://api.spotify.com/v1/search?q=${lastfmSong.name} ${lastfmArtist}&type=track&limit=1`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -235,21 +254,20 @@ async function getNowPlaying() {
         isLocal: false,
         name: lastfmSong.name,
         artist: lastfmSong.artist['#text'],
-        art: spotifySong.album.images[0].url,
-        url: spotifySong.external_urls.spotify,
+        art: spotifySong ? spotifySong.album.images[0]?.url || null : null,
+        url: spotifySong ? spotifySong.external_urls.spotify || null : null,
         duration: null,
         progress: null,
       };
-      
     }
-} catch (error) {
-  if (error.response && error.response.status === 401) {
-    // Access token expired, refresh the token and retry the request
-    await refreshAccessToken();
-    return getNowPlaying();
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+      // Access token expired, refresh the token and retry the request
+      await refreshAccessToken();
+      return getNowPlaying();
+    }
+    throw error;
   }
-  throw error;
-}
 }
 
 async function refreshAccessToken() {
