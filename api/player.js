@@ -173,7 +173,7 @@ player.get('/player', async (req, res) => {
   }
 });
 
-player.get('soundcloud', async (req, res) => {
+player.get('/soundcloud', async (req, res) => {
   // try if soundcloud works
   try {
     const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=the%20weeknd%20blinding%20lights&client_id=${soundcloudClientId}`, {

@@ -239,7 +239,7 @@ userinfo.get('/userinfo', async (req, res) => {
     // Construct the user information object
     const userInfo = {
       // check if image has a_, if so, use .gif, otherwise use .png
-      avatar: userResponse.data.avatar ? `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar.startsWith('a_') ? userResponse.data.avatar : `${userResponse.data.avatar}.png?size=512`}` : null,
+      avatar: userResponse.data.avatar ? `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar.startsWith('a_') ? `${userResponse.data.avatar}.gif?size=512` : `${userResponse.data.avatar}.webp?size=512`}` : null,
       avatarCredit: process.env.AVATAR_CREDIT,
       connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
     };
