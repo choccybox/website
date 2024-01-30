@@ -185,60 +185,85 @@ async function getNowPlaying() {
       },
     });
 
-    // Check if song is playing and is not a local file
-    if (spotifyResponse.data && spotifyResponse.data.is_playing && !spotifyResponse.data.item.is_local) {
-      console.log('Spotify is playing');
-      
+    if (spotifyResponse.data && spotifyResponse.data.is_playing) {
+      console.log('playing');
+
+      // if not local, use spotify api to get art and url
+      if (!spotifyResponse.data.item.is_local) {
       return {
         isPlaying: true,
-        isLocal: false,
+        isLocal: spotifyResponse.data.item.is_local,
         name: spotifyResponse.data.item.name,
         artist: spotifyResponse.data.item.artists[0].name,
-        art: spotifyResponse.data.item.album.images[0].url,
-        url: spotifyResponse.data.item.external_urls.spotify,
+        art: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.album.images[0].url,
+        url: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.external_urls.spotify,
         progress: spotifyResponse.data.progress_ms,
         duration: spotifyResponse.data.item.duration_ms,
+        message: 'player is playing',
       };
-    } else if (spotifyResponse.data && spotifyResponse.data.item.is_local) {
-      console.log('Spotify is playing a local file');
-
+    } else {
+      // if local, use last.fm api to get art and url
+      console.log('playing a local file');
       return {
         isPlaying: true,
-        isLocal: true,
+        isLocal: spotifyResponse.data.item.is_local,
         name: spotifyResponse.data.item.name,
         artist: spotifyResponse.data.item.artists[0].name,
         art: null,
         url: null,
         progress: spotifyResponse.data.progress_ms,
         duration: spotifyResponse.data.item.duration_ms,
-      }
+        message: 'playing a local file',
+      };
     }
 
-    // If no condition is met, it means neither Spotify nor SoundCloud is playing
-    console.log('Not playing');
-    return {
-      isPlaying: false,
-      isLocal: false,
-      name: null,
-      artist: null,
-      art: null,
-      url: null,
-      progress: null,
-      duration: null,
-    };
+    } else if (spotifyResponse.data && !spotifyResponse.data.is_playing || !spotifyResponse.data) {
+      console.log('not playing');
+
+      const lastFmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
+
+      // use spotify api to replace art and url from last.fm
+      const spotifySearchResponse = await axios.get(`https://api.spotify.com/v1/search?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}%20artist:${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&type=track&limit=1`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      
+      // use spotify api to replace art and url from last.fm
+      return {
+        isPlaying: false,
+        isLocal: false,
+        name: spotifySearchResponse.data.tracks.items[0].name,
+        artist: spotifySearchResponse.data.tracks.items[0].artists[0].name,
+        art: spotifySearchResponse.data.tracks.items[0].album.images[0].url,
+        url: spotifySearchResponse.data.tracks.items[0].external_urls.spotify,
+        progress: null,
+        duration: null,
+        message: 'not playing or empty response',
+      }
+    } 
 
   } catch (error) {
     if (error.response && error.response.status === 401) {
       await refreshSpotifyAccessToken();
       return getNowPlaying();
+    } else {
+      console.error('Error:', error);
+      return {
+        isPlaying: false,
+        isLocal: null,
+        name: null,
+        artist: null,
+        art: null,
+        url: null,
+        progress: null,
+        duration: null,
+      };
     }
-    // Handle other errors as needed
-    console.error('Error:', error);
-    return {
-      isPlaying: false,
-    };
   }
 }
+
+
 
 
 async function refreshSpotifyAccessToken() {
