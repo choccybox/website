@@ -12,14 +12,14 @@ const spotifyRedirectUri = `http://localhost:3000/playercallback`;
 const spotifyScopes = 'user-read-currently-playing user-library-read user-read-recently-played user-top-read user-read-playback-state';
 const spotifyTokenFile = 'spotify.json';
 
-const soundcloudClientId = process.env.SOUNDCLOUD_CLIENT_ID;
+/* const soundcloudClientId = process.env.SOUNDCLOUD_CLIENT_ID;
 const soundcloudClientSecret = process.env.SOUNDCLOUD_CLIENT_SECRET;
 const soundcloudRedirectUri = `https://api.choccymilk.uk/soundcallback`;
 const soundcloudScopes = 'non-expiring';
 const soundcloudTokenFile = 'soundcloud.json';
 
 let soundcloudAccessToken;
-let soundcloudRefreshToken;
+let soundcloudRefreshToken; */
 
 // spotify tokens
 try {
@@ -49,37 +49,8 @@ function saveSpotifyTokensToFile() {
   }
 }
 
-/* // soundcloud tokens
-try {
-  const tokensData = fs.readFileSync(soundcloudTokenFile, 'utf8');
-  const soundcloudTokens = JSON.parse(tokensData);
-
-  soundcloudAccessToken = soundcloudTokens.accessToken;
-  soundcloudRefreshToken = soundcloudTokens.refreshToken;
-  
-
-  console.log('soundcloud token loaded');
-} catch (err) {
-  console.error('error loading soundcloud token', err.message);
-}
-
-// soundcloud saving token logic
-function saveSoundcloudTokensToFile() {
-  const tokens = {
-    accessToken: soundcloudAccessToken,
-    refreshToken: soundcloudRefreshToken,
-  };
-
-  try {
-    fs.writeFileSync(soundcloudTokenFile, JSON.stringify(tokens), 'utf8');
-    console.log('soundcloud token saved');
-  } catch (err) {
-    console.error('error saving soundcloud token:', err.message);
-  }
-}
- */
 // COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
-player.get('/playerauth', (req, res) => {
+/* player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: spotifyClientId,
@@ -118,47 +89,6 @@ player.get('/playercallback', async (req, res) => {
     setTimeout(() => {
       return res.redirect('/error');
     }, 2000);
-  }
-});
-
-/* player.get('/soundauth', (req, res) => {
-  const authorizeUrl = `https://soundcloud.com/connect?${querystring.stringify({
-    response_type: 'code',
-    client_id: soundcloudClientId,
-    scope: soundcloudScopes,
-    redirect_uri: soundcloudRedirectUri,
-  })}`;
-  res.redirect(authorizeUrl);
-});
-
-player.get('/soundcallback', async (req, res) => {
-  const { code } = req.query;
-
-  try {
-    const response = await axios.post('https://api.soundcloud.com/oauth2/token', querystring.stringify({
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: soundcloudRedirectUri,
-      client_id: soundcloudClientId,
-      client_secret: soundcloudClientSecret,
-    }), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-
-    const { access_token, refresh_token } = response.data;
-    soundcloudAccessToken = access_token;
-    soundcloudRefreshToken = refresh_token;
-
-    // log tokens
-    console.log('soundcloud access token:', soundcloudAccessToken);
-    console.log('soundcloud refresh token:', soundcloudRefreshToken);
-
-    res.json('success');
-    saveSoundcloudTokensToFile();
-  } catch (error) {
-    console.error('Error:', error.response ? error.response.data : error.message);
   }
 }); */
 // COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
@@ -229,7 +159,6 @@ async function getNowPlaying() {
         },
       });
       
-      // use spotify api to replace art and url from last.fm
       return {
         isPlaying: false,
         isLocal: false,
@@ -258,13 +187,11 @@ async function getNowPlaying() {
         url: null,
         progress: null,
         duration: null,
+        message: 'man we fucked up again goddamit',
       };
     }
   }
 }
-
-
-
 
 async function refreshSpotifyAccessToken() {
   try {

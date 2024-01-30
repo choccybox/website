@@ -17,9 +17,15 @@ function fetchAndDisplayTime() {
                     document.getElementById("player_image").src = data.art;
                 }
 
+                if (data.url === null) {
+
+                    document.getElementById("player_link").removeAttribute("target");
+                } else {
+                    document.getElementById("player_link").href = data.url;
+                }
+
                 // Update the rest of the elements
                 document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
-                document.getElementById("player_link").href = data.url;
 
                 currentProgress = data.progress || 0;
                 currentDuration = data.duration || 0;
