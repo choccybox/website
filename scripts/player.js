@@ -6,7 +6,7 @@ function fetchAndDisplayTime() {
         .then(response => response.json())
         .then(data => {
             if (data.isPlaying == true) {
-                console.log(`name: ${data.name} by ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
+                console.log(`name: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
 
                 if (data.art === null) {
                     document.getElementById("player_image").src = "./styles/spong.png";
@@ -51,6 +51,15 @@ function updateFakeProgressBar() {
         // each second, add however much the progress bar has progressed
         currentProgress += 1000;
         console.log((currentProgress / currentDuration) * 100);
+
+        // set width of progress bar
+        const progressPercentage = (currentProgress / currentDuration) * 100;
+        document.getElementById("player_progress").style.width = progressPercentage + "%";
+        
+        // when progress bar reaches 100%, call fetchAndDisplayTime() to get the new song
+        if (currentProgress >= currentDuration) {
+            fetchAndDisplayTime();
+        }
     }
 }
 

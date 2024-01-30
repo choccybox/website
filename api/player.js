@@ -49,7 +49,7 @@ function saveSpotifyTokensToFile() {
   }
 }
 
-// soundcloud tokens
+/* // soundcloud tokens
 try {
   const tokensData = fs.readFileSync(soundcloudTokenFile, 'utf8');
   const soundcloudTokens = JSON.parse(tokensData);
@@ -77,7 +77,7 @@ function saveSoundcloudTokensToFile() {
     console.error('error saving soundcloud token:', err.message);
   }
 }
-
+ */
 // COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
 player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
@@ -121,7 +121,7 @@ player.get('/playercallback', async (req, res) => {
   }
 });
 
-player.get('/soundauth', (req, res) => {
+/* player.get('/soundauth', (req, res) => {
   const authorizeUrl = `https://soundcloud.com/connect?${querystring.stringify({
     response_type: 'code',
     client_id: soundcloudClientId,
@@ -160,7 +160,7 @@ player.get('/soundcallback', async (req, res) => {
   } catch (error) {
     console.error('Error:', error.response ? error.response.data : error.message);
   }
-});
+}); */
 // COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
 
 player.get('/player', async (req, res) => {
@@ -186,7 +186,7 @@ async function getNowPlaying() {
     });
 
     // Check if song is playing and is not a local file
-    if (spotifyResponse.data.is_playing && !spotifyResponse.data.item.is_local) {
+    if (spotifyResponse.data && spotifyResponse.data.is_playing && !spotifyResponse.data.item.is_local) {
       console.log('Spotify is playing');
       
       return {
@@ -196,8 +196,10 @@ async function getNowPlaying() {
         artist: spotifyResponse.data.item.artists[0].name,
         art: spotifyResponse.data.item.album.images[0].url,
         url: spotifyResponse.data.item.external_urls.spotify,
+        progress: spotifyResponse.data.progress_ms,
+        duration: spotifyResponse.data.item.duration_ms,
       };
-    } else if (spotifyResponse.data.item.is_local) {
+    } else if (spotifyResponse.data && spotifyResponse.data.item.is_local) {
       console.log('Spotify is playing a local file');
 
       return {
@@ -207,6 +209,8 @@ async function getNowPlaying() {
         artist: spotifyResponse.data.item.artists[0].name,
         art: null,
         url: null,
+        progress: spotifyResponse.data.progress_ms,
+        duration: spotifyResponse.data.item.duration_ms,
       }
     }
 
@@ -214,6 +218,13 @@ async function getNowPlaying() {
     console.log('Not playing');
     return {
       isPlaying: false,
+      isLocal: false,
+      name: null,
+      artist: null,
+      art: null,
+      url: null,
+      progress: null,
+      duration: null,
     };
 
   } catch (error) {
@@ -249,32 +260,6 @@ async function refreshSpotifyAccessToken() {
     fs.writeFileSync(spotifyTokenFile, JSON.stringify({
       accessToken: accessToken,
       refreshToken: refreshToken,
-    }));
-  } catch (error) {
-    console.error('Error refreshing token:', error.response ? error.response.data : error.message);
-    throw new Error('Error refreshing access token.');
-  }
-}
-
-async function refreshSoundCloudAceessToken() {
-  try {
-    const response = await axios.post('https://api.soundcloud.com/oauth2/token', querystring.stringify({
-      grant_type: 'refresh_token',
-      refresh_token: soundcloudRefreshToken,
-      client_id: soundcloudClientId,
-      client_secret: soundcloudClientSecret,
-    }), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-
-    soundcloudAccessToken = response.data.access_token;
-
-    // Update the file with the new tokens
-    fs.writeFileSync(soundcloudTokenFile, JSON.stringify({
-      accessToken: soundcloudAccessToken,
-      refreshToken: soundcloudRefreshToken,
     }));
   } catch (error) {
     console.error('Error refreshing token:', error.response ? error.response.data : error.message);
