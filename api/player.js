@@ -204,44 +204,37 @@ async function getNowPlaying() {
     });
 
     if (spotifyResponse.data.is_playing) {
-      const { item } = spotifyResponse.data;
-      console.log('*SPOTIFY* playing non-local');
+      console.log('*SPOTIFY* playing from spotify directly');
 
-      // Extract the track name or any other relevant information from the Spotify response
-      const trackName = item.name;
-
-      // Use the extracted information in the SoundCloud API request
-      const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${trackName}`, {
+      const spotifyResponse = await axios.get(`https://api.spotify.com/v1/me/player/currently-playing`, {
         headers: {
-          Authorization: `Bearer ${soundcloudAccessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
-      console.log(soundcloudResponse.data);
-      console.log(`https://api.soundcloud.com/tracks?q=${trackName}`);
-
-      const { data } = soundcloudResponse;
-
+      const { data } = spotifyResponse;
+      
+      // simply return the data
       return {
         isPlaying: true,
-        isLocal: data.is_local,
-        name: item.name,
-        artist: item.artists[0].name,
-        art: item.album.images[0].url,
-        url: item.external_urls.spotify,
-        duration: item.duration_ms,
-        progress: spotifyResponse.data.progress_ms,
+        isLocal: data.item.is_local,
+        name: data.item.name,
+        artist: data.item.artists[0].name,
+        art: data.item.album.images[0].url,
+        url: data.item.external_urls.spotify,
+        duration: data.item.duration_ms,
+        progress: data.progress_ms,
       };
       
     } else if (spotifyResponse.data.is_playing && spotifyResponse.data.item.is_local) {
-      const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks/${spotifyResponse.data.item.id}?client_id=${soundcloudClientId}`, {
+      const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks/?q=${spotifyResponse.data.item.name}`, {
         headers: {
           Authorization: `Bearer ${soundcloudAccessToken}`,
         },
       });
 
       const { data } = soundcloudResponse;
-      console.log('*SOUNDCLOUD* playing local');
+      console.log('*SOUNDCLOUD* playing from spotify local files');
 
       return {
         isPlaying: true,
@@ -269,6 +262,23 @@ async function getNowPlaying() {
 
       const { items } = spotifyResponse.data.tracks;
       const spotifySong = items[0];
+  
+      if (!spotifySong) {
+          // If Spotify API fails, try SoundCloud API
+          const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${lastfmSong.name} ${lastfmArtist}&limit=1&client_id=${process.env.SOUNDCLOUD_CLIENT_ID}`);
+          const soundcloudSong = soundcloudResponse.data[0];
+  
+          return {
+              isPlaying: false,
+              isLocal: false,
+              name: lastfmSong.name,
+              artist: lastfmSong.artist['#text'],
+              art: soundcloudSong ? soundcloudSong.artwork_url || null : null,
+              url: soundcloudSong ? soundcloudSong.permalink_url || null : null,
+              duration: null,
+              progress: null,
+          };
+      }
 
       return {
         isPlaying: false,
@@ -283,12 +293,12 @@ async function getNowPlaying() {
     }
   } catch (error) {
     if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
-      // Access token expired, refresh the token and retry the request
-      await refreshAccessToken();
-      return getNowPlaying();
+        // Access token expired, refresh the token and retry the request
+        await refreshAccessToken();
+        return getNowPlaying();
     }
     throw error;
-  }
+}
 }
 
 async function refreshAccessToken() {
