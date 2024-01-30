@@ -148,7 +148,6 @@ async function getNowPlaying() {
     }
 
     } else if (spotifyResponse.data && !spotifyResponse.data.is_playing || !spotifyResponse.data) {
-      console.log('not playing');
 
       const lastFmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
 
@@ -159,16 +158,35 @@ async function getNowPlaying() {
         },
       });
       
-      return {
-        isPlaying: false,
-        isLocal: false,
-        name: spotifySearchResponse.data.tracks.items[0].name,
-        artist: spotifySearchResponse.data.tracks.items[0].artists[0].name,
-        art: spotifySearchResponse.data.tracks.items[0].album.images[0].url,
-        url: spotifySearchResponse.data.tracks.items[0].external_urls.spotify,
-        progress: null,
-        duration: null,
-        message: 'not playing or empty response',
+      // if found, return spotify data, if not, return null
+      if (spotifySearchResponse.data.tracks.items[0]) {
+        console.log('not playing and found spotify result');
+
+        return {
+          isPlaying: false,
+          isLocal: false,
+          name: spotifySearchResponse.data.tracks.items[0].name,
+          artist: spotifySearchResponse.data.tracks.items[0].artists[0].name,
+          art: spotifySearchResponse.data.tracks.items[0].album.images[0].url,
+          url: spotifySearchResponse.data.tracks.items[0].external_urls.spotify,
+          progress: null,
+          duration: null,
+          message: 'not playing and found spotify result',
+        };
+      } else {
+        console.log('not playing and no spotify result');
+
+        return {
+          isPlaying: false,
+          isLocal: false,
+          name: lastFmResponse.data.recenttracks.track[0].name,
+          artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
+          art: null,
+          url: null,
+          progress: null,
+          duration: null,
+          message: 'not playing and no spotify result',
+        };
       }
     } 
 

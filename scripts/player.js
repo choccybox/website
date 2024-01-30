@@ -9,7 +9,7 @@ function fetchAndDisplayTime() {
             isPlaying = data.isPlaying;
 
             if (isPlaying) {
-                console.log(`name: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
+                console.log(`🟢 playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
 
                 if (data.art === null) {
                     document.getElementById("player_image").src = "./styles/spong.png";
@@ -39,8 +39,20 @@ function fetchAndDisplayTime() {
                     fetchAndDisplayTime();
                 }
             } else {
-                // Handle playback stop
-                document.getElementById("player_image").src = data.art;
+                console.log(`🔴 not playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
+                if (data.art === null) {
+                    document.getElementById("player_image").src = "./styles/spong.png";
+                } else {
+                    document.getElementById("player_image").src = data.art;
+                }
+
+                if (data.url === null) {
+
+                    document.getElementById("player_link").removeAttribute("target");
+                } else {
+                    document.getElementById("player_link").href = data.url;
+                }
+
                 document.getElementById("player_title").innerHTML = "[LAST PLAYED] " + data.name + " • " + data.artist;
                 document.getElementById("player_link").href = data.url;
 
