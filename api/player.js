@@ -173,6 +173,24 @@ player.get('/player', async (req, res) => {
   }
 });
 
+player.get('soundcloud', async (req, res) => {
+  // try if soundcloud works
+  try {
+    const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=the%20weeknd%20blinding%20lights&client_id=${soundcloudClientId}`, {
+      headers: {
+        Authorization: `Bearer ${soundcloudAccessToken}`,
+      },
+    });
+
+    const { data } = soundcloudResponse;
+    console.log(data);
+    res.json(data);
+  } catch (error) {
+    console.error('Error:', error.response ? error.response.data : error.message);
+    res.status(error.response ? error.response.status : 500).send('Error occurred while fetching currently playing track.');
+  }
+});
+
 async function getNowPlaying() {
   if (!accessToken) {
     throw new Error('Access token not available.');
@@ -198,6 +216,9 @@ async function getNowPlaying() {
           Authorization: `Bearer ${soundcloudAccessToken}`,
         },
       });
+
+      console.log(soundcloudResponse.data);
+      console.log(`https://api.soundcloud.com/tracks?q=${trackName}`);
 
       const { data } = soundcloudResponse;
 
