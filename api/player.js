@@ -125,7 +125,7 @@ async function getNowPlaying() {
         isLocal: spotifyResponse.data.item.is_local,
         name: spotifyResponse.data.item.name,
         artist: spotifyResponse.data.item.artists[0].name,
-        art: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.album.images[0].url,
+        art: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.album.images[1].url,
         url: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.external_urls.spotify,
         progress: spotifyResponse.data.progress_ms,
         duration: spotifyResponse.data.item.duration_ms,
