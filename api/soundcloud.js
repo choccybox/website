@@ -100,47 +100,6 @@ soundcloud.get('/soundcallback', async (req, res) => {
   }
 });
 
-soundcloud.get('/soundauth', (req, res) => {
-  // Redirect the user to the SoundCloud authorization URL
-  const authorizeUrl = `https://soundcloud.com/connect?client_id=${process.env.SOUNDCLOUD_CLIENT_ID}&redirect_uri=${process.env.SOUNDCLOUD_REDIRECT_URI}&response_type=code&scope=non-expiring`;
-  res.redirect(authorizeUrl);
-});
-
-soundcloud.get('/soundcallback', async (req, res) => {
-  // Handle the callback after the user grants/denies authorization
-  const { code } = req.query;
-
-  // Exchange the authorization code for an access token
-  const tokenUrl = 'https://api.soundcloud.com/oauth2/token';
-  const params = new URLSearchParams({
-    client_id: process.env.SOUNDCLOUD_CLIENT_ID,
-    client_secret: process.env.SOUNDCLOUD_CLIENT_SECRET,
-    redirect_uri: process.env.SOUNDCLOUD_REDIRECT_URI,
-    grant_type: 'authorization_code',
-    code,
-  });
-
-  try {
-    const response = await axios.post(tokenUrl, params);
-    const accessToken = response.data.access_token;
-    const refreshToken = response.data.refresh_token;
-
-    // Store the access token and refresh token in sound_token.json
-    await saveSoundcloudToken(accessToken, refreshToken);
-
-    // log what is saved
-    console.log({ accessToken, refreshToken });
-    // log how the file looks like
-    console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
-
-    // Display user data in JSON format
-    res.json('success');
-  } catch (error) {
-    console.error('Error exchanging code for token:', error.message);
-    res.status(500).send('Error during authentication');
-  }
-});
-
 soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
   try {
     // Read the stored access token, refresh token, and expiration time from sound_token.json

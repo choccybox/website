@@ -12,15 +12,6 @@ const spotifyRedirectUri = `http://localhost:3000/playercallback`;
 const spotifyScopes = 'user-read-currently-playing user-library-read user-read-recently-played user-top-read user-read-playback-state';
 const spotifyTokenFile = 'spotify.json';
 
-/* const soundcloudClientId = process.env.SOUNDCLOUD_CLIENT_ID;
-const soundcloudClientSecret = process.env.SOUNDCLOUD_CLIENT_SECRET;
-const soundcloudRedirectUri = `https://api.choccymilk.uk/soundcallback`;
-const soundcloudScopes = 'non-expiring';
-const soundcloudTokenFile = 'soundcloud.json';
-
-let soundcloudAccessToken;
-let soundcloudRefreshToken; */
-
 // spotify tokens
 try {
   const tokensData = fs.readFileSync(spotifyTokenFile, 'utf8');
