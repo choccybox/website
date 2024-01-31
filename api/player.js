@@ -127,17 +127,40 @@ async function getNowPlaying() {
     } else {
       // if local, use last.fm api to get art and url
       console.log('playing a local file');
-      return {
-        isPlaying: true,
-        isLocal: spotifyResponse.data.item.is_local,
-        name: spotifyResponse.data.item.name,
-        artist: spotifyResponse.data.item.artists[0].name,
-        art: null,
-        url: null,
-        progress: spotifyResponse.data.progress_ms,
-        duration: spotifyResponse.data.item.duration_ms,
-        message: 'playing a local file',
-      };
+
+      // fetch url https://api.choccymilk.uk/sound-search/
+      const soundcloudResponse = (`https://api.choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}/${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}`);
+      // get data from url and console.log it
+      console.log(soundcloudResponse);
+      if (soundcloudResponse.data[0]) {
+        console.log('playing a local file, found soundcloud result');
+
+        return {
+          isPlaying: true,
+          isLocal: spotifyResponse.data.item.is_local,
+          name: spotifyResponse.data.item.name,
+          artist: spotifyResponse.data.item.artists[0].name,
+          art: soundcloudResponse.data[0].art,
+          url: soundcloudResponse.data[0].url,
+          progress: spotifyResponse.data.progress_ms,
+          duration: spotifyResponse.data.item.duration_ms,
+          message: 'playing a local file, found soundcloud result',
+        };
+      } else {
+        console.log('playing a local file, no soundcloud result');
+
+        return {
+          isPlaying: true,
+          isLocal: spotifyResponse.data.item.is_local,
+          name: spotifyResponse.data.item.name,
+          artist: spotifyResponse.data.item.artists[0].name,
+          art: null,
+          url: null,
+          progress: spotifyResponse.data.progress_ms,
+          duration: spotifyResponse.data.item.duration_ms,
+          message: 'playing a local file, no soundcloud result',
+        };
+      }
     }
 
     } else if (spotifyResponse.data && !spotifyResponse.data.is_playing || !spotifyResponse.data) {
