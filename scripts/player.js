@@ -41,7 +41,7 @@ function fetchAndDisplayTime() {
             } else {
                 console.log(`🔴 not playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
                 if (data.art === null) {
-                    document.getElementById("player_image").src = "./styles/spong.png";
+                    document.getElementById("player_image").src = "./styles/spong.webp";
                 } else {
                     document.getElementById("player_image").src = data.art;
                 }
