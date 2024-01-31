@@ -109,14 +109,19 @@
     }
 
     function waitForAsyncOperations() {
-        // Check if your asynchronous operations have completed
-        if (typeof fetchAndDisplayUserInfo === 'function' && typeof fetchAndDisplayTime === 'function') {
-            // If fetch operations are complete, show panels
-            console.log("All asynchronous operations completed");
-            showPanels();
-        } else {
-            // If not complete, wait and check again after a delay
-            setTimeout(waitForAsyncOperations, 100);
+        // wait for all images to load
+        var images = document.getElementsByTagName('img');
+        var images_loaded = 0;
+        var images_total = images.length;
+        for (var i = 0; i < images_total; i++) {
+            images[i].onload = function () {
+                images_loaded++;
+                if (images_loaded === images_total) {
+                    console.log("All images loaded");
+                    // All images are loaded, now show the panels
+                    showPanels();
+                }
+            };
         }
     }
 
