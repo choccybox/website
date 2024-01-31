@@ -160,7 +160,7 @@ async function getNowPlaying() {
       
       // if found, return spotify data, if not, return null
       if (spotifySearchResponse.data.tracks.items[0]) {
-        console.log('not playing and found spotify result');
+        console.log('not playing / empty response, found spotify result');
 
         return {
           isPlaying: false,
@@ -171,10 +171,10 @@ async function getNowPlaying() {
           url: spotifySearchResponse.data.tracks.items[0].external_urls.spotify,
           progress: null,
           duration: null,
-          message: 'not playing and found spotify result',
+          message: 'not playing / empty response, found spotify result',
         };
       } else {
-        console.log('not playing and no spotify result');
+        console.log('not playing / empty response, no spotify result');
 
         return {
           isPlaying: false,
@@ -185,7 +185,7 @@ async function getNowPlaying() {
           url: null,
           progress: null,
           duration: null,
-          message: 'not playing and no spotify result',
+          message: 'not playing / empty response, no spotify result',
         };
       }
     } 

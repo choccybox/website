@@ -6,7 +6,7 @@
     width: 300px !important;
 }
   #main_content {
-    max-height: calc(100% - 50px) !important;
+    max-height: calc(100% - 80px) !important;
     height: auto !important;
     width: 445px;
   }
@@ -47,4 +47,15 @@
   #player_timeline {
     margin-top: -322px !important;
   }
+
+  .panel_loader {
+    width: 280px;
+    height: 280px;
+    border-radius: var(--radius);
+    background-color: var(--panel);
+    margin-bottom: 10px;
+    margin-right: 0px !important;
+}
+
+
 }

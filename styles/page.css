@@ -70,6 +70,13 @@ body {
     margin-right: 10px;
 }
 
+.panel_loader {
+    width: 280px;
+    height: 280px;
+    border-radius: var(--radius);
+    background-color: var(--panel);
+    margin-right: 10px;
+}
 
 #avatar {
     object-fit: cover;

@@ -12,6 +12,10 @@ async function saveSoundcloudToken(accessToken, refreshToken) {
   try {
     await fs.writeFile(TOKEN_FILE, JSON.stringify({ access_token: accessToken, refresh_token: refreshToken }));
     console.log('SoundCloud tokens saved successfully.');
+    // log the tokens that were saved
+    console.log({ accessToken, refreshToken });
+    // log how the file looks like
+    console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
   } catch (error) {
     console.error('Error saving SoundCloud tokens:', error);
   }
@@ -23,6 +27,10 @@ async function loadSoundcloudToken() {
     const data = await fs.readFile(TOKEN_FILE);
     const { access_token: accessToken, refresh_token: refreshToken } = JSON.parse(data);
     console.log('SoundCloud tokens loaded successfully.');
+    // log what was loaded from the file
+    console.log({ accessToken, refreshToken });
+    // log how the file looks like
+    console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
     return { accessToken, refreshToken };
   } catch (error) {
     console.error('Error loading SoundCloud tokens:', error);
@@ -57,6 +65,11 @@ soundcloud.get('/soundcallback', async (req, res) => {
 
     // Store the access token and refresh token in sound_token.json
     await saveSoundcloudToken(accessToken, refreshToken);
+
+    // log what is saved
+    console.log({ accessToken, refreshToken });
+    // log how the file looks like
+    console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
 
     // Display user data in JSON format
     res.json('success');

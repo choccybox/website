@@ -33,6 +33,10 @@
 <body>
         <div id="main_content" class="noselect">
             <div id="main_top">
+                    <div class="panel_loader"></div>
+                    <div class="panel_loader"></div>
+                    <div class="panel_loader"></div>
+
                     <div id="avatar">
                         <a id="avatar_link" target="_blank" class="noselect">
                             <img id="avatar_image" class="panel noselect" src="styles/blank.png"></img>
@@ -83,9 +87,67 @@
             </div>
 </div>
 
-<script src="scripts/player.js"></script>
-<script src="scripts/bday.js"></script>
-<script src="scripts/pronounspage.js"></script>
-<script src="scripts/userinfo.js"></script>
+<script>
+    // start all scripts from ./scripts
+    var scripts = [
+        "scripts/bday.js",
+        "scripts/userinfo.js",
+        "scripts/pronounspage.js",
+        "scripts/player.js",
+    ];
+
+    var scripts_loaded = 0;
+    var scripts_total = scripts.length;
+
+    function script_loaded() {
+        scripts_loaded++;
+        if (scripts_loaded === scripts_total) {
+            console.log("All scripts loaded");
+            // All scripts are loaded, now wait for asynchronous operations to complete
+            waitForAsyncOperations();
+        }
+    }
+
+    function waitForAsyncOperations() {
+        // Check if your asynchronous operations have completed
+        if (typeof fetchAndDisplayUserInfo === 'function' && typeof fetchAndDisplayTime === 'function') {
+            // If fetch operations are complete, show panels
+            console.log("All asynchronous operations completed");
+            showPanels();
+        } else {
+            // If not complete, wait and check again after a delay
+            setTimeout(waitForAsyncOperations, 100);
+        }
+    }
+
+    function showPanels() {
+        // Set the CSS properties for all elements with the 'panel' class
+        var panels = document.getElementsByClassName('panel');
+        for (var i = 0; i < panels.length; i++) {
+            panels[i].style.display = 'block';
+        }
+        // Set the CSS properties for all elements with the 'panel_loader' class
+        var loaders = document.getElementsByClassName('panel_loader');
+        for (var i = 0; i < loaders.length; i++) {
+            loaders[i].style.display = 'none';
+        }
+        console.log("Panels displayed");
+    }
+
+    for (var i = 0; i < scripts.length; i++) {
+        var script = document.createElement("script");
+        script.src = scripts[i];
+        script.onload = script_loaded;
+        document.head.appendChild(script);
+    }
+
+    // Use window.onload to wait for all images to load
+    window.onload = function () {
+        console.log("All content loaded");
+    };
+</script>
+
+
+
 </body>
 </html>
