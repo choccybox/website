@@ -8,29 +8,28 @@ const PORT = 20003;
 const TOKEN_FILE = 'soundcloud.json';
 
 // Function to save the access token and refresh token to a JSON file
-async function saveSoundcloudToken(accessToken, refreshToken) {
+async function saveSoundcloudToken(soundAccessToken, soundRefreshToken) {
   try {
-    await fs.writeFile(TOKEN_FILE, JSON.stringify({ access_token: accessToken, refresh_token: refreshToken }));
+    await fs.writeFile(TOKEN_FILE, JSON.stringify({ access_token: soundAccessToken, refresh_token: soundRefreshToken }));
     console.log('SoundCloud tokens saved successfully.');
-    console.log({ accessToken, refreshToken });
+    console.log({ soundAccessToken, soundRefreshToken });
     console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
   } catch (error) {
     console.error('Error saving SoundCloud tokens:', error);
   }
 }
 
-
 // Function to load the access token and refresh token from a JSON file
 async function loadSoundcloudToken() {
   try {
     const data = await fs.readFile(TOKEN_FILE);
-    const { access_token: accessToken, refresh_token: refreshToken } = JSON.parse(data);
+    const { access_token: soundAccessToken, refresh_token: soundRefreshToken } = JSON.parse(data);
     console.log('SoundCloud tokens loaded successfully.');
     // log what was loaded from the file
-    console.log({ accessToken, refreshToken });
+    console.log({ soundAccessToken, soundRefreshToken });
     // log how the file looks like
     console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
-    return { accessToken, refreshToken };
+    return { soundAccessToken, soundRefreshToken };
   } catch (error) {
     console.error('Error loading SoundCloud tokens:', error);
     return null;
@@ -115,7 +114,7 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
           name: track.title,
           artist: track.user.username,
           url: track.permalink_url,
-          // replace the default artwork with a larger image
+          // replace the default artwork with a larger image and jpg
           art: track.artwork_url ? track.artwork_url.replace('-large', '-t300x300') : null,
         };
       });
