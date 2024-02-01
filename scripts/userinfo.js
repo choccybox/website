@@ -11,7 +11,6 @@ fetch ("/userinfo")
             }
         }
 
-        socialHolder.innerHTML = "";
         // create social buttons
         for (var i = 0; i < data.connections.length; i++) {
             var socialButton = document.createElement("a");

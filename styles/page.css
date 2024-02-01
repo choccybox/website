@@ -97,6 +97,14 @@ body {
     height: 100%;
     width: 135px;
     border-radius: var(--radius);
+    display: none;
+}
+
+.social_button_loader {
+    background-color: var(--panel);
+    height: 100%;
+    width: 135px;
+    border-radius: var(--radius);
 }
 
 #flag {

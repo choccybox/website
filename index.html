@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="fonts/stylesheet.css">
     <link rel="stylesheet" href="styles/reactive.css">
     <link rel="stylesheet" href="styles/page.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -39,7 +39,7 @@
 
                     <div id="avatar">
                         <a id="avatar_link" target="_blank" class="noselect">
-                            <img id="avatar_image" class="panel noselect" src="styles/blank.png"></img>
+                            <img id="avatar_image" class="panel noselect norightclick" src="styles/blank.png"></img>
                             <div id="avatar_credit">
                                 <p id="avatar_credit_text"></p>
                             </div>
@@ -63,7 +63,7 @@
 
                     <div id="player" class="panel">
                         <a id="player_link" target="_blank" class="noselect">
-                            <img id="player_image" class="noselect" src="./styles/blank.png"></img>
+                            <img id="player_image" class="panel noselect norightclick" src="./styles/blank.png"></img>
                         </a>
                        
                         <div id="player_timeline">
@@ -77,17 +77,27 @@
 
             <div id="main_bottom">
                 <div id="socials">
-                    <a><div class="social_button"><div class="icon"></div></div></a>
-                    <a><div class="social_button"><div class="icon"></div></div></a>
-                    <a><div class="social_button"><div class="icon"></div></div></a>
-                    <a><div class="social_button"><div class="icon"></div></div></a>
-                    <a><div class="social_button"><div class="icon"></div></div></a>
-                    <a><div class="social_button"><div class="icon"></div></div></a>
+                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
                 </div>
             </div>
 </div>
-
-<script>
+<script> // disable right click on elements
+    // Add an event listener for the right-click event on all elements with the specified class
+    document.querySelectorAll('.norightclick').forEach(function (element) {
+      element.addEventListener('contextmenu', function (event) {
+        // Prevent the default right-click behavior
+        event.preventDefault();
+        // Optionally, you can display a custom message or perform other actions here
+        console.log('Right-click is disabled on this element.');
+      });
+    });
+  </script>
+<script> // start all scripts and waits for images to load to display all panels and social buttons simultaneously
     // start all scripts from ./scripts
     var scripts = [
         "scripts/bday.js",
@@ -102,8 +112,7 @@
     function script_loaded() {
         scripts_loaded++;
         if (scripts_loaded === scripts_total) {
-            console.log("All scripts loaded");
-            // All scripts are loaded, now wait for asynchronous operations to complete
+            console.log("⌚ scripts loaded, waiting for images");
             waitForAsyncOperations();
         }
     }
@@ -117,8 +126,7 @@
             images[i].onload = function () {
                 images_loaded++;
                 if (images_loaded === images_total) {
-                    console.log("All images loaded");
-                    // All images are loaded, now show the panels
+                    console.log("⌚ images fetched");
                     showPanels();
                 }
             };
@@ -126,17 +134,24 @@
     }
 
     function showPanels() {
-        // Set the CSS properties for all elements with the 'panel' class
         var panels = document.getElementsByClassName('panel');
         for (var i = 0; i < panels.length; i++) {
             panels[i].style.display = 'block';
         }
-        // Set the CSS properties for all elements with the 'panel_loader' class
         var loaders = document.getElementsByClassName('panel_loader');
         for (var i = 0; i < loaders.length; i++) {
             loaders[i].style.display = 'none';
         }
-        console.log("Panels displayed");
+        var icons = document.querySelectorAll('a > .social_button_loader');
+        for (var i = 0; i < icons.length; i++) {
+            var icon = icons[i];
+            icon.parentNode.parentNode.removeChild(icon.parentNode);
+        }
+        var icons_show = document.getElementsByClassName('social_button');
+        for (var i = 0; i < icons_show.length; i++) {
+            icons_show[i].style.display = 'block';
+        }
+        console.log("✅ loading done, panels displayed");
     }
 
     for (var i = 0; i < scripts.length; i++) {
@@ -146,10 +161,6 @@
         document.head.appendChild(script);
     }
 
-    // Use window.onload to wait for all images to load
-    window.onload = function () {
-        console.log("All content loaded");
-    };
 </script>
 
 
