@@ -41,9 +41,20 @@
   .social_button_loader {
     height: 135px !important;
   }
-  #avatar, #player, #text_outer {
+  #text_outer {
     height: 280px !important;
     width: 280px !important;
+  }
+  #avatar {
+    margin-bottom: -30px;
+    z-index: 999;
+    height: 280px !important;
+    padding-bottom: 40px;
+  }
+  #player {
+    height: 280px !important;
+    padding-top: 40px;
+    margin-top: -40px !important;
   }
   #player_timeline {
     margin-top: -322px !important;
@@ -104,17 +115,20 @@
     width: 160px !important;
   }
   #player_timeline {
-    margin-top: -222px !important;
+    margin-top: -212px !important;
+  }
+  .popup {
+    height: 22px !important;
   }
   .popup_title {
-    margin-top: 6px !important;
+    margin-top: 2px !important;
     font-size: 0.9rem !important;
   }
   #avatar_credit_link {
     font-size: 0.9rem !important;
   }
   #player_title { 
-    margin-top: -25px !important;
+    margin-top: -30px !important;
   }
   .panel:last-child {
     margin: 0px !important;
