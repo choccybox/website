@@ -109,10 +109,9 @@ async function getNowPlaying() {
     });
 
     if (spotifyResponse.data && spotifyResponse.data.is_playing) {
-      console.log('playing');
-
       // if not local, use spotify api to get art and url
       if (!spotifyResponse.data.item.is_local) {
+      console.log('playing');
       return {
         isPlaying: true,
         isLocal: spotifyResponse.data.item.is_local,
@@ -126,12 +125,9 @@ async function getNowPlaying() {
         source: 'spotify',
       };
     } else {
-      // if local, use last.fm api to get art and url
-      console.log('playing a local file');
-
       const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}/${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}`);
-            
       if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+        console.log('playing local file, found result on soundcloud with artist');
         return {
           isPlaying: true,
           isLocal: spotifyResponse.data.item.is_local,
@@ -141,23 +137,41 @@ async function getNowPlaying() {
           url: soundCloudResponse.data[0].url,  // Corrected access to 'url' property
           progress: spotifyResponse.data.progress_ms,
           duration: spotifyResponse.data.item.duration_ms,
-          message: 'player is playing a local file, found result on soundcloud',
+          message: 'player is playing a local file, found result on soundcloud with artist',
           source: 'soundcloud',
         };
       } else {
-        return {
-          isPlaying: true,
-          isLocal: spotifyResponse.data.item.is_local,
-          name: spotifyResponse.data.item.name,
-          artist: spotifyResponse.data.item.artists[0].name,
-          art: null,
-          url: null,
-          progress: spotifyResponse.data.progress_ms,
-          duration: spotifyResponse.data.item.duration_ms,
-          message: 'player is playing a local file, no result found on soundcloud',
-          source: 'soundcloud',
-        };
-      } 
+        const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}`);
+
+        if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+          console.log('playing local file, found result on soundcloud without artist');
+          return {
+            isPlaying: true,
+            isLocal: spotifyResponse.data.item.is_local,
+            name: spotifyResponse.data.item.name,
+            artist: spotifyResponse.data.item.artists[0].name,
+            art: soundCloudResponse.data[0].art,
+            url: soundCloudResponse.data[0].url,
+            progress: spotifyResponse.data.progress_ms,
+            duration: spotifyResponse.data.item.duration_ms,
+            message: 'player is playing a local file, found result on soundcloud without artist',
+            source: 'soundcloud',
+          };
+        } else {
+          return {
+            isPlaying: true,
+            isLocal: spotifyResponse.data.item.is_local,
+            name: spotifyResponse.data.item.name,
+            artist: spotifyResponse.data.item.artists[0].name,
+            art: null,
+            url: null,
+            progress: spotifyResponse.data.progress_ms,
+            duration: spotifyResponse.data.item.duration_ms,
+            message: 'player is playing a local file, no soundcloud result',
+            source: 'spotify',
+          };
+        }
+      }
     }
   
     } else if (spotifyResponse.data && !spotifyResponse.data.is_playing || !spotifyResponse.data) {
@@ -188,11 +202,10 @@ async function getNowPlaying() {
           source: 'spotify',
         };
       } else {
-        console.log('not playing / empty response, no spotify result, trying soundcloud');
-
         const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
 
         if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+          console.log('not playing / empty response, found soundcloud result with artist with artist');
           return {
             isPlaying: false,
             isLocal: false,
@@ -202,22 +215,42 @@ async function getNowPlaying() {
             url: soundCloudResponse.data[0].url,
             progress: null,
             duration: null,
-            message: 'not playing / empty response, found soundcloud result',
+            message: 'not playing / empty response, found soundcloud result with artist',
             source: 'soundcloud',
           };
+          // if not result, search without artist
         } else {
-          return {
-            isPlaying: false,
-            isLocal: false,
-            name: lastFmResponse.data.recenttracks.track[0].name,
-            artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
-            art: lastFmResponse.data.recenttracks.track[0].image[3]['#text'],
-            url: lastFmResponse.data.recenttracks.track[0].url,
-            progress: null,
-            duration: null,
-            message: 'not playing / empty response, no results',
-            source: 'last.fm',
-          };
+          const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}`);
+
+          if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+            console.log('not playing / empty response, found soundcloud result without artist');
+            return {
+              isPlaying: false,
+              isLocal: false,
+              name: soundCloudResponse.data[0].name,
+              artist: soundCloudResponse.data[0].artist,
+              art: soundCloudResponse.data[0].art,
+              url: soundCloudResponse.data[0].url,
+              progress: null,
+              duration: null,
+              message: 'not playing / empty response, found soundcloud result without artist',
+              source: 'soundcloud',
+            };
+          } else {
+            console.log('not playing / empty response, no soundcloud result');
+            return {
+              isPlaying: false,
+              isLocal: false,
+              name: lastFmResponse.data.recenttracks.track[0].name,
+              artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
+              art: lastFmResponse.data.recenttracks.track[0].image[3]['#text'],
+              url: lastFmResponse.data.recenttracks.track[0].url,
+              progress: null,
+              duration: null,
+              message: 'not playing / empty response, no soundcloud result',
+              source: 'last.fm',
+            };
+          }
         }
       }
     } 

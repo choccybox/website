@@ -9,7 +9,7 @@ function fetchAndDisplayTime() {
             isPlaying = data.isPlaying;
 
             if (isPlaying) {
-                console.log(`🟢 playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}\nsource: ${data.source}`);
+                console.log(`🟢 playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}\nsource: ${data.source}\nmessage: ${data.message}`);
 
                 // if no art, use spong
                 if (data.art === null) {
