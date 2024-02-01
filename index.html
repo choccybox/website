@@ -13,7 +13,7 @@
 <style>
     ::-webkit-scrollbar {
         width: 0px;
-    }
+    } 
 
     .noselect {
         -webkit-touch-callout: none; /* iOS Safari */
@@ -37,54 +37,52 @@
                     <div class="panel_loader"></div>
                     <div class="panel_loader"></div>
 
-                    <div id="avatar">
+                    <div id="avatar" class="panel noselect">
                         <a id="avatar_link" target="_blank" class="noselect">
                             <img id="avatar_image" class="panel noselect norightclick" src="styles/blank.png"></img>
-                            <div id="avatar_credit">
-                                <p id="avatar_credit_text"></p>
-                            </div>
                         </a>
+                            
+                        <div id="avatar_credit" class="popup">
+                            <p id="avatar_credit_text" class="noselect popup_title"></p>
+                        </div>
+                        
                     </div>
 
-                    <div id="text" class="panel noselect">
+                    <div class="panel noselect">
                         <div id="text_outer">
-                            <div id="text_inner">
-                                <h1>choccy</h1>
-                                <p>
-                                    hobbyist<br>
-                                    programmer<br>
-                                    music addict<br></p>
-                                    <p id="age"></p>
-                                    <p id="pronouns"></p>
-                                    <p id="flag"></p>
-                            </div>   
+                            <h1>choccy</h1>
+                            <p>
+                                hobbyist<br>
+                                programmer<br>
+                                music addict<br></p>
+                                <p id="age"></p>
+                                <p id="pronouns"></p>
+                                <p id="flag"></p>
                         </div> 
                     </div>
 
-                    <div id="player" class="panel">
+                    <div id="player" class="panel noselect">
                         <a id="player_link" target="_blank" class="noselect">
                             <img id="player_image" class="panel noselect norightclick" src="./styles/blank.png"></img>
                         </a>
                        
-                        <div id="player_timeline">
+                        <div id="player_timeline" class="popup">
                             <div id="player_progress"></div>
-                            <p id="player_title" class="noselect"></p>
-
+                            <p id="player_title" class="noselect popup_title"></p>
                         </div>
                     </div>
                                         
             </div>
 
             <div id="main_bottom">
-                <div id="socials">
-                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                    <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                </div>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
             </div>
+            
 </div>
 <script> // disable right click on elements
     // Add an event listener for the right-click event on all elements with the specified class
@@ -139,9 +137,11 @@
             panels[i].style.display = 'block';
         }
         var loaders = document.getElementsByClassName('panel_loader');
-        for (var i = 0; i < loaders.length; i++) {
-            loaders[i].style.display = 'none';
+        for (var i = loaders.length - 1; i >= 0; i--) {
+            // remove all loaders
+            loaders[i].parentNode.removeChild(loaders[i]);
         }
+
         var icons = document.querySelectorAll('a > .social_button_loader');
         for (var i = 0; i < icons.length; i++) {
             var icon = icons[i];

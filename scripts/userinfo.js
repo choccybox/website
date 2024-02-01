@@ -2,7 +2,7 @@
 fetch ("/userinfo")
     .then(response => response.json())
     .then(data => {
-        var socialHolder = document.getElementById("socials");
+        var socialHolder = document.getElementById("main_bottom");
 
         // ignore domain type 
         for (var i = 0; i < data.connections.length; i++) {

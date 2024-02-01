@@ -123,11 +123,28 @@ async function getNowPlaying() {
         progress: spotifyResponse.data.progress_ms,
         duration: spotifyResponse.data.item.duration_ms,
         message: 'player is playing',
+        source: 'spotify',
       };
     } else {
       // if local, use last.fm api to get art and url
       console.log('playing a local file');
 
+      const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}/${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}`);
+            
+      if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+        return {
+          isPlaying: true,
+          isLocal: spotifyResponse.data.item.is_local,
+          name: spotifyResponse.data.item.name,
+          artist: spotifyResponse.data.item.artists[0].name,
+          art: soundCloudResponse.data[0].art,  // Corrected access to 'art' property
+          url: soundCloudResponse.data[0].url,  // Corrected access to 'url' property
+          progress: spotifyResponse.data.progress_ms,
+          duration: spotifyResponse.data.item.duration_ms,
+          message: 'player is playing a local file, found result on soundcloud',
+          source: 'soundcloud',
+        };
+      } else {
         return {
           isPlaying: true,
           isLocal: spotifyResponse.data.item.is_local,
@@ -137,11 +154,12 @@ async function getNowPlaying() {
           url: null,
           progress: spotifyResponse.data.progress_ms,
           duration: spotifyResponse.data.item.duration_ms,
-          message: 'playing a local file, found soundcloud result',
+          message: 'player is playing a local file, no result found on soundcloud',
+          source: 'soundcloud',
         };
       } 
-    
-
+    }
+  
     } else if (spotifyResponse.data && !spotifyResponse.data.is_playing || !spotifyResponse.data) {
 
       const lastFmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
@@ -162,26 +180,45 @@ async function getNowPlaying() {
           isLocal: false,
           name: spotifySearchResponse.data.tracks.items[0].name,
           artist: spotifySearchResponse.data.tracks.items[0].artists[0].name,
-          art: spotifySearchResponse.data.tracks.items[0].album.images[0].url,
+          art: spotifySearchResponse.data.tracks.items[0].album.images[1].url,
           url: spotifySearchResponse.data.tracks.items[0].external_urls.spotify,
           progress: null,
           duration: null,
           message: 'not playing / empty response, found spotify result',
+          source: 'spotify',
         };
       } else {
-        console.log('not playing / empty response, no spotify result');
+        console.log('not playing / empty response, no spotify result, trying soundcloud');
 
-        return {
-          isPlaying: false,
-          isLocal: false,
-          name: lastFmResponse.data.recenttracks.track[0].name,
-          artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
-          art: null,
-          url: null,
-          progress: null,
-          duration: null,
-          message: 'not playing / empty response, no spotify result',
-        };
+        const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
+
+        if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+          return {
+            isPlaying: false,
+            isLocal: false,
+            name: soundCloudResponse.data[0].name,
+            artist: soundCloudResponse.data[0].artist,
+            art: soundCloudResponse.data[0].art,
+            url: soundCloudResponse.data[0].url,
+            progress: null,
+            duration: null,
+            message: 'not playing / empty response, found soundcloud result',
+            source: 'soundcloud',
+          };
+        } else {
+          return {
+            isPlaying: false,
+            isLocal: false,
+            name: lastFmResponse.data.recenttracks.track[0].name,
+            artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
+            art: lastFmResponse.data.recenttracks.track[0].image[3]['#text'],
+            url: lastFmResponse.data.recenttracks.track[0].url,
+            progress: null,
+            duration: null,
+            message: 'not playing / empty response, no results',
+            source: 'last.fm',
+          };
+        }
       }
     } 
 
@@ -200,7 +237,8 @@ async function getNowPlaying() {
         url: null,
         progress: null,
         duration: null,
-        message: 'man we fucked up again goddamit',
+        message: 'it broke :(',
+        source: 'idk mars maybe',
       };
     }
   }

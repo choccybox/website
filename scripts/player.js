@@ -9,33 +9,41 @@ function fetchAndDisplayTime() {
             isPlaying = data.isPlaying;
 
             if (isPlaying) {
-                console.log(`🟢 playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
+                console.log(`🟢 playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}\nsource: ${data.source}`);
 
+                // if no art, use spong
                 if (data.art === null) {
                     document.getElementById("player_image").src = "./styles/spong.webp";
                 } else {
                     document.getElementById("player_image").src = data.art;
                 }
 
+                // if no url, remove target attribute
                 if (data.url === null) {
-
                     document.getElementById("player_link").removeAttribute("target");
                 } else {
                     document.getElementById("player_link").href = data.url;
                 }
 
-                // Update the rest of the elements
+                // if source is spotify, color the progress bar green
+                if (data.source === "spotify") {
+                    document.getElementById("player_progress").style.backgroundColor = "#1DB954";
+                } else if (data.source === "soundcloud") {
+                    document.getElementById("player_progress").style.backgroundColor = "#FF5500";
+                } else {
+                    document.getElementById("player_progress").style.backgroundColor = "#FFFFFF";
+                }
+
                 document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
 
                 currentProgress = data.progress || 0;
                 currentDuration = data.duration || 0;
 
-                // Update the progress bar
                 const progressPercentage = (currentProgress / currentDuration) * 100;
                 document.getElementById("player_progress").style.width = progressPercentage + "%";
 
+
                 if (currentProgress >= currentDuration) {
-                    // Handle song completion
                     fetchAndDisplayTime();
                 }
             } else {
@@ -47,7 +55,6 @@ function fetchAndDisplayTime() {
                 }
 
                 if (data.url === null) {
-
                     document.getElementById("player_link").removeAttribute("target");
                 } else {
                     document.getElementById("player_link").href = data.url;
@@ -58,7 +65,6 @@ function fetchAndDisplayTime() {
 
                 currentProgress = 0;
 
-                // Set the width of the progress bar to 0
                 document.getElementById("player_progress").style.width = "0%";
             }
         });
@@ -73,7 +79,6 @@ function updateFakeProgressBar() {
     if (isPlaying && currentProgress < currentDuration) {
         // each second, add however much the progress bar has progressed
         currentProgress += 1000;
-        console.log((currentProgress / currentDuration) * 100);
 
         // set width of progress bar
         const progressPercentage = (currentProgress / currentDuration) * 100;

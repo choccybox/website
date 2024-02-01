@@ -2,11 +2,11 @@
     :root {
         --background: #2e2f37;
         --timeline: #2a2b33;
-        --progress: #57575b;
+        --progress: #646466;
         --foreground:  #3e3f4b;
         --panel: #505161;
         --text: white;
-        --radius: 12px;
+        --radius: 0px;
       }
 }
 
@@ -31,7 +31,6 @@ body {
 #main_content {
     background-color: var(--foreground);
     max-width: 880px;
-    margin-right: 60px;
     height: 445px;
     position: absolute;
     display: flex;
@@ -42,22 +41,25 @@ body {
 }
 
 #main_top {
-    display: flex;
     position: relative;
+    display: flex;
     width: 100%;
     margin: 10px;
     border-radius: var(--radius);
 }
 
 #main_bottom {
-    display: block;
     position: absolute;
-    margin-left: 10px;
-    bottom: 0;
+    bottom: 0px;
+    display: flex;
     margin-bottom: 10px;
-    width: calc(100% - 20px);
-    overflow: hidden;
+    margin-left: 10px;
     border-radius: var(--radius);
+    width: calc(100% - 10px);
+ }
+
+.social_button {
+    margin-right: 10px;
 }
 
 .panel {
@@ -77,33 +79,21 @@ body {
     background-color: var(--panel);
     margin-right: 10px;
 }
-
-#avatar {
-    object-fit: cover;
-    border-radius: var(--radius);
-}
-
-#socials {
-    border-radius: var(--radius);
-    position: relative;
-    height: 135px;
-    width: 100%;
-    gap:10px;
-    display: flex;
-}
+.panel_loader:nth-child(3) {
+    margin-bottom: 0px !important;
+  }
 
 .social_button {
     background-color: var(--panel);
-    height: 100%;
-    width: 135px;
     border-radius: var(--radius);
     display: none;
 }
 
 .social_button_loader {
     background-color: var(--panel);
-    height: 100%;
+    height: 135px;
     width: 135px;
+    margin-right: 10px;
     border-radius: var(--radius);
 }
 
@@ -113,37 +103,11 @@ body {
 
 #flag_icon {
     width: 38px;
-    height: 24px;
+    height: 26px;
     object-fit: cover;
-    margin: 6px;
-    margin-top: 8px;
-    border-radius: 6px;
-}
-
-#player{
-   background-color: transparent;
-   height: 320px;
-}
-
-#player_image {
-    height: 280px;
-    width: 280px;
-    position: relative;
-    display: block;
-    background-color: transparent;
-    border-radius: var(--radius);
-}
-
-
-#player_title {
-    font-size: 1rem;
-    margin-top: -25px;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: calc(100% - 12px);
     margin-left: 6px;
+    margin-top: 10px;
+    border-radius: 6px;
 }
 
 #player_progress {
@@ -155,96 +119,46 @@ body {
     border-bottom-left-radius: var(--radius);
 }
 
-#player_timeline {
-    background-color: var(--timeline);
-    height: 32px;
-    border-radius: var(--radius);
-    width: 100%;
+.popup {
+    display: none;
     z-index: 9999;
     position: relative;
-    margin-top: 10px;
-    display: none;
+    background-color: var(--timeline);
+    width: 100%;
+    border-radius: var(--radius);
+    height: 32px;
     overflow: hidden;
 }
-
-#player_link {
-    filter: brightness(1) !important;
-}
-
-
-#player:hover #player_timeline {
-    display: block;
-}
-
-#avatar:hover #avatar_credit {
-    display: block;
-}
-
-#avatar_credit {
-    font-size: 1rem;
-    margin-top: -28px;
+.popup_title {
+    font-size: 1.25rem;
     text-align: center;
+    margin-top: 3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: calc(100% - 10px);
-    background-color: var(--timeline);
-    z-index: 9999;
-    border-radius: var(--radius);
-    height: 32px;
-    margin-top: 10px;
-    position: relative;
-    display: none;
+    width: calc(100% - 20px);
+    margin-left: 10px;
+    height: 27px;
 }
-
-
-#avatar_credit_text {
-    font-size: 1.25rem;
-    margin-top: 3px;
-}
-
-#avatar_credit_link {
+.popup_title a {
     font-size: 1.25rem;
 }
-
-#avatar_credit_link:hover {
-    filter: brightness(.8);
+#player_title {
+    margin-top: -28px;
 }
-
-#avatar_link {
-    text-decoration: none;
+#player:hover #player_timeline {
+    display: block;
 }
-
-#flag_name:hover {
-    filter: brightness(.8);
+#avatar:hover #avatar_credit {
+    display: block;
 }
-
-#line_break {
-    width: 100%;
-    height: 0px;
-    margin-top: 8px;
-    margin-bottom: 8px;
+#avatar, #player {
+    height: 320px;
+    background-color: transparent;
 }
-
-#text {
-    overflow: hidden;
-}
-
 #text_outer {
-    margin: 15px;
-    border-radius: var(--radius);
+    margin: 10px;
 }
-
-#text_inner {
-    overflow-y: scroll;
-    overflow-x: hidden;
-    height: 260Px;
-}
-
-#text_inner p {
-    font-size: 1.7rem;
-}
-
-#text_inner a {
-    font-size: 1.7rem;
+#bday {
+    font-size: 1.25rem;
 }

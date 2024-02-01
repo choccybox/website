@@ -27,4 +27,4 @@ if (daysUntil == 1) {
     daysUntil = daysUntil + " days";
 }
 
-document.getElementById("age").innerHTML = `${age} <span style="font-size:1.15rem">(${nextage} in ${daysUntil})</span>`;
+document.getElementById("age").innerHTML = `${age} <span id="bday">(${nextage} in ${daysUntil})</span>`;

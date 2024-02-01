@@ -95,9 +95,9 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
     // Construct the search URL using the provided trackname and artistname if available
     let searchUrl;
     if (artistname) {
-      searchUrl = `https://api.soundcloud.com/tracks?q=${trackname} ${artistname}&limit=1&linked_partitioning=true`;
+      searchUrl = `https://api.soundcloud.com/tracks?q=${trackname} ${artistname}&limit=3&linked_partitioning=true`;
     } else {
-      searchUrl = `https://api.soundcloud.com/tracks?q=${trackname}&limit=1&linked_partitioning=true`;
+      searchUrl = `https://api.soundcloud.com/tracks?q=${trackname}&limit=3&linked_partitioning=true`;
     }
 
     // Make a request to the search endpoint
@@ -116,7 +116,7 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
           artist: track.user.username,
           url: track.permalink_url,
           // replace the default artwork with a larger image and jpg
-          art: track.artwork_url ? track.artwork_url.replace('-large', '-t300x300').replace('.png', '.jpg') : null,
+          art: track.artwork_url ? track.artwork_url.replace('-large', '-t300x300').replace('.png', '.webp') : null,
         };
       });
 

@@ -38,17 +38,9 @@ h1 {
     margin: 0px;
 }
 
-h2 {
-    font-family: 'Rubik Bold', sans-serif;
-    font-size: 2.5rem;
-    font-weight: normal;
-    line-height: 1.2;
-    margin: 0px;
-}
-
 p {
     font-family: 'Rubik', sans-serif;
-    font-size: 2rem;
+    font-size: 1.7rem;
     font-weight: 600;
     line-height: 1.2;
     margin: 0px;
@@ -62,7 +54,7 @@ a {
     color: var(--text);
 }
 
-.fa-brands {
+.fa-brands, .fa-solid {
     font-size: 115px;
     margin: 10px;
     text-align: center;
