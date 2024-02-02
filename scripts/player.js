@@ -61,7 +61,7 @@ function fetchAndDisplayTime() {
                     // Use art.low if the user is on mobile data
                     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
                     const isMobileConnection = connection && connection.effectiveType === 'cellular';
-                    console.log("🔎 is on cellular?", isMobileConnection);
+                    console.log("🔎 is on cellular player?", isMobileConnection);
 
                     document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high  || "./styles/spong.webp";
                 }
