@@ -21,7 +21,7 @@ function fetchAndDisplayTime() {
                     const isMobileConnection = connection && connection.effectiveType === 'cellular';
                     console.log("🔎 is on cellular player?", isMobileConnection);
 
-                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high;
+                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high || "./styles/spong.webp";
                 }
 
                 // if no url, remove target attribute
@@ -63,7 +63,7 @@ function fetchAndDisplayTime() {
                     const isMobileConnection = connection && connection.effectiveType === 'cellular';
                     console.log("🔎 is on cellular?", isMobileConnection);
 
-                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high;
+                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high  || "./styles/spong.webp";
                 }
 
                 if (data.url === null) {
@@ -103,8 +103,7 @@ function updateFakeProgressBar() {
 
         // set width of progress bar
         const progressPercentage = (currentProgress / currentDuration) * 100;
-        // round to 4 decimal places
-        console.log("⏯ progress:", progressPercentage.toFixed(0) + "%");
+/*         console.log("⏯ progress:", progressPercentage.toFixed(0) + "%"); */
         document.getElementById("player_progress").style.width = progressPercentage + "%";
 
         if (currentProgress >= currentDuration) {

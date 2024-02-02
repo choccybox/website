@@ -109,21 +109,37 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
 
     // Check if the response contains a 'collection' property
     if (searchResponse.data.collection) {
-      // simplify the data
-      const tracks = searchResponse.data.collection.map(track => {
-        return {
-          name: track.title,
-          artist: track.user.username,
-          url: track.permalink_url,
-          art: {
-            high: track.artwork_url ? track.artwork_url.replace('large', 't300x300').replace('jpg', 'webp') : null,
-            low: track.artwork_url ? track.artwork_url.replace('large', 't64x64').replace('jpg', 'webp') : null,
-          }
-        };
-      });
+      // Find the first result with an art image attached
+      const trackWithArt = searchResponse.data.collection.find(track => track.artwork_url);
 
-      // Display search results in JSON format
-      res.json(tracks);
+      if (trackWithArt) {
+        // simplify the data
+        const track = {
+          name: trackWithArt.title,
+          artist: trackWithArt.user.username,
+          url: trackWithArt.permalink_url,
+          art: {
+            high: trackWithArt.artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
+            low: trackWithArt.artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
+          },
+        };
+
+        // Display the selected track with art in JSON format
+        res.json(track);
+      } else {
+
+        const track = {
+          name: trackWithArt.title,
+          artist: trackWithArt.user.username,
+          url: trackWithArt.permalink_url,
+          art: {
+            high: null,
+            low: null,
+          },
+        };
+        // No track with art found
+        res.json(track);
+      }
     } else {
       // Handle the case where the response format is unexpected
       console.error('Unexpected response format:', searchResponse.data);
@@ -134,6 +150,7 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
     res.status(500).send('Error searching tracks');
   }
 });
+
 
 soundcloud.listen(PORT, () => {
   console.log(`soundcloud running: ${PORT}`);
