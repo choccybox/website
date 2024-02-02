@@ -29,7 +29,17 @@ fetch ("/userinfo")
         const avatarCreditFormatted = lastSegment;
         
 
-        document.getElementById("avatar_image").src = data.avatar;
+        // check if user is on cellular
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isMobileConnection = connection && connection.effectiveType === 'cellular';
+        console.log("🔎 is on cellular avatar?", isMobileConnection);
+
+        if (isMobileConnection) {
+            document.getElementById("avatar_image").src = data.avatar.low
+        } else {
+            document.getElementById("avatar_image").src = data.avatar.high
+        }
+        
         document.getElementById("avatar_link").href = data.userUrl;
         document.getElementById("avatar_credit_text").innerHTML = `made by <a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${avatarCreditFormatted}</a>`;
     });

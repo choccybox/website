@@ -128,7 +128,7 @@ async function getNowPlaying() {
         source: 'spotify',
       };
     } else {
-      const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}/${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}`);
+      const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}/${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}`);
       if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
         console.log('playing local file, found result on soundcloud with artist');
         return {
@@ -137,8 +137,8 @@ async function getNowPlaying() {
           name: spotifyResponse.data.item.name,
           artist: spotifyResponse.data.item.artists[0].name,
           art: {
-            high: soundCloudResponse.data[0].art,
-            low: soundCloudResponse.data[1].art,
+            high: soundCloudResponse.data[0].art.high,
+            low: soundCloudResponse.data[0].art.low,
           },
           url: soundCloudResponse.data[0].url,
           progress: spotifyResponse.data.progress_ms,
@@ -147,7 +147,7 @@ async function getNowPlaying() {
           source: 'soundcloud',
         };
       } else {
-        const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}`);
+        const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}`);
 
         if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
           console.log('playing local file, found result on soundcloud without artist');
@@ -157,8 +157,8 @@ async function getNowPlaying() {
             name: spotifyResponse.data.item.name,
             artist: spotifyResponse.data.item.artists[0].name,
             art: {
-              high: soundCloudResponse.data[0].art,
-              low: soundCloudResponse.data[1].art,
+              high: soundCloudResponse.data[0].art.high,
+              low: soundCloudResponse.data[0].art.low,
             },
             url: soundCloudResponse.data[0].url,
             progress: spotifyResponse.data.progress_ms,
@@ -213,8 +213,9 @@ async function getNowPlaying() {
           source: 'spotify',
         };
       } else {
-        const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
+        const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
 
+        console.log(`https://choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
         if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
           console.log('not playing, found soundcloud result with artist');
           return {
@@ -223,8 +224,8 @@ async function getNowPlaying() {
             name: soundCloudResponse.data[0].name,
             artist: soundCloudResponse.data[0].artist,
             art: {
-              high: soundCloudResponse.data[0].art,
-              low: soundCloudResponse.data[1].art,
+              high: soundCloudResponse.data[0].art.high,
+              low: soundCloudResponse.data[0].art.low,
             },
             url: soundCloudResponse.data[0].url,
             progress: null,
@@ -233,7 +234,7 @@ async function getNowPlaying() {
             source: 'soundcloud',
           };
         } else {
-          const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}`);
+          const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}`);
 
           if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
             console.log('not playing, found soundcloud result without artist');
@@ -243,8 +244,8 @@ async function getNowPlaying() {
               name: soundCloudResponse.data[0].name,
               artist: soundCloudResponse.data[0].artist,
               art: {
-                high: soundCloudResponse.data[0].art,
-                low: soundCloudResponse.data[1].art,
+                high: soundCloudResponse.data[0].art.high,
+                low: soundCloudResponse.data[0].art.low,
               },
               url: soundCloudResponse.data[0].url,
               progress: null,
@@ -270,7 +271,7 @@ async function getNowPlaying() {
         }
       }
     } 
-
+    
   } catch (error) {
     if (error.response && error.response.status === 401) {
       await refreshSpotifyAccessToken();

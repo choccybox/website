@@ -116,8 +116,8 @@ soundcloud.get('/sound-search/:trackname/:artistname?', async (req, res) => {
           artist: track.user.username,
           url: track.permalink_url,
           art: {
-            high: track.artwork_url ? track.artwork_url.replace('jpg', 'webp') : null,
-            low: track.artwork_url ? track.artwork_url.replace('jpg', 'webp').replace('-t300x300', '-t64x64') : null
+            high: track.artwork_url ? track.artwork_url.replace('large', 't300x300').replace('jpg', 'webp') : null,
+            low: track.artwork_url ? track.artwork_url.replace('large', 't64x64').replace('jpg', 'webp') : null,
           }
         };
       });
