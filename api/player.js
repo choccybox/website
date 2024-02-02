@@ -42,7 +42,7 @@ function saveSpotifyTokensToFile() {
 }
 
 
-// COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
+// COMMENT OUT AFTER LOGGING.
 /* player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
@@ -84,7 +84,7 @@ player.get('/playercallback', async (req, res) => {
     }, 2000);
   }
 }); */
-// COMMENT OUT AFTER LOGGING. (so some random doesnt log in)
+// COMMENT OUT AFTER LOGGING.
 
 player.get('/player', async (req, res) => {
   try {
@@ -111,17 +111,20 @@ async function getNowPlaying() {
     if (spotifyResponse.data && spotifyResponse.data.is_playing) {
       // if not local, use spotify api to get art and url
       if (!spotifyResponse.data.item.is_local) {
-      console.log('playing');
+      console.log('playing from spotify');
       return {
         isPlaying: true,
         isLocal: spotifyResponse.data.item.is_local,
         name: spotifyResponse.data.item.name,
         artist: spotifyResponse.data.item.artists[0].name,
-        art: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.album.images[1].url,
+        art: {
+          high: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.album.images[1].url,
+          low: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.album.images[2].url,
+        },
         url: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.external_urls.spotify,
         progress: spotifyResponse.data.progress_ms,
         duration: spotifyResponse.data.item.duration_ms,
-        message: 'player is playing',
+        message: 'player is playing from spotify',
         source: 'spotify',
       };
     } else {
@@ -133,8 +136,11 @@ async function getNowPlaying() {
           isLocal: spotifyResponse.data.item.is_local,
           name: spotifyResponse.data.item.name,
           artist: spotifyResponse.data.item.artists[0].name,
-          art: soundCloudResponse.data[0].art,  // Corrected access to 'art' property
-          url: soundCloudResponse.data[0].url,  // Corrected access to 'url' property
+          art: {
+            high: soundCloudResponse.data[0].art,
+            low: soundCloudResponse.data[1].art,
+          },
+          url: soundCloudResponse.data[0].url,
           progress: spotifyResponse.data.progress_ms,
           duration: spotifyResponse.data.item.duration_ms,
           message: 'player is playing a local file, found result on soundcloud with artist',
@@ -150,7 +156,10 @@ async function getNowPlaying() {
             isLocal: spotifyResponse.data.item.is_local,
             name: spotifyResponse.data.item.name,
             artist: spotifyResponse.data.item.artists[0].name,
-            art: soundCloudResponse.data[0].art,
+            art: {
+              high: soundCloudResponse.data[0].art,
+              low: soundCloudResponse.data[1].art,
+            },
             url: soundCloudResponse.data[0].url,
             progress: spotifyResponse.data.progress_ms,
             duration: spotifyResponse.data.item.duration_ms,
@@ -187,57 +196,64 @@ async function getNowPlaying() {
       
       // if found, return spotify data, if not, return null
       if (spotifySearchResponse.data.tracks.items[0]) {
-        console.log('not playing / empty response, found spotify result');
-
+        console.log('not playing, found spotify result');
         return {
           isPlaying: false,
           isLocal: false,
           name: spotifySearchResponse.data.tracks.items[0].name,
           artist: spotifySearchResponse.data.tracks.items[0].artists[0].name,
-          art: spotifySearchResponse.data.tracks.items[0].album.images[1].url,
+          art: {
+            high: spotifySearchResponse.data.tracks.items[0].album.images[1].url,
+            low: spotifySearchResponse.data.tracks.items[0].album.images[2].url,
+          },
           url: spotifySearchResponse.data.tracks.items[0].external_urls.spotify,
           progress: null,
           duration: null,
-          message: 'not playing / empty response, found spotify result',
+          message: 'not playing, found spotify result',
           source: 'spotify',
         };
       } else {
         const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
 
         if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
-          console.log('not playing / empty response, found soundcloud result with artist with artist');
+          console.log('not playing, found soundcloud result with artist');
           return {
             isPlaying: false,
             isLocal: false,
             name: soundCloudResponse.data[0].name,
             artist: soundCloudResponse.data[0].artist,
-            art: soundCloudResponse.data[0].art,
+            art: {
+              high: soundCloudResponse.data[0].art,
+              low: soundCloudResponse.data[1].art,
+            },
             url: soundCloudResponse.data[0].url,
             progress: null,
             duration: null,
-            message: 'not playing / empty response, found soundcloud result with artist',
+            message: 'not playing, found soundcloud result with artist',
             source: 'soundcloud',
           };
-          // if not result, search without artist
         } else {
           const soundCloudResponse = await axios.get(`https://api.choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}`);
 
           if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
-            console.log('not playing / empty response, found soundcloud result without artist');
+            console.log('not playing, found soundcloud result without artist');
             return {
               isPlaying: false,
               isLocal: false,
               name: soundCloudResponse.data[0].name,
               artist: soundCloudResponse.data[0].artist,
-              art: soundCloudResponse.data[0].art,
+              art: {
+                high: soundCloudResponse.data[0].art,
+                low: soundCloudResponse.data[1].art,
+              },
               url: soundCloudResponse.data[0].url,
               progress: null,
               duration: null,
-              message: 'not playing / empty response, found soundcloud result without artist',
+              message: 'not playing, found soundcloud result without artist',
               source: 'soundcloud',
             };
           } else {
-            console.log('not playing / empty response, no soundcloud result');
+            console.log('not playing, no soundcloud result');
             return {
               isPlaying: false,
               isLocal: false,
@@ -247,7 +263,7 @@ async function getNowPlaying() {
               url: lastFmResponse.data.recenttracks.track[0].url,
               progress: null,
               duration: null,
-              message: 'not playing / empty response, no soundcloud result',
+              message: 'not playing, no soundcloud result',
               source: 'last.fm',
             };
           }

@@ -9,13 +9,13 @@ function fetchAndDisplayTime() {
             isPlaying = data.isPlaying;
 
             if (isPlaying) {
-                console.log(`🟢 playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}\nsource: ${data.source}\nmessage: ${data.message}`);
+                console.log(`🟢 playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart (high): ${data.art.high}\nart (low): ${data.art.low}\nsource: ${data.source}\nmessage: ${data.message}`);
 
                 // if no art, use spong
                 if (data.art === null) {
                     document.getElementById("player_image").src = "./styles/spong.webp";
                 } else {
-                    document.getElementById("player_image").src = data.art;
+                    document.getElementById("player_image").src = data.art.high;
                 }
 
                 // if no url, remove target attribute
@@ -47,11 +47,11 @@ function fetchAndDisplayTime() {
                     fetchAndDisplayTime();
                 }
             } else {
-                console.log(`🔴 not playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart: ${data.art}`);
+                console.log(`🔴 not playing\nname: ${data.name} • ${data.artist}\nurl: ${data.url}\nart (high): ${data.art.high}\nart (low): ${data.art.low}`);
                 if (data.art === null) {
                     document.getElementById("player_image").src = "./styles/spong.webp";
                 } else {
-                    document.getElementById("player_image").src = data.art;
+                    document.getElementById("player_image").src = data.art.high;
                 }
 
                 if (data.url === null) {
