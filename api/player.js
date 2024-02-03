@@ -12,14 +12,16 @@ const spotifyRedirectUri = `http://localhost:3000/playercallback`;
 const spotifyScopes = 'user-read-currently-playing user-library-read user-read-recently-played user-top-read user-read-playback-state';
 const spotifyTokenFile = 'spotify.json';
 
+const soundTokenFile = 'soundcloud.json';
+
 
 // spotify tokens
 try {
   const tokensData = fs.readFileSync(spotifyTokenFile, 'utf8');
   const tokens = JSON.parse(tokensData);
 
-  accessToken = tokens.accessToken;
-  refreshToken = tokens.refreshToken;
+  spotifyAccessToken = tokens.accessToken;
+  spotifyRefreshToken = tokens.refreshToken;
 
   console.log('spotify token loaded');
 } catch (err) {
@@ -29,8 +31,8 @@ try {
 // spotify saving token logic
 function saveSpotifyTokensToFile() {
   const tokens = {
-    accessToken: accessToken,
-    refreshToken: refreshToken,
+    accessToken: spotifyAccessToken,
+    refreshToken: spotifyRefreshToken,
   };
 
   try {
@@ -41,9 +43,38 @@ function saveSpotifyTokensToFile() {
   }
 }
 
+// Function to save the access token and refresh token to a JSON file
+async function saveSoundcloudTokens(soundAccessToken, soundRefreshToken) {
+  try {
+    await fs.writeFile(soundTokenFile, JSON.stringify({ access_token: soundAccessToken, refresh_token: soundRefreshToken }));
+    console.log('SoundCloud tokens saved successfully.');
+    console.log({ soundAccessToken, soundRefreshToken });
+    console.log(await fs.readFile(soundTokenFile, 'utf8'));
+  } catch (error) {
+    console.error('Error saving SoundCloud tokens:', error);
+  }
+}
+
+// Function to load the access token and refresh token from a JSON file
+async function loadSoundcloudTokens() {
+  try {
+    const data = await fs.readFile(soundTokenFile);
+    const { access_token: soundAccessToken, refresh_token: soundRefreshToken } = JSON.parse(data);
+    console.log('SoundCloud tokens loaded successfully.');
+    // log what was loaded from the file
+    console.log({ soundAccessToken, soundRefreshToken });
+    // log how the file looks like
+    console.log(await fs.readFile(soundTokenFile, 'utf8'));
+    return { soundAccessToken, soundRefreshToken };
+  } catch (error) {
+    console.error('Error loading SoundCloud tokens:', error);
+    return null;
+  }
+}
+
 
 // COMMENT OUT AFTER LOGGING.
-/* player.get('/playerauth', (req, res) => {
+ player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: spotifyClientId,
@@ -83,7 +114,49 @@ player.get('/playercallback', async (req, res) => {
       return res.redirect('/error');
     }, 2000);
   }
-}); */
+});
+
+player.get('/soundauth', (req, res) => {
+  // Redirect the user to the SoundCloud authorization URL
+  const authorizeUrl = `https://soundcloud.com/connect?client_id=${process.env.SOUNDCLOUD_CLIENT_ID}&redirect_uri=${process.env.SOUNDCLOUD_REDIRECT_URI}&response_type=code&scope=non-expiring`;
+  res.redirect(authorizeUrl);
+});
+
+player.get('/soundcallback', async (req, res) => {
+  // Handle the callback after the user grants/denies authorization
+  const { code } = req.query;
+
+  // Exchange the authorization code for an access token
+  const tokenUrl = 'https://api.soundcloud.com/oauth2/token';
+  const params = new URLSearchParams({
+    client_id: process.env.SOUNDCLOUD_CLIENT_ID,
+    client_secret: process.env.SOUNDCLOUD_CLIENT_SECRET,
+    redirect_uri: process.env.SOUNDCLOUD_REDIRECT_URI,
+    grant_type: 'authorization_code',
+    code,
+  });
+
+  try {
+    const response = await axios.post(tokenUrl, params);
+    const soundAccessToken = response.data.access_token;
+    const soundRefreshToken = response.data.refresh_token;
+
+    // Store the access token and refresh token in soundcloud.json
+    await saveSoundcloudTokens(soundAccessToken, soundRefreshToken);
+
+    // log what is saved
+    console.log({ soundAccessToken, soundRefreshToken });
+    // log how the file looks like
+    console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
+
+    // Display user data in JSON format
+    res.json('success');
+  } catch (error) {
+    console.error('Error exchanging code for token:', error.message);
+    res.status(500).send('Error during authentication');
+  }
+});
+
 // COMMENT OUT AFTER LOGGING.
 
 player.get('/player', async (req, res) => {
@@ -97,14 +170,14 @@ player.get('/player', async (req, res) => {
 });
 
 async function getNowPlaying() {
-  if (!accessToken) {
+  if (!spotifyAccessToken) {
     throw new Error('Access token not available.');
   }
 
   try {
     const spotifyResponse = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${spotifyAccessToken}`,
       },
     });
 
@@ -128,48 +201,54 @@ async function getNowPlaying() {
         source: 'spotify',
       };
     } else if (spotifyResponse.data.item.is_local) {
-      const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}/${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}`);
-      // if found, return soundcloud data
-      if (soundCloudResponse.data) {
+      const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)} ${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}&limit=3&linked_partitioning=true`, {
+        headers: {
+          'Authorization': `Bearer ${soundAccessToken}`, // Use the SoundCloud access token
+        },
+      });
+
+      // if found, return soundcloud data, if not, return null
+      if (soundCloudResponse.data.collection) {
         console.log('playing local file, found result on soundcloud with artist');
-        console.log(soundCloudResponse.data);
         return {
           isPlaying: true,
           isLocal: spotifyResponse.data.item.is_local,
           name: spotifyResponse.data.item.name,
           artist: spotifyResponse.data.item.artists[0].name,
           art: {
-            high: soundCloudResponse.data.art.high,
-            low: soundCloudResponse.data.art.low,
+            high: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
+            low: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
           },
-          url: soundCloudResponse.data.url,
+          url: soundCloudResponse.data.collection[0].permalink_url,
           progress: spotifyResponse.data.progress_ms,
           duration: spotifyResponse.data.item.duration_ms,
           message: 'player is playing a local file, found result on soundcloud with artist',
           source: 'soundcloud',
         };
       } else {
-        const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}`);
+        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)}&limit=3&linked_partitioning=true`, {
+          headers: {
+            'Authorization': `Bearer ${soundAccessToken}`, // Use the SoundCloud access token
+          },
+        });
 
-        if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
-          console.log('playing local file, found result on soundcloud without artist');
+        if (soundCloudResponse.data.collection) {
           return {
             isPlaying: true,
             isLocal: spotifyResponse.data.item.is_local,
             name: spotifyResponse.data.item.name,
             artist: spotifyResponse.data.item.artists[0].name,
             art: {
-              high: soundCloudResponse.data.art.high,
-              low: soundCloudResponse.data.art.low,
+              high: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
+              low: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
             },
-            url: soundCloudResponse.data.url,
+            url: soundCloudResponse.data.collection[0].permalink_url,
             progress: spotifyResponse.data.progress_ms,
             duration: spotifyResponse.data.item.duration_ms,
             message: 'player is playing a local file, found result on soundcloud without artist',
             source: 'soundcloud',
           };
         } else {
-          console.log(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}`)
           console.log('playing local file, no soundcloud result');
           return {
             isPlaying: true,
@@ -194,7 +273,7 @@ async function getNowPlaying() {
       // use spotify api to replace art and url from last.fm
       const spotifySearchResponse = await axios.get(`https://api.spotify.com/v1/search?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}%20artist:${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&type=track&limit=1`, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${spotifyAccessToken}`,
         },
       });
       
@@ -217,44 +296,51 @@ async function getNowPlaying() {
           source: 'spotify',
         };
       } else {
-        const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
+        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)}&limit=3&linked_partitioning=true`, {
+          headers: {
+            'Authorization': `Bearer ${soundAccessToken}`, // Use the SoundCloud access token
+          },
+        });
 
-        console.log(`https://choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
-        if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
-          console.log('not playing, found soundcloud result with artist');
+        if (soundCloudResponse.data.collection) {
+          console.log('not playing, found soundcloud result without artist');
           return {
             isPlaying: false,
             isLocal: false,
-            name: soundCloudResponse.data[0].name,
-            artist: soundCloudResponse.data[0].artist,
+            name: soundCloudResponse.data.collection[0].title,
+            artist: soundCloudResponse.data.collection[0].user.username,
             art: {
-              high: soundCloudResponse.data[0].art.high,
-              low: soundCloudResponse.data[0].art.low,
+              high: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
+              low: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
             },
-            url: soundCloudResponse.data[0].url,
+            url: soundCloudResponse.data.collection[0].permalink_url,
             progress: null,
             duration: null,
-            message: 'not playing, found soundcloud result with artist',
+            message: 'not playing, found soundcloud result without artist',
             source: 'soundcloud',
           };
         } else {
-          const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}`);
+          const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)} ${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}&limit=3&linked_partitioning=true`, {
+            headers: {
+              'Authorization': `Bearer ${soundAccessToken}`, // Use the SoundCloud access token
+            },
+          });
 
-          if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
-            console.log('not playing, found soundcloud result without artist');
+          if (soundCloudResponse.data.collection) {
+            console.log('not playing, found soundcloud result with artist');
             return {
               isPlaying: false,
               isLocal: false,
-              name: soundCloudResponse.data[0].name,
-              artist: soundCloudResponse.data[0].artist,
+              name: soundCloudResponse.data.collection[0].title,
+              artist: soundCloudResponse.data.collection[0].user.username,
               art: {
-                high: soundCloudResponse.data[0].art.high,
-                low: soundCloudResponse.data[0].art.low,
+                high: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
+                low: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
               },
-              url: soundCloudResponse.data[0].url,
+              url: soundCloudResponse.data.collection[0].permalink_url,
               progress: null,
               duration: null,
-              message: 'not playing, found soundcloud result without artist',
+              message: 'not playing, found soundcloud result with artist',
               source: 'soundcloud',
             };
           } else {
@@ -302,7 +388,7 @@ async function refreshSpotifyAccessToken() {
   try {
     const response = await axios.post('https://accounts.spotify.com/api/token', querystring.stringify({
       grant_type: 'refresh_token',
-      refresh_token: refreshToken,
+      refresh_token: spotifyRefreshToken,
       client_id: spotifyClientId,
       client_secret: spotifyClientSecret,
     }), {
@@ -315,8 +401,8 @@ async function refreshSpotifyAccessToken() {
 
     // Update the file with the new tokens
     fs.writeFileSync(spotifyTokenFile, JSON.stringify({
-      accessToken: accessToken,
-      refreshToken: refreshToken,
+      accessToken: spotifyAccessToken,
+      refreshToken: spotifyRefreshToken,
     }));
   } catch (error) {
     console.error('Error refreshing token:', error.response ? error.response.data : error.message);
