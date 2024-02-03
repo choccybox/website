@@ -28,6 +28,7 @@ function fetchAndDisplayTime() {
                 // if no url, remove target attribute
                 if (data.url === null) {
                     document.getElementById("player_link").removeAttribute("target");
+                    document.getElementById("player_link").href = "#";
                 } else {
                     document.getElementById("player_link").href = data.url;
                 }

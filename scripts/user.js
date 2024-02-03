@@ -46,7 +46,6 @@
 
     // fetch user choccymilk from pronoun.page
     fetch("https://en.pronouns.page/api/profile/get/choccymilk?version=2&props=pronouns,flags")
-    // format to data.profiles.en.pronouns
     .then(response => response.json())
     .then(data => {
         var pronouns = [];

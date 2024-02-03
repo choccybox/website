@@ -63,7 +63,7 @@ async function loadSoundcloudToken() {
 }
 
 // COMMENT OUT AFTER LOGGING.
-player.get('/playerauth', (req, res) => {
+/* player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: spotifyClientId,
@@ -141,7 +141,7 @@ player.get('/soundcallback', async (req, res) => {
     console.error('Error exchanging code for token:', error.message);
     res.status(500).send('Error during authentication');
   }
-});
+}); */
 // COMMENT OUT AFTER LOGGING.
 
 player.get('/player', async (req, res) => {
@@ -223,23 +223,53 @@ async function getNowPlaying() {
           message: 'player is playing a local file, found result on SoundCloud with artist',
           source: 'soundcloud',
         };
-      } else {
-        console.log('playing local file, no result on soundcloud') 
-        return {
-          isPlaying: true,
-          isLocal: spotifyResponse.data.item.is_local,
-          name: spotifyResponse.data.item.name,
-          artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
-          art: {
-            high: null,
-            low: null
+        // if no result, search for track name only
+      } else  {
+        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)}&limit=3&linked_partitioning=true`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
           },
-          url: null,
-          progress: spotifyResponse.data.progress_ms,
-          duration: spotifyResponse.data.item.duration_ms,
-          message: 'playing local file, no result on soundcloud',
-          source: 'spotify',
-        };
+        });
+
+        if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
+          const track = soundCloudResponse.data.collection[0];
+          console.log('playing local file, found result on soundcloud');
+        
+          return {
+            isPlaying: true,
+            isLocal: spotifyResponse.data.item.is_local,
+            name: spotifyResponse.data.item.name,
+            // removes (@artist) from artist name, leaving only the artist name
+            artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
+            art: {
+              // replaces default soundcloud image with set size and webp format
+              high: track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp'),
+              low: track.artwork_url.replace('-large', '-t64x64').replace('jpg', 'webp'),
+            },
+            url: track.permalink_url,
+            progress: spotifyResponse.data.progress_ms,
+            duration: spotifyResponse.data.item.duration_ms,
+            message: 'player is playing a local file, found result on SoundCloud with name',
+            source: 'soundcloud',
+          };
+        } else {
+          console.log('playing local file, no result on soundcloud') 
+          return {
+            isPlaying: true,
+            isLocal: spotifyResponse.data.item.is_local,
+            name: spotifyResponse.data.item.name,
+            artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
+            art: {
+              high: null,
+              low: null
+            },
+            url: null,
+            progress: spotifyResponse.data.progress_ms,
+            duration: spotifyResponse.data.item.duration_ms,
+            message: 'playing local file, no result on soundcloud',
+            source: 'spotify',
+          };
+        }
       }
     }
     
@@ -425,7 +455,6 @@ async function refreshSoundCloudAccessToken() {
     throw new Error('Error refreshing access token.');
   }
 }
-
 
 player.listen(PORT, async () => {
   console.log(`player running: ${PORT}`);

@@ -162,3 +162,10 @@ body {
 #bday {
     font-size: 1.25rem;
 }
+
+#avatar_credit_link:hover {
+    filter: brightness(0.8);
+}
+#flag_name:hover {
+    filter: brightness(0.8);
+}
