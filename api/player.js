@@ -188,11 +188,11 @@ async function getNowPlaying() {
     } else if (spotifyResponse.data.item.is_local) {
       const tokens = await loadSoundcloudToken();
 
-      // if no soundcloud token, run refreshSoundCloudAccessToken
+/*       // if no soundcloud token, run refreshSoundCloudAccessToken
       if (!tokens || !tokens.accessToken) {
         await refreshSoundCloudAccessToken();
         console.log('refreshed soundcloud token');
-      }
+      } */
   
       const accessToken = tokens.accessToken;
 
@@ -305,10 +305,10 @@ async function getNowPlaying() {
         };
       } else {
         const tokens = await loadSoundcloudToken();
-        if (!tokens || !tokens.accessToken) {
+/*         if (!tokens || !tokens.accessToken) {
           await refreshSoundCloudAccessToken();
           console.log('refreshed soundcloud token');
-        }
+        } */
     
         const accessToken = tokens.accessToken;
   
@@ -365,7 +365,7 @@ async function getNowPlaying() {
   } catch (error) {
     if (error.response && error.response.status === 401) {
       await refreshSpotifyAccessToken();
-      await refreshSoundCloudAccessToken();
+/*       await refreshSoundCloudAccessToken(); */
       return getNowPlaying();
     } else {
       console.error('Error:', error);
