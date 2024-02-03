@@ -32,20 +32,19 @@ function saveSpotifyTokensToEnv(newAccessToken, newRefreshToken) {
 }
 
 // Function to save the access token and refresh token to a JSON file
-async function saveSoundcloudToken(accessToken, refreshToken) {
+async function saveSoundcloudToken(accessToken) {
   try {
     // Update the environment variables
     process.env.SOUNDCLOUD_ACCESS_TOKEN = accessToken;
-    process.env.SOUNDCLOUD_REFRESH_TOKEN = refreshToken;
 
     // Update the .env file
     const envPath = path.resolve(__dirname, '../.env');
     let envContents = fs.readFileSync(envPath, 'utf8');
-    envContents += `\nSOUNDCLOUD_ACCESS_TOKEN=${accessToken}\nSOUNDCLOUD_REFRESH_TOKEN=${refreshToken}`;
+    envContents += `\nSOUNDCLOUD_ACCESS_TOKEN=${accessToken}`;
     fs.writeFileSync(envPath, envContents, 'utf8');
 
     console.log('SoundCloud tokens saved to .env');
-    console.log({ accessToken, refreshToken });
+    console.log({ accessToken });
   } catch (error) {
     console.error('Error saving SoundCloud tokens:', error);
   }
@@ -56,10 +55,9 @@ async function loadSoundcloudToken() {
   try {
     // Read tokens from environment variables
     const accessToken = process.env.SOUNDCLOUD_ACCESS_TOKEN;
-    const refreshToken = process.env.SOUNDCLOUD_REFRESH_TOKEN;
 
     // Return tokens
-    return { accessToken, refreshToken };
+    return { accessToken };
   } catch (error) {
     console.error('Error loading SoundCloud tokens:', error);
     return null;
@@ -67,7 +65,7 @@ async function loadSoundcloudToken() {
 }
 
 // COMMENT OUT AFTER LOGGING.
-player.get('/playerauth', (req, res) => {
+/* player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: spotifyClientId,
@@ -148,7 +146,7 @@ player.get('/soundcallback', async (req, res) => {
     console.error('Error exchanging code for token:', error.message);
     res.status(500).send('Error during authentication');
   }
-});
+}); */
 // COMMENT OUT AFTER LOGGING.
 
 player.get('/player', async (req, res) => {
@@ -160,7 +158,6 @@ player.get('/player', async (req, res) => {
     res.status(error.response ? error.response.status : 500).send('Error occurred while fetching currently playing track.');
   }
 });
-
 
 async function getNowPlaying() {
   if (!accessToken) {
@@ -184,10 +181,10 @@ async function getNowPlaying() {
         name: spotifyResponse.data.item.name,
         artist: spotifyResponse.data.item.artists[0].name,
         art: {
-          high: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.album.images[1].url,
-          low: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.album.images[2].url,
+          high: spotifyResponse.data.item.album.images[1].url,
+          low: spotifyResponse.data.item.album.images[2].url,
         },
-        url: spotifyResponse.data.item.is_local ? null : spotifyResponse.data.item.external_urls.spotify,
+        url: spotifyResponse.data.item.external_urls.spotify,
         progress: spotifyResponse.data.progress_ms,
         duration: spotifyResponse.data.item.duration_ms,
         message: 'player is playing from spotify',
@@ -298,7 +295,7 @@ async function getNowPlaying() {
   
         if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
           const track = soundCloudResponse.data.collection[0];
-          console.log('playing local file, found result on soundcloud');
+          console.log('not playing, found result on soundcloud');
         
           return {
             isPlaying: true,
@@ -312,9 +309,9 @@ async function getNowPlaying() {
               low: track.artwork_url.replace('-large', '-t64x64').replace('jpg', 'webp'),
             },
             url: track.permalink_url,
-            progress: spotifyResponse.data.progress_ms,
-            duration: spotifyResponse.data.item.duration_ms,
-            message: 'player is playing a local file, found result on SoundCloud with artist',
+            progress: null,
+            duration: null,
+            message: 'not playing, found result on soundcloud',
             source: 'soundcloud',
           };
         } else {
@@ -402,9 +399,9 @@ async function refreshSoundCloudAccessToken() {
   try {
     const response = await axios.post('https://api.soundcloud.com/oauth2/token', querystring.stringify({
       grant_type: 'refresh_token',
-      refresh_token: process.env.SOUNDCLOUD_REFRESH_TOKEN,
       client_id: process.env.SOUNDCLOUD_CLIENT_ID,
       client_secret: process.env.SOUNDCLOUD_CLIENT_SECRET,
+      clint_token : process.env.SOUNDCLOUD_ACCESS_TOKEN,
     }), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -432,7 +429,6 @@ async function refreshSoundCloudAccessToken() {
     throw new Error('Error refreshing access token.');
   }
 }
-
 
 player.listen(PORT, async () => {
   console.log(`player running: ${PORT}`);
