@@ -90,17 +90,14 @@
       element.addEventListener('contextmenu', function (event) {
         // Prevent the default right-click behavior
         event.preventDefault();
-        // Optionally, you can display a custom message or perform other actions here
-        console.log('Right-click is disabled on this element.');
       });
     });
   </script>
-<script> // start all scripts and waits for images to load to display all panels and social buttons simultaneously
-    // start all scripts from ./scripts
+<script>
+    // start all scripts and waits for images and fonts to load to display all panels and social buttons simultaneously
     var scripts = [
         "scripts/bday.js",
-        "scripts/userinfo.js",
-        "scripts/pronounspage.js",
+        "scripts/user.js",
         "scripts/player.js",
     ];
 
@@ -110,7 +107,7 @@
     function script_loaded() {
         scripts_loaded++;
         if (scripts_loaded === scripts_total) {
-            console.log("⌚ scripts loaded, waiting for images");
+            console.log("⌚ scripts loaded");
             waitForAsyncOperations();
         }
     }
@@ -124,11 +121,19 @@
             images[i].onload = function () {
                 images_loaded++;
                 if (images_loaded === images_total) {
-                    console.log("⌚ images fetched");
-                    showPanels();
+                    console.log("⌚ images loaded");
+                    waitForFonts();
                 }
             };
         }
+    }
+
+    function waitForFonts() {
+        // wait for all fonts to load
+        document.fonts.ready.then(function () {
+            console.log("⌚ fonts loaded");
+            showPanels();
+        });
     }
 
     function showPanels() {
@@ -162,6 +167,7 @@
     }
 
 </script>
+
 
 
 </body>

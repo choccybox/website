@@ -3,7 +3,8 @@ const axios = require('axios');
 const fs = require('fs');
 const { Client, GatewayIntentBits } = require('discord.js');
 const dotenv = require('dotenv');
-const userinfo = express();
+const user = express();
+const path = require('path');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -22,32 +23,38 @@ const client = new Client({
 // Discord Bot Token
 const token = process.env.DISCORD_BOT_TOKEN;
 // Redirect URI for OAuth2
-const redirectUri = `http://localhost:3000/userinfocallback`;
+const redirectUri = `http://localhost:3000/usercallback`;
 
 // Scopes for OAuth2
 const scopes = ['identify', 'connections'];
 
-const tokenFilePath = 'discord.json';
-
-function saveAccessToken(accessToken, expiresIn) {
+function saveAccessTokenToEnv(accessToken, expiresIn, refreshToken) {
   try {
-    const timestamp = Date.now();
-    const data = JSON.stringify({ accessToken, expiresIn, timestamp });
-    fs.writeFileSync(tokenFilePath, data);
-    console.log('Access token saved successfully.');
+    // Update the environment variables
+    process.env.DISCORD_ACCESS_TOKEN = accessToken;
+    process.env.DISCORD_EXPIRES_IN = expiresIn;
+    process.env.DISCORD_REFRESH_TOKEN = refreshToken;
+
+    // Update the .env file
+    const envPath = path.resolve(__dirname, '../.env');
+    let envContents = fs.readFileSync(envPath, 'utf8');
+    envContents += `\nDISCORD_ACCESS_TOKEN=${accessToken}\nDISCORD_EXPIRES_IN=${expiresIn}\nDISCORD_REFRESH_TOKEN=${refreshToken}`;
+    fs.writeFileSync(envPath, envContents, 'utf8');
   } catch (error) {
-    console.error('Error saving access token:', error);
+    console.error('Error saving Discord tokens:', error);
   }
 }
 
 // Function to load the access token and its expiration time from a JSON file
 function loadAccessToken() {
   try {
-    const data = fs.readFileSync(tokenFilePath);
-    const { accessToken, expiresIn, timestamp } = JSON.parse(data);
+    // Read tokens from environment variables
+    const accessToken = process.env.DISCORD_ACCESS_TOKEN;
+    const expiresIn = process.env.DISCORD_EXPIRES_IN;
+    const refreshToken = process.env.DISCORD_REFRESH_TOKEN;
 
     // Check if the token has expired
-    const expirationTimestamp = timestamp + expiresIn * 1000; // convert expiresIn to milliseconds
+    const expirationTimestamp = Number(process.env.DISCORD_TOKEN_TIMESTAMP) + expiresIn * 1000; // convert expiresIn to milliseconds
     if (expirationTimestamp < Date.now()) {
       console.log('Access token has expired.');
       return null; // Token has expired
@@ -83,8 +90,7 @@ async function refreshAccessToken(refreshToken) {
     const expiresIn = response.data.expires_in;
 
     // Save the new access token and refresh token to the JSON file
-    saveAccessToken(newAccessToken, expiresIn);
-    // Optionally save the new refresh token if Discord provides a new one
+    saveAccessTokenToEnv(newAccessToken, expiresIn, newRefreshToken);
 
     return newAccessToken;
   } catch (error) {
@@ -93,13 +99,13 @@ async function refreshAccessToken(refreshToken) {
   }
 }
 
-/* // OAuth2 endpoint
-userinfo.get('/userinfoauth', (req, res) => {
+// OAuth2 endpoint
+user.get('/userauth', (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`);
 });
 
 // Discord
-userinfo.get('/userinfocallback', async (req, res) => {
+user.get('/usercallback', async (req, res) => {
   const code = req.query.code;
 
   if (code) {
@@ -125,22 +131,8 @@ userinfo.get('/userinfocallback', async (req, res) => {
       const refreshToken = response.data.refresh_token;
       const expiresIn = response.data.expires_in;
 
-      // Fetch the user's data from Discord API
-      const userResponse = await axios.get('https://discord.com/api/users/@me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      const userId = userResponse.data.id;
-
-      // Check if the user's ID matches the allowed ID
-      if (userId !== process.env.DISCORD_ID) {
-        return res.status(403).send('Access denied. Invalid user ID.');
-      }
-
-      // Save the access token and refresh token to the JSON file
-      saveAccessToken(accessToken, expiresIn);
+      // Save the access token, refresh token, and expiration info to .env
+      saveAccessTokenToEnv(accessToken, expiresIn, refreshToken);
 
       client.token = accessToken;
 
@@ -153,9 +145,10 @@ userinfo.get('/userinfocallback', async (req, res) => {
     res.status(400).send('Authorization code not provided.');
   }
 });
- */
 
-userinfo.get('/userinfo', async (req, res) => {
+
+
+user.get('/user', async (req, res) => {
   try {
     // Load the access token from the JSON file
     let savedAccessToken = loadAccessToken();
@@ -257,8 +250,8 @@ userinfo.get('/userinfo', async (req, res) => {
 
 client.login(token);
 
-userinfo.listen(port, () => {
-  console.log(`userinfo running: ${port}`);
+user.listen(port, () => {
+  console.log(`user running: ${port}`);
 });
 
-module.exports = userinfo;
+module.exports = user;
