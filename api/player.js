@@ -41,6 +41,9 @@ async function saveSoundcloudToken(soundcloudAccessToken, soundcloudRefreshToken
     envContents += `\nSOUNDCLOUD_ACCESS_TOKEN=${soundcloudAccessToken}\nSOUNDCLOUD_REFRESH_TOKEN=${soundcloudRefreshToken}`;
     fs.writeFileSync(envPath, envContents, 'utf8');
 
+    console.log('SoundCloud Access Token:', soundcloudAccessToken);
+    console.log('SoundCloud Refresh Token:', soundcloudRefreshToken);
+
     console.log('SoundCloud tokens saved to .env');
   } catch (error) {
     console.error('Error saving SoundCloud tokens:', error);
