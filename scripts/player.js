@@ -13,7 +13,7 @@ function fetchAndDisplayTime() {
 
 
                 // if no art, use spong
-                if (data.art === null) {
+                if (data.art.high & data.art.low === null) {
                     document.getElementById("player_image").src = "./styles/spong.webp";
                 } else {
                     // Use art.low if the user is on mobile data
@@ -21,6 +21,7 @@ function fetchAndDisplayTime() {
                     const isMobileConnection = connection && connection.effectiveType === 'cellular';
                     console.log("🔎 is on cellular player?", isMobileConnection);
 
+                    // check if image is available, else use spong
                     document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high || "./styles/spong.webp";
                 }
 

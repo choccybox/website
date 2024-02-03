@@ -127,20 +127,22 @@ async function getNowPlaying() {
         message: 'player is playing from spotify',
         source: 'spotify',
       };
-    } else {
+    } else if (spotifyResponse.data.item.is_local) {
       const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}/${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}`);
-      if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+      // if found, return soundcloud data
+      if (soundCloudResponse.data) {
         console.log('playing local file, found result on soundcloud with artist');
+        console.log(soundCloudResponse.data);
         return {
           isPlaying: true,
           isLocal: spotifyResponse.data.item.is_local,
           name: spotifyResponse.data.item.name,
           artist: spotifyResponse.data.item.artists[0].name,
           art: {
-            high: soundCloudResponse.data[0].art.high,
-            low: soundCloudResponse.data[0].art.low,
+            high: soundCloudResponse.data.art.high,
+            low: soundCloudResponse.data.art.low,
           },
-          url: soundCloudResponse.data[0].url,
+          url: soundCloudResponse.data.url,
           progress: spotifyResponse.data.progress_ms,
           duration: spotifyResponse.data.item.duration_ms,
           message: 'player is playing a local file, found result on soundcloud with artist',
@@ -157,16 +159,18 @@ async function getNowPlaying() {
             name: spotifyResponse.data.item.name,
             artist: spotifyResponse.data.item.artists[0].name,
             art: {
-              high: soundCloudResponse.data[0].art.high,
-              low: soundCloudResponse.data[0].art.low,
+              high: soundCloudResponse.data.art.high,
+              low: soundCloudResponse.data.art.low,
             },
-            url: soundCloudResponse.data[0].url,
+            url: soundCloudResponse.data.url,
             progress: spotifyResponse.data.progress_ms,
             duration: spotifyResponse.data.item.duration_ms,
             message: 'player is playing a local file, found result on soundcloud without artist',
             source: 'soundcloud',
           };
         } else {
+          console.log(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}`)
+          console.log('playing local file, no soundcloud result');
           return {
             isPlaying: true,
             isLocal: spotifyResponse.data.item.is_local,
