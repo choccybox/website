@@ -12,8 +12,36 @@ const spotifyRedirectUri = `http://localhost:3000/playercallback`;
 const spotifyScopes = 'user-read-currently-playing user-library-read user-read-recently-played user-top-read user-read-playback-state';
 const spotifyTokenFile = 'spotify.json';
 
-const soundTokenFile = 'soundcloud.json';
+const soundFile = 'soundcloud.json';
 
+// Function to save the access token and refresh token to a JSON file
+async function saveSoundcloudToken(accessToken, refreshToken) {
+  try {
+    await fs.writeFile(TOKEN_FILE, JSON.stringify({ access_token: accessToken, refresh_token: refreshToken }));
+    console.log('SoundCloud tokens saved successfully.');
+    console.log({ accessToken, refreshToken });
+    console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
+  } catch (error) {
+    console.error('Error saving SoundCloud tokens:', error);
+  }
+}
+
+// Function to load the access token and refresh token from a JSON file
+async function loadSoundcloudToken() {
+  try {
+    const data = await fs.readFile(TOKEN_FILE);
+    const { access_token: accessToken, refresh_token: refreshToken } = JSON.parse(data);
+    console.log('SoundCloud tokens loaded successfully.');
+    // log what was loaded from the file
+    console.log({ accessToken, refreshToken });
+    // log how the file looks like
+    console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
+    return { accessToken, refreshToken };
+  } catch (error) {
+    console.error('Error loading SoundCloud tokens:', error);
+    return null;
+  }
+}
 
 // spotify tokens
 try {
@@ -43,38 +71,8 @@ function saveSpotifyTokensToFile() {
   }
 }
 
-// Function to save the access token and refresh token to a JSON file
-async function saveSoundcloudTokens(soundAccessToken, soundRefreshToken) {
-  try {
-    await fs.writeFile(soundTokenFile, JSON.stringify({ access_token: soundAccessToken, refresh_token: soundRefreshToken }));
-    console.log('SoundCloud tokens saved successfully.');
-    console.log({ soundAccessToken, soundRefreshToken });
-    console.log(await fs.readFile(soundTokenFile, 'utf8'));
-  } catch (error) {
-    console.error('Error saving SoundCloud tokens:', error);
-  }
-}
-
-// Function to load the access token and refresh token from a JSON file
-async function loadSoundcloudTokens() {
-  try {
-    const data = await fs.readFile(soundTokenFile);
-    const { access_token: soundAccessToken, refresh_token: soundRefreshToken } = JSON.parse(data);
-    console.log('SoundCloud tokens loaded successfully.');
-    // log what was loaded from the file
-    console.log({ soundAccessToken, soundRefreshToken });
-    // log how the file looks like
-    console.log(await fs.readFile(soundTokenFile, 'utf8'));
-    return { soundAccessToken, soundRefreshToken };
-  } catch (error) {
-    console.error('Error loading SoundCloud tokens:', error);
-    return null;
-  }
-}
-
-
 // COMMENT OUT AFTER LOGGING.
- player.get('/playerauth', (req, res) => {
+player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: spotifyClientId,
@@ -138,14 +136,14 @@ player.get('/soundcallback', async (req, res) => {
 
   try {
     const response = await axios.post(tokenUrl, params);
-    const soundAccessToken = response.data.access_token;
-    const soundRefreshToken = response.data.refresh_token;
+    const accessToken = response.data.access_token;
+    const refreshToken = response.data.refresh_token;
 
-    // Store the access token and refresh token in soundcloud.json
-    await saveSoundcloudTokens(soundAccessToken, soundRefreshToken);
+    // Store the access token and refresh token in sound_token.json
+    await saveSoundcloudToken(accessToken, refreshToken);
 
     // log what is saved
-    console.log({ soundAccessToken, soundRefreshToken });
+    console.log({ accessToken, refreshToken });
     // log how the file looks like
     console.log(await fs.readFile(TOKEN_FILE, 'utf8'));
 
@@ -156,7 +154,6 @@ player.get('/soundcallback', async (req, res) => {
     res.status(500).send('Error during authentication');
   }
 });
-
 // COMMENT OUT AFTER LOGGING.
 
 player.get('/player', async (req, res) => {
@@ -201,54 +198,47 @@ async function getNowPlaying() {
         source: 'spotify',
       };
     } else if (spotifyResponse.data.item.is_local) {
-      const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)} ${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}&limit=3&linked_partitioning=true`, {
-        headers: {
-          'Authorization': `Bearer ${soundAccessToken}`, // Use the SoundCloud access token
-        },
-      });
-
-      // if found, return soundcloud data, if not, return null
-      if (soundCloudResponse.data.collection) {
+      const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}/${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}`);
+      if (soundCloudResponse.data) {
         console.log('playing local file, found result on soundcloud with artist');
+        console.log(soundCloudResponse.data);
         return {
           isPlaying: true,
           isLocal: spotifyResponse.data.item.is_local,
           name: spotifyResponse.data.item.name,
           artist: spotifyResponse.data.item.artists[0].name,
           art: {
-            high: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
-            low: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
+            high: soundCloudResponse.data.art.high,
+            low: soundCloudResponse.data.art.low,
           },
-          url: soundCloudResponse.data.collection[0].permalink_url,
+          url: soundCloudResponse.data.url,
           progress: spotifyResponse.data.progress_ms,
           duration: spotifyResponse.data.item.duration_ms,
           message: 'player is playing a local file, found result on soundcloud with artist',
           source: 'soundcloud',
         };
       } else {
-        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)}&limit=3&linked_partitioning=true`, {
-          headers: {
-            'Authorization': `Bearer ${soundAccessToken}`, // Use the SoundCloud access token
-          },
-        });
+        const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}`);
 
-        if (soundCloudResponse.data.collection) {
+        if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+          console.log('playing local file, found result on soundcloud without artist');
           return {
             isPlaying: true,
             isLocal: spotifyResponse.data.item.is_local,
             name: spotifyResponse.data.item.name,
             artist: spotifyResponse.data.item.artists[0].name,
             art: {
-              high: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
-              low: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
+              high: soundCloudResponse.data.art.high,
+              low: soundCloudResponse.data.art.low,
             },
-            url: soundCloudResponse.data.collection[0].permalink_url,
+            url: soundCloudResponse.data.url,
             progress: spotifyResponse.data.progress_ms,
             duration: spotifyResponse.data.item.duration_ms,
             message: 'player is playing a local file, found result on soundcloud without artist',
             source: 'soundcloud',
           };
         } else {
+          console.log(`https://choccymilk.uk/sound-search/${encodeURIComponent(spotifyResponse.data.item.name)}`)
           console.log('playing local file, no soundcloud result');
           return {
             isPlaying: true,
@@ -296,51 +286,43 @@ async function getNowPlaying() {
           source: 'spotify',
         };
       } else {
-        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)}&limit=3&linked_partitioning=true`, {
-          headers: {
-            'Authorization': `Bearer ${soundAccessToken}`, // Use the SoundCloud access token
-          },
-        });
+        const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
 
-        if (soundCloudResponse.data.collection) {
-          console.log('not playing, found soundcloud result without artist');
+        console.log(`https://choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}`);
+        if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+          console.log('not playing, found soundcloud result with artist');
           return {
             isPlaying: false,
             isLocal: false,
-            name: soundCloudResponse.data.collection[0].title,
-            artist: soundCloudResponse.data.collection[0].user.username,
+            name: soundCloudResponse.data[0].name,
+            artist: soundCloudResponse.data[0].artist,
             art: {
-              high: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
-              low: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
+              high: soundCloudResponse.data.art.high,
+              low: soundCloudResponse.data.art.low,
             },
-            url: soundCloudResponse.data.collection[0].permalink_url,
+            url: soundCloudResponse.data.url,
             progress: null,
             duration: null,
-            message: 'not playing, found soundcloud result without artist',
+            message: 'not playing, found soundcloud result with artist',
             source: 'soundcloud',
           };
         } else {
-          const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)} ${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}&limit=3&linked_partitioning=true`, {
-            headers: {
-              'Authorization': `Bearer ${soundAccessToken}`, // Use the SoundCloud access token
-            },
-          });
-
-          if (soundCloudResponse.data.collection) {
-            console.log('not playing, found soundcloud result with artist');
+          const soundCloudResponse = await axios.get(`https://choccymilk.uk/sound-search/${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}`);
+          if (soundCloudResponse.data && soundCloudResponse.data.length > 0) {
+            console.log('not playing, found soundcloud result without artist');
             return {
               isPlaying: false,
               isLocal: false,
-              name: soundCloudResponse.data.collection[0].title,
-              artist: soundCloudResponse.data.collection[0].user.username,
+              name: soundCloudResponse.data[0].name,
+              artist: soundCloudResponse.data[0].artist,
               art: {
-                high: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
-                low: soundCloudResponse.data.collection[0].artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
+                high: soundCloudResponse.data.art.high,
+                low: soundCloudResponse.data.art.low,
               },
-              url: soundCloudResponse.data.collection[0].permalink_url,
+              url: soundCloudResponse.data.url,
               progress: null,
               duration: null,
-              message: 'not playing, found soundcloud result with artist',
+              message: 'not playing, found soundcloud result without artist',
               source: 'soundcloud',
             };
           } else {
@@ -383,6 +365,79 @@ async function getNowPlaying() {
     }
   }
 }
+
+player.get('/sound-search/:trackname/:artistname?', async (req, res) => {
+  try {
+    // Read the stored access token and refresh token from sound_token.json
+    const tokens = await loadSoundcloudToken();
+
+    if (!tokens || !tokens.accessToken) {
+      return res.status(401).send('Access token not found. Please authorize.');
+    }
+
+    const accessToken = tokens.accessToken;
+
+    // Extract parameters from the request URL
+    const { trackname, artistname } = req.params;
+
+    // Construct the search URL using the provided trackname and artistname if available
+    let searchUrl;
+    if (artistname) {
+      searchUrl = `https://api.soundcloud.com/tracks?q=${trackname} ${artistname}&limit=3&linked_partitioning=true`;
+    } else {
+      searchUrl = `https://api.soundcloud.com/tracks?q=${trackname}&limit=3&linked_partitioning=true`;
+    }
+
+    // Make a request to the search endpoint
+    const searchResponse = await axios.get(searchUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    // Check if the response contains a 'collection' property
+    if (searchResponse.data.collection) {
+      // Find the first result with an art image attached
+      const trackWithArt = searchResponse.data.collection.find(track => track.artwork_url);
+
+      if (trackWithArt) {
+        // simplify the data
+        const track = {
+          name: trackWithArt.title,
+          artist: trackWithArt.user.username,
+          url: trackWithArt.permalink_url,
+          art: {
+            high: trackWithArt.artwork_url.replace('large', 't300x300').replace('jpg', 'webp'),
+            low: trackWithArt.artwork_url.replace('large', 't64x64').replace('jpg', 'webp'),
+          },
+        };
+
+        // Display the selected track with art in JSON format
+        res.json(track);
+      } else {
+
+        const track = {
+          name: trackWithArt.title,
+          artist: trackWithArt.user.username,
+          url: trackWithArt.permalink_url,
+          art: {
+            high: null,
+            low: null,
+          },
+        };
+        // No track with art found
+        res.json(track);
+      }
+    } else {
+      // Handle the case where the response format is unexpected
+      console.error('Unexpected response format:', searchResponse.data);
+      res.status(500).send('Unexpected response format');
+    }
+  } catch (error) {
+    console.error('Error searching tracks:', error.message);
+    res.status(500).send('Error searching tracks');
+  }
+});
 
 async function refreshSpotifyAccessToken() {
   try {
