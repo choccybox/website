@@ -1,13 +1,22 @@
 const express = require('express');
 const axios = require('axios');
 const querystring = require('querystring');
+const { Client, GatewayIntentBits } = require('discord.js');
 const player = express();
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 
-dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildPresences,
+  ]
+});
 
+dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
 
 const PORT = 20002;
 
@@ -16,54 +25,46 @@ const spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 const spotifyRedirectUri = `http://localhost:3000/playercallback`;
 const spotifyScopes = 'user-read-currently-playing user-library-read user-read-recently-played user-top-read user-read-playback-state';
 
-// Load Spotify tokens from environment variables
-let accessToken = process.env.SPOTIFY_ACCESS_TOKEN;
-let refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
+// Discord Bot Token
+const token = process.env.DISCORD_BOT_TOKEN;
+// Redirect URI for OAuth2
+const redirectUri = `http://localhost:3000/usercallback`;
 
-function saveSpotifyTokensToEnv(spotifyAccessToken, spotifyRefreshToken) {
-  const envPath = path.resolve(__dirname, '../.env');
-  let envContents = fs.readFileSync(envPath, 'utf8');
-  envContents += `\nSPOTIFY_ACCESS_TOKEN=${spotifyAccessToken}\nSPOTIFY_REFRESH_TOKEN=${spotifyRefreshToken}`;
-  fs.writeFileSync(envPath, envContents, 'utf8');
-  console.log('Spotify tokens saved to .env');
+// Scopes for OAuth2
+const scopes = ['identify', 'connections'];
+
+function saveSpotifyTokens(spotifyAccessToken, spotifyRefreshToken) {
+  const tokens = {
+    accessToken: spotifyAccessToken,
+    refreshToken: spotifyRefreshToken,
+  };
+
+  fs.writeFileSync(path.resolve(__dirname, '../tokens/spotify.json'), JSON.stringify(tokens, null, 2), 'utf8');
 }
 
-// Function to save the access token and refresh token to a JSON file
-async function saveSoundcloudToken(soundcloudAccessToken, soundcloudRefreshToken) {
-  try {
-    // Update the environment variables
-    process.env.SOUNDCLOUD_ACCESS_TOKEN = soundcloudAccessToken;
-    process.env.SOUNDCLOUD_REFRESH_TOKEN = soundcloudRefreshToken;
+function saveSoundcloudToken(soundcloudAccessToken, soundcloudRefreshToken) {
+  
+  const tokens = {
+    accessToken: soundcloudAccessToken,
+    refreshToken: soundcloudRefreshToken,
+  };
 
-    // Update the .env file
-    const envPath = path.resolve(__dirname, '../.env');
-    let envContents = fs.readFileSync(envPath, 'utf8');
-    envContents += `\nSOUNDCLOUD_ACCESS_TOKEN=${soundcloudAccessToken}\nSOUNDCLOUD_REFRESH_TOKEN=${soundcloudRefreshToken}`;
-    fs.writeFileSync(envPath, envContents, 'utf8');
-
-    console.log('SoundCloud tokens saved to .env');
-  } catch (error) {
-    console.error('Error saving SoundCloud tokens:', error);
-  }
+  fs.writeFileSync(path.resolve(__dirname, '../tokens/soundcloud.json'), JSON.stringify(tokens, null, 2), 'utf8');
 }
 
-// Function to load the access token and refresh token from a JSON file
-async function loadSoundcloudToken() {
-  try {
-    // Read tokens from environment variables
-    const accessToken = process.env.SOUNDCLOUD_ACCESS_TOKEN;
-    const refreshToken = process.env.SOUNDCLOUD_REFRESH_TOKEN;
+function saveDiscordToken(accessToken, expiresIn, refreshToken) {
+  
+  const tokens = {
+    accessToken,
+    expiresIn,
+    refreshToken,
+  };
 
-    // Return tokens
-    return { accessToken, refreshToken };
-  } catch (error) {
-    console.error('Error loading SoundCloud tokens:', error);
-    return null;
-  }
+  fs.writeFileSync(path.resolve(__dirname, '../tokens/discord.json'), JSON.stringify(tokens, null, 2), 'utf8');
 }
 
 // COMMENT OUT AFTER LOGGING.
-/* player.get('/playerauth', (req, res) => {
+player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: spotifyClientId,
@@ -91,10 +92,8 @@ player.get('/playercallback', async (req, res) => {
 
     const { access_token, refresh_token } = response.data;
 
-    saveSpotifyTokensToEnv(access_token, refresh_token);
-
-    // Reload environment variables from .env
-    dotenv.config({ path: path.resolve(__dirname, '../.env') });
+    // save to spotify.json
+    saveSpotifyTokens(access_token, refresh_token);
 
     res.redirect('/player');
   } catch (error) {
@@ -130,18 +129,60 @@ player.get('/soundcallback', async (req, res) => {
     const accessToken = response.data.access_token;
     const refreshToken = response.data.refresh_token;
 
-   // save to .env
+   // save into soundcloud.json
     saveSoundcloudToken(accessToken, refreshToken);
-
-    // Reload environment variables from .env
-    dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
     res.redirect('/player');
   } catch (error) {
     console.error('Error exchanging code for token:', error.message);
     res.status(500).send('Error during authentication');
   }
-}); */
+});
+
+player.get('/userauth', (req, res) => {
+  res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`);
+});
+
+player.get('/usercallback', async (req, res) => {
+  const code = req.query.code;
+
+  if (code) {
+    try {
+      const response = await axios.post(
+        'https://discord.com/api/oauth2/token',
+        new URLSearchParams({
+          client_id: client.user.id,
+          client_secret: process.env.DISCORD_CLIENT_SECRET,
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: redirectUri,
+          scope: scopes.join(' '),
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      );
+
+      // get new tokens, save to .json
+      const accessToken = response.data.access_token;
+      const refreshToken = response.data.refresh_token;
+      const expiresIn = response.data.expires_in;
+
+      saveDiscordToken(accessToken, expiresIn, refreshToken);
+
+      client.token = accessToken;
+
+      res.redirect('/user');
+    } catch (error) {
+      console.error('Error during authorization:', error);
+      res.status(500).send('Error during authorization.');
+    }
+  } else {
+    res.status(400).send('Authorization code not provided.');
+  }
+});
 // COMMENT OUT AFTER LOGGING.
 
 player.get('/player', async (req, res) => {
@@ -154,12 +195,119 @@ player.get('/player', async (req, res) => {
   }
 });
 
+player.get('/user', async (req, res) => {
+  try {
+    // load tokens from .json
+    const discordToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tokens/discord.json'), 'utf8'));
+    const discordAccessToken = discordToken.accessToken;
+
+    client.token = discordAccessToken;
+
+    // Fetch the user's data from Discord API
+    const userResponse = await axios.get('https://discord.com/api/users/@me', {
+      headers: {
+        Authorization: `Bearer ${client.token}`,
+      },
+    });
+
+    // Check if the access token needs to be refreshed
+    if (userResponse.status === 401) {
+      discordAccessToken = await refreshDiscordAccessToken(discordAccessToken);
+      client.token = discordAccessToken;
+    }
+
+    const connectionsResponse = await axios.get('https://discord.com/api/users/@me/connections', {
+      headers: {
+        Authorization: `Bearer ${client.token}`,
+      },
+    });
+
+    // Filter connections with visibility 0, keep spotify
+    const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 || connection.type === 'spotify');
+
+    // Mock Last.fm connection data
+    const mockLastfmConnection = {
+      type: 'lastfm',
+      url: `https://last.fm/user/${process.env.LASTFM_USERNAME}`,
+    };
+
+    // Insert the mock last.fm
+    const hasLastfmConnection = filteredConnections.some(connection => connection.type === 'lastfm');
+    // Simplify connections to id, name, type, and visibility with added "url" field
+    const simplifiedConnections = filteredConnections.map(connection => {
+      let url;
+      const baseHTTPS = "https://";
+      
+      switch (connection.type) {
+        case 'domain':
+          url = `${baseHTTPS}${connection.name}`;
+          break;
+        case 'spotify':
+          url = `${baseHTTPS}open.spotify.com/user/${connection.id}`;
+          break;
+        case 'steam':
+          url = `${baseHTTPS}steamcommunity.com/profiles/${connection.id}`;
+          break;
+        case 'youtube':
+          url = `${baseHTTPS}youtube.com/channel/${connection.id}`;
+          break;  
+        case 'tiktok':
+          url = `${baseHTTPS}tiktok.com/@${connection.name}`;
+          break;
+        case 'riotgames':
+          break;
+        default:
+          url = `${baseHTTPS}${connection.type}.com/${connection.name}`;
+          break;
+      }
+
+      return {
+        type: connection.type,
+        url: url,
+      };
+    });
+
+    // Construct the user information object
+    const userInfo = {
+      // check if image has a_, if so, use .gif, otherwise use .png
+      avatar: userResponse.data.avatar ? {
+        high: `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar.startsWith('a_') ? `${userResponse.data.avatar}.gif?size=300` : `${userResponse.data.avatar}.webp?size=300`} `,
+        low: `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar.startsWith('a_') ? `${userResponse.data.avatar}.gif?size=64` : `${userResponse.data.avatar}.webp?size=64`}`,
+      } : null,
+      avatarCredit: process.env.AVATAR_CREDIT,
+      userUrl: `https://discord.com/users/${userResponse.data.id}`,
+      connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
+    };
+
+    res.json(userInfo);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching user information.');
+  }
+});
+
 async function getNowPlaying() {
 
   try {
+    const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tokens/spotify.json'), 'utf8'));
+    const spotifyAccessToken = spotifyToken.accessToken;
+
+    const soundcloudToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tokens/soundcloud.json'), 'utf8'));
+    const soundcloudAccessToken = soundcloudToken.accessToken;
+
+    // check if spotify token is expired by using it /me endpoint
+    const spotifyMeResponse = await axios.get('https://api.spotify.com/v1/me', {
+      headers: {
+        'Authorization': `Bearer ${spotifyAccessToken}`,
+      },
+    });
+    if (spotifyMeResponse.status === 401) {
+      await refreshSpotifyAccessToken();
+    }
+
     const spotifyResponse = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${spotifyAccessToken}`,
       },
     });
 
@@ -183,12 +331,10 @@ async function getNowPlaying() {
         source: 'spotify',
       };
     } else if (spotifyResponse.data.item.is_local) {
-      const tokens = await loadSoundcloudToken();
-      const accessToken = tokens.accessToken;
       
       const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)} ${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}&limit=3&linked_partitioning=true`, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${soundcloudAccessToken}`,
         },
       });
 
@@ -217,7 +363,7 @@ async function getNowPlaying() {
       } else {
         const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)}&limit=3&linked_partitioning=true`, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            'Authorization': `Bearer ${soundcloudAccessToken}`,
           },
         });
 
@@ -265,11 +411,10 @@ async function getNowPlaying() {
     } else if (spotifyResponse.data && !spotifyResponse.data.is_playing || !spotifyResponse.data) {
 
       const lastFmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
-
       // use spotify api to replace art and url from last.fm
       const spotifySearchResponse = await axios.get(`https://api.spotify.com/v1/search?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}%20artist:${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&type=track&limit=1`, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${spotifyAccessToken}`,
         },
       });
       
@@ -292,16 +437,10 @@ async function getNowPlaying() {
           source: 'spotify',
         };
       } else {
-        const tokens = await loadSoundcloudToken();
-        if (!tokens || !tokens.accessToken) {
-          console.log('refreshed soundcloud token');
-        }
-    
-        const accessToken = tokens.accessToken;
   
         const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)} ${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&limit=3&linked_partitioning=true`, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            'Authorization': `Bearer ${soundcloudAccessToken}`,
           },
         });
         if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
@@ -325,7 +464,7 @@ async function getNowPlaying() {
         } else {
           const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}&limit=3&linked_partitioning=true`, {
             headers: {
-              'Authorization': `Bearer ${accessToken}`,
+              'Authorization': `Bearer ${soundcloudAccessToken}`,
             },
           });
 
@@ -371,7 +510,6 @@ async function getNowPlaying() {
 
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      setTimeout(refreshSpotifyAccessToken, 1000);
       return getNowPlaying();
     } else {
       console.error('Error:', error);
@@ -393,6 +531,7 @@ async function getNowPlaying() {
 
 async function refreshSpotifyAccessToken() {
   try {
+    // read from .json
     const response = await axios.post('https://accounts.spotify.com/api/token', querystring.stringify({
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
@@ -403,11 +542,12 @@ async function refreshSpotifyAccessToken() {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
-
+    
+    // get new tokens
     const newAccessToken = response.data.access_token;
 
-    // Save the new access token
-    saveSpotifyTokensToEnv(newAccessToken, refreshToken);
+    // save to spotify.json
+    saveSpotifyTokens(newAccessToken, refreshToken);
 
     console.log('Spotify access token refreshed.');
   } catch (error) {
@@ -416,7 +556,39 @@ async function refreshSpotifyAccessToken() {
   }
 }
 
+async function refreshDiscordAccessToken(refreshToken) {
+  try {
+    const response = await axios.post(
+      'https://discord.com/api/oauth2/token',
+      new URLSearchParams({
+        client_id: client.user.id,
+        client_secret: process.env.DISCORD_CLIENT_SECRET,
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        scope: scopes.join(' '),
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
 
+    const newAccessToken = response.data.access_token;
+    const newRefreshToken = response.data.refresh_token;
+    const expiresIn = response.data.expires_in;
+
+    // Save the new access token and refresh token to the JSON file
+    saveSpotifyTokens(newAccessToken, expiresIn, newRefreshToken);
+
+    return newAccessToken;
+  } catch (error) {
+    console.error('Error refreshing access token:', error);
+    throw error;
+  }
+}
+
+client.login(token);
 
 player.listen(PORT, async () => {
   console.log(`player running: ${PORT}`);

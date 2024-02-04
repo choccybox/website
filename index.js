@@ -1,5 +1,4 @@
 const express = require('express');
-const user = require('./api/user');
 const player = require('./api/player');
 const cors = require('cors');
 
@@ -10,7 +9,6 @@ app.use(cors());
 
 app.use(express.static(__dirname));
 
-app.use(user);
 app.use(player);
 
 app.listen(port, () => {

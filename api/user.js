@@ -147,7 +147,6 @@ user.get('/usercallback', async (req, res) => {
 });
 
 
-
 user.get('/user', async (req, res) => {
   try {
     // Load the access token from the JSON file
