@@ -41,9 +41,6 @@ async function saveSoundcloudToken(soundcloudAccessToken, soundcloudRefreshToken
     envContents += `\nSOUNDCLOUD_ACCESS_TOKEN=${soundcloudAccessToken}\nSOUNDCLOUD_REFRESH_TOKEN=${soundcloudRefreshToken}`;
     fs.writeFileSync(envPath, envContents, 'utf8');
 
-    console.log('SoundCloud Access Token:', soundcloudAccessToken);
-    console.log('SoundCloud Refresh Token:', soundcloudRefreshToken);
-
     console.log('SoundCloud tokens saved to .env');
   } catch (error) {
     console.error('Error saving SoundCloud tokens:', error);
@@ -66,7 +63,7 @@ async function loadSoundcloudToken() {
 }
 
 // COMMENT OUT AFTER LOGGING.
-player.get('/playerauth', (req, res) => {
+/* player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: spotifyClientId,
@@ -144,7 +141,7 @@ player.get('/soundcallback', async (req, res) => {
     console.error('Error exchanging code for token:', error.message);
     res.status(500).send('Error during authentication');
   }
-});
+}); */
 // COMMENT OUT AFTER LOGGING.
 
 player.get('/player', async (req, res) => {
@@ -159,6 +156,7 @@ player.get('/player', async (req, res) => {
 
 async function getNowPlaying() {
   if (!accessToken) {
+    refreshSpotifyAccessToken();
     throw new Error('Access token not available.');
   }
 
@@ -191,11 +189,11 @@ async function getNowPlaying() {
     } else if (spotifyResponse.data.item.is_local) {
       const tokens = await loadSoundcloudToken();
 
-/*       // if no soundcloud token, run refreshSoundCloudAccessToken
+      // if no soundcloud token, run refreshSoundCloudAccessToken
       if (!tokens || !tokens.accessToken) {
-        await refreshSoundCloudAccessToken();
+        loadSoundcloudToken();
         console.log('refreshed soundcloud token');
-      } */
+      }
   
       const accessToken = tokens.accessToken;
 
@@ -281,6 +279,10 @@ async function getNowPlaying() {
 
       const lastFmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
 
+      if (!accessToken) {
+        refreshSpotifyAccessToken();
+        throw new Error('Access token not available.');
+      }
       // use spotify api to replace art and url from last.fm
       const spotifySearchResponse = await axios.get(`https://api.spotify.com/v1/search?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}%20artist:${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&type=track&limit=1`, {
         headers: {
@@ -308,10 +310,9 @@ async function getNowPlaying() {
         };
       } else {
         const tokens = await loadSoundcloudToken();
-/*         if (!tokens || !tokens.accessToken) {
-          await refreshSoundCloudAccessToken();
+        if (!tokens || !tokens.accessToken) {
           console.log('refreshed soundcloud token');
-        } */
+        }
     
         const accessToken = tokens.accessToken;
   
@@ -368,7 +369,6 @@ async function getNowPlaying() {
   } catch (error) {
     if (error.response && error.response.status === 401) {
       await refreshSpotifyAccessToken();
-/*       await refreshSoundCloudAccessToken(); */
       return getNowPlaying();
     } else {
       console.error('Error:', error);
@@ -423,41 +423,6 @@ async function refreshSpotifyAccessToken() {
   }
 }
 
-async function refreshSoundCloudAccessToken() {
-  try {
-    const response = await axios.post('https://api.soundcloud.com/oauth/token', querystring.stringify({
-      grant_type: 'refresh_token',
-      client_id: process.env.SOUNDCLOUD_CLIENT_ID,
-      client_secret: process.env.SOUNDCLOUD_CLIENT_SECRET,
-      refresh_token: process.env.SOUNDCLOUD_REFRESH_TOKEN,
-    }), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `OAuth ${process.env.SOUNDCLOUD_ACCESS_TOKEN}`,
-      },
-    });
-    
-    const newAccessToken = response.data.access_token;
-
-    // Load existing .env file
-    const envPath = path.resolve(__dirname, '../.env');
-    let envContents = fs.readFileSync(envPath, 'utf8');
-
-    // Replace existing token lines or add new ones if not present
-    envContents = envContents.replace(/SOUNDCLOUD_ACCESS_TOKEN=.*/, `SOUNDCLOUD_ACCESS_TOKEN=${newAccessToken}`);
-    
-    // Write the updated content back to the .env file
-    fs.writeFileSync(envPath, envContents, 'utf8');
-
-    // Update the environment variables
-    process.env.SOUNDCLOUD_ACCESS_TOKEN = newAccessToken;
-
-    console.log('SoundCloud tokens refreshed and saved.');
-  } catch (error) {
-    console.error('Error refreshing token:', error.response ? error.response.data : error.message);
-    throw new Error('Error refreshing access token.');
-  }
-}
 
 player.listen(PORT, async () => {
   console.log(`player running: ${PORT}`);
