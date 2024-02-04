@@ -209,7 +209,7 @@ async function getNowPlaying() {
       
         return {
           isPlaying: true,
-          isLocal: spotifyResponse.data.item.is_local,
+          isLocal: true,
           name: spotifyResponse.data.item.name,
           // removes (@artist) from artist name, leaving only the artist name
           artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
@@ -238,7 +238,7 @@ async function getNowPlaying() {
         
           return {
             isPlaying: true,
-            isLocal: spotifyResponse.data.item.is_local,
+            isLocal: true,
             name: spotifyResponse.data.item.name,
             // removes (@artist) from artist name, leaving only the artist name
             artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
@@ -257,7 +257,7 @@ async function getNowPlaying() {
           console.log('playing local file, no result on soundcloud') 
           return {
             isPlaying: true,
-            isLocal: spotifyResponse.data.item.is_local,
+            isLocal: true,
             name: spotifyResponse.data.item.name,
             artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
             art: {
@@ -295,7 +295,7 @@ async function getNowPlaying() {
         console.log('not playing, found spotify result');
         return {
           isPlaying: false,
-          isLocal: false,
+          isLocal: null,
           name: spotifySearchResponse.data.tracks.items[0].name,
           artist: spotifySearchResponse.data.tracks.items[0].artists[0].name,
           art: {
@@ -324,45 +324,40 @@ async function getNowPlaying() {
   
         if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
           const track = soundCloudResponse.data.collection[0];
-          console.log('not playing, found result on soundcloud');
-        
+          console.log('not playing, found soundcloud result');
           return {
-            isPlaying: true,
-            isLocal: spotifyResponse.data.item.is_local,
+            isPlaying: false,
+            isLocal: null,
             name: spotifyResponse.data.item.name,
-            // removes (@artist) from artist name, leaving only the artist name
             artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
             art: {
-              // replaces default soundcloud image with set size and webp format
               high: track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp'),
               low: track.artwork_url.replace('-large', '-t64x64').replace('jpg', 'webp'),
             },
             url: track.permalink_url,
             progress: null,
             duration: null,
-            message: 'not playing, found result on soundcloud',
+            message: 'not playing, found soundcloud result',
             source: 'soundcloud',
           };
         } else {
-          console.log('not playing, no soundcloud result');
+          console.log('not playing, no result on soundcloud');
           return {
             isPlaying: false,
-            isLocal: false,
+            isLocal: null,
             name: lastFmResponse.data.recenttracks.track[0].name,
-            artist: lastFmResponse.data.recenttracks.track[0].artist['#text'].replace(/\s*\(.*?\)\s*/g, ''),
+            artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
             art: {
-              // ignores default last.fm image
-              high: lastFmResponse.data.recenttracks.track[0].image[3]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png' ? null : lastFmResponse.data.recenttracks.track[0].image[3]['#text'],
-              low: lastFmResponse.data.recenttracks.track[0].image[0]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png' ? null : lastFmResponse.data.recenttracks.track[0].image[0]['#text'],
+              high: null,
+              low: null
             },
-            url: lastFmResponse.data.recenttracks.track[0].url,
+            url: null,
             progress: null,
             duration: null,
-            message: 'not playing, no soundcloud result',
-            source: 'last.fm',
+            message: 'not playing, no result on soundcloud',
+            source: 'lastfm',
           };
-          
-        }    
+        }
     } 
   }
 
