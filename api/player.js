@@ -190,13 +190,11 @@ async function getNowPlaying() {
       const tokens = await loadSoundcloudToken();
       const accessToken = tokens.accessToken;
       
-
-      const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)} ${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}&limit=1&linked_partitioning=true`, {
+      const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)} ${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}&limit=3&linked_partitioning=true`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
         },
       });
-      console.log(soundCloudResponse.data.collection);
 
       if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
         const track = soundCloudResponse.data.collection[0]; // Assuming you want the first track
@@ -220,50 +218,51 @@ async function getNowPlaying() {
           source: 'soundcloud',
         };
         // if no result, search for track name only
-      } else if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length === 0) {
-        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)}&limit=1&linked_partitioning=true`, {
+      } else {
+        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)}&limit=3&linked_partitioning=true`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
           },
         });
-        const track = soundCloudResponse.data.collection[0];
-        console.log('playing local file, found result on soundcloud');
-      
-        return {
-          isPlaying: true,
-          isLocal: true,
-          name: spotifyResponse.data.item.name,
-          // removes (@artist) from artist name, leaving only the artist name
-          artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
-          art: {
-            // replaces default soundcloud image with set size and webp format
-            high: track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp'),
-            low: track.artwork_url.replace('-large', '-t64x64').replace('jpg', 'webp'),
-          },
-          url: track.permalink_url,
-          progress: spotifyResponse.data.progress_ms,
-          duration: spotifyResponse.data.item.duration_ms,
-          message: 'player is playing a local file, found result on SoundCloud without artist',
-          source: 'soundcloud',
-        };
-      } else {
-        console.log('playing local file, no result found on soundcloud');
-        return {
-          isPlaying: true,
-          isLocal: true,
-          name: spotifyResponse.data.item.name,
-          // removes (@artist) from artist name, leaving only the artist name
-          artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
-          art: {
-            high: null,
-            low: null,
-          },
-          url: null,
-          progress: spotifyResponse.data.progress_ms,
-          duration: spotifyResponse.data.item.duration_ms,
-          message: 'player is playing a local file, no result found on SoundCloud',
-          source: 'soundcloud',
-        };
+
+        if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
+          const track = soundCloudResponse.data.collection[0]; // Assuming you want the first track
+          console.log('playing local file, found result on soundcloud');
+        
+          return {
+            isPlaying: true,
+            isLocal: true,
+            name: spotifyResponse.data.item.name,
+            artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
+            art: {
+              high: track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp'),
+              low: track.artwork_url.replace('-large', '-t64x64').replace('jpg', 'webp'),
+            },
+            url: track.permalink_url,
+            progress: spotifyResponse.data.progress_ms,
+            duration: spotifyResponse.data.item.duration_ms,
+            message: 'player is playing a local file, found result on SoundCloud without artist',
+            source: 'soundcloud',
+          };
+        } else {
+          console.log('playing local file, no result found on soundcloud');
+          return {
+            isPlaying: true,
+            isLocal: true,
+            name: spotifyResponse.data.item.name,
+            artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
+            art: {
+              high: null,
+              low: null,
+            },
+            url: null,
+            progress: spotifyResponse.data.progress_ms,
+            duration: spotifyResponse.data.item.duration_ms,
+            message: 'player is playing a local file, no result found on SoundCloud',
+            source: 'soundcloud',
+          };
+        
+        }
       }
     }
     
@@ -308,7 +307,7 @@ async function getNowPlaying() {
     
         const accessToken = tokens.accessToken;
   
-        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)} ${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}&limit=3&linked_partitioning=true`, {
+        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}&limit=3&linked_partitioning=true`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
           },
@@ -331,47 +330,50 @@ async function getNowPlaying() {
             message: 'not playing, found soundcloud result',
             source: 'soundcloud',
           };
-        } else if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length === 0) {
-          const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}&limit=3&linked_partitioning=true`, {
+        } else {
+          const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)} ${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&limit=3&linked_partitioning=true`, {
             headers: {
               'Authorization': `Bearer ${accessToken}`,
             },
           });
-          const track = soundCloudResponse.data.collection[0];
-          console.log('not playing, found soundcloud result');
-          return {
-            isPlaying: false,
-            isLocal: null,
-            name: track.title,
-            artist: track.user.username,
-            art: {
-              high: track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp'),
-              low: track.artwork_url.replace('-large', '-t64x64').replace('jpg', 'webp'),
-            },
-            url: track.permalink_url,
-            progress: null,
-            duration: null,
-            message: 'not playing, found soundcloud result',
-            source: 'soundcloud',
-          };
-        } else {
-          console.log('not playing, no result found on soundcloud');
-          return {
-            isPlaying: false,
-            isLocal: null,
-            name: lastFmResponse.data.recenttracks.track[0].name,
-            artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
-            art: {
-              high: null,
-              low: null,
-            },
-            url: null,
-            progress: null,
-            duration: null,
-            message: 'not playing, no result found on soundcloud',
-            source: 'soundcloud',
-          };
-        }
+
+          if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
+            const track = soundCloudResponse.data.collection[0];
+            console.log('not playing, found soundcloud result');
+            return {
+              isPlaying: false,
+              isLocal: null,
+              name: track.title,
+              artist: track.user.username,
+              art: {
+                high: track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp'),
+                low: track.artwork_url.replace('-large', '-t64x64').replace('jpg', 'webp'),
+              },
+              url: track.permalink_url,
+              progress: null,
+              duration: null,
+              message: 'not playing, found soundcloud result',
+              source: 'soundcloud',
+            };
+          } else {
+            console.log('not playing, no result found');
+            return {
+              isPlaying: false,
+              isLocal: null,
+              name: lastFmResponse.data.recenttracks.track[0].name,
+              artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
+              art: {
+                high: null,
+                low: null,
+              },
+              url: null,
+              progress: null,
+              duration: null,
+              message: 'not playing, no result found',
+              source: 'idk mars maybe',
+            };
+          }
+          }
       }
     }
 
