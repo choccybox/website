@@ -108,12 +108,7 @@
         scripts_loaded++;
         if (scripts_loaded === scripts_total) {
             console.log("⌚ scripts loaded");
-            setTimeout(function () {
-                console.log("⌚ player took too long, showing panels anyway");
-                showPanels();
-                document.getElementById('player_image').src = "styles/spong.webp";
-                document.getElementById('player_timeline').style.opacity = 0;
-            }, 3000);
+            waitForAsyncOperations();
         }
     }
 
@@ -172,7 +167,6 @@
     }
 
 </script>
-
 
 
 

@@ -298,19 +298,6 @@ async function getNowPlaying() {
     const soundcloudToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tokens/soundcloud.json'), 'utf8'));
     const soundcloudAccessToken = soundcloudToken.accessToken;
 
-    // check if spotify token is expired by using it /me endpoint
-    const spotifyMeResponse = await axios.get('https://api.spotify.com/v1/me', {
-      headers: {
-        'Authorization': `Bearer ${spotifyAccessToken}`,
-      },
-    });
-    if (spotifyMeResponse.status === 401) {
-      await refreshSpotifyAccessToken();
-      console.log('refreshed spotify token');
-    } else {
-      console.log('spotify token is still valid');
-    }
-
     const spotifyResponse = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
         'Authorization': `Bearer ${spotifyAccessToken}`,
@@ -516,6 +503,7 @@ async function getNowPlaying() {
 
   } catch (error) {
     if (error.response && error.response.status === 401) {
+      refreshSpotifyAccessToken();
       return getNowPlaying();
     } else {
       console.error('Error:', error);
