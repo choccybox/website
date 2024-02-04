@@ -371,7 +371,7 @@ async function getNowPlaying() {
 
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      await refreshSpotifyAccessToken();
+      setTimeout(refreshSpotifyAccessToken, 1000);
       return getNowPlaying();
     } else {
       console.error('Error:', error);
@@ -406,25 +406,16 @@ async function refreshSpotifyAccessToken() {
 
     const newAccessToken = response.data.access_token;
 
-    // Load existing .env file
-    const envPath = path.resolve(__dirname, '../.env');
-    let envContents = fs.readFileSync(envPath, 'utf8');
+    // Save the new access token
+    saveSpotifyTokensToEnv(newAccessToken, refreshToken);
 
-    // Replace existing token lines or add new ones if not present
-    envContents = envContents.replace(/SPOTIFY_ACCESS_TOKEN=.*/, `SPOTIFY_ACCESS_TOKEN=${newAccessToken}`);
-    
-    // Write the updated content back to the .env file
-    fs.writeFileSync(envPath, envContents, 'utf8');
-
-    // Update the environment variables
-    process.env.SPOTIFY_ACCESS_TOKEN = newAccessToken;
-
-    console.log('Spotify tokens refreshed and saved.');
+    console.log('Spotify access token refreshed.');
   } catch (error) {
-    console.error('Error refreshing token:', error.response ? error.response.data : error.message);
-    throw new Error('Error refreshing access token.');
+    console.error('Error refreshing Spotify access token:', error.response ? error.response.data : error.message);
+    throw new Error('Error refreshing Spotify access token.');
   }
 }
+
 
 
 player.listen(PORT, async () => {
