@@ -169,3 +169,6 @@ body {
 #flag_name:hover {
     filter: brightness(0.8);
 }
+#flag_name {
+    font-size: 1.7rem;
+}
