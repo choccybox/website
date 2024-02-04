@@ -155,10 +155,6 @@ player.get('/player', async (req, res) => {
 });
 
 async function getNowPlaying() {
-  if (!accessToken) {
-    refreshSpotifyAccessToken();
-    throw new Error('Access token not available.');
-  }
 
   try {
     const spotifyResponse = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
@@ -270,10 +266,6 @@ async function getNowPlaying() {
 
       const lastFmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
 
-      if (!accessToken) {
-        refreshSpotifyAccessToken();
-        throw new Error('Access token not available.');
-      }
       // use spotify api to replace art and url from last.fm
       const spotifySearchResponse = await axios.get(`https://api.spotify.com/v1/search?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}%20artist:${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&type=track&limit=1`, {
         headers: {
@@ -307,14 +299,14 @@ async function getNowPlaying() {
     
         const accessToken = tokens.accessToken;
   
-        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}&limit=3&linked_partitioning=true`, {
+        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)} ${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&limit=3&linked_partitioning=true`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
           },
         });
         if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
           const track = soundCloudResponse.data.collection[0];
-          console.log('not playing, found soundcloud result');
+          console.log('not playing, found soundcloud result with artist');
           return {
             isPlaying: false,
             isLocal: null,
@@ -327,11 +319,11 @@ async function getNowPlaying() {
             url: track.permalink_url,
             progress: null,
             duration: null,
-            message: 'not playing, found soundcloud result',
+            message: 'not playing, found soundcloud result with artist',
             source: 'soundcloud',
           };
         } else {
-          const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)} ${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&limit=3&linked_partitioning=true`, {
+          const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}&limit=3&linked_partitioning=true`, {
             headers: {
               'Authorization': `Bearer ${accessToken}`,
             },
@@ -339,7 +331,7 @@ async function getNowPlaying() {
 
           if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
             const track = soundCloudResponse.data.collection[0];
-            console.log('not playing, found soundcloud result');
+            console.log('not playing, found soundcloud result without artist');
             return {
               isPlaying: false,
               isLocal: null,
@@ -352,7 +344,7 @@ async function getNowPlaying() {
               url: track.permalink_url,
               progress: null,
               duration: null,
-              message: 'not playing, found soundcloud result',
+              message: 'not playing, found soundcloud result without artist',
               source: 'soundcloud',
             };
           } else {
