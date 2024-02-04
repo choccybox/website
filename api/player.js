@@ -213,7 +213,10 @@ player.get('/user', async (req, res) => {
     // Check if the access token needs to be refreshed
     if (userResponse.status === 401) {
       discordAccessToken = await refreshDiscordAccessToken(discordAccessToken);
+      console.log('refreshed discord token');
       client.token = discordAccessToken;
+    } else {
+      console.log('discord token is still valid');
     }
 
     const connectionsResponse = await axios.get('https://discord.com/api/users/@me/connections', {
@@ -303,6 +306,9 @@ async function getNowPlaying() {
     });
     if (spotifyMeResponse.status === 401) {
       await refreshSpotifyAccessToken();
+      console.log('refreshed spotify token');
+    } else {
+      console.log('spotify token is still valid');
     }
 
     const spotifyResponse = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
@@ -340,7 +346,7 @@ async function getNowPlaying() {
 
       if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
         const track = soundCloudResponse.data.collection[0]; // Assuming you want the first track
-        console.log('playing local file, found result on soundcloud');
+        console.log('playing local file, found result on soundcloud with artist');
       
         return {
           isPlaying: true,
@@ -356,7 +362,7 @@ async function getNowPlaying() {
           url: track.permalink_url,
           progress: spotifyResponse.data.progress_ms,
           duration: spotifyResponse.data.item.duration_ms,
-          message: 'player is playing a local file, found result on SoundCloud with artist',
+          message: 'player is playing a local file, found result on soundcloud with artist',
           source: 'soundcloud',
         };
         // if no result, search for track name only
@@ -369,7 +375,7 @@ async function getNowPlaying() {
 
         if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
           const track = soundCloudResponse.data.collection[0]; // Assuming you want the first track
-          console.log('playing local file, found result on soundcloud');
+          console.log('playing local file, found result on soundcloud without artist');
         
           return {
             isPlaying: true,
@@ -383,7 +389,7 @@ async function getNowPlaying() {
             url: track.permalink_url,
             progress: spotifyResponse.data.progress_ms,
             duration: spotifyResponse.data.item.duration_ms,
-            message: 'player is playing a local file, found result on SoundCloud without artist',
+            message: 'player is playing a local file, found result on soundcloud without artist',
             source: 'soundcloud',
           };
         } else {
@@ -531,10 +537,12 @@ async function getNowPlaying() {
 
 async function refreshSpotifyAccessToken() {
   try {
+    const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tokens/spotify.json'), 'utf8'));
+    const spotifyRefreshToken = spotifyToken.refreshToken;
     // read from .json
     const response = await axios.post('https://accounts.spotify.com/api/token', querystring.stringify({
       grant_type: 'refresh_token',
-      refresh_token: refreshToken,
+      refresh_token: spotifyRefreshToken,
       client_id: spotifyClientId,
       client_secret: spotifyClientSecret,
     }), {
@@ -546,10 +554,9 @@ async function refreshSpotifyAccessToken() {
     // get new tokens
     const newAccessToken = response.data.access_token;
 
-    // save to spotify.json
-    saveSpotifyTokens(newAccessToken, refreshToken);
+    // write to .json
+    saveSpotifyTokens(newAccessToken, spotifyRefreshToken);
 
-    console.log('Spotify access token refreshed.');
   } catch (error) {
     console.error('Error refreshing Spotify access token:', error.response ? error.response.data : error.message);
     throw new Error('Error refreshing Spotify access token.');
@@ -579,7 +586,9 @@ async function refreshDiscordAccessToken(refreshToken) {
     const expiresIn = response.data.expires_in;
 
     // Save the new access token and refresh token to the JSON file
-    saveSpotifyTokens(newAccessToken, expiresIn, newRefreshToken);
+    saveDiscordToken(newAccessToken, expiresIn, newRefreshToken);
+
+    console.log('Refreshed access token:', newAccessToken);
 
     return newAccessToken;
   } catch (error) {

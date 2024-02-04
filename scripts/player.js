@@ -11,18 +11,19 @@ function fetchAndDisplayTime() {
             if (isPlaying) {
                 console.log(`🟢 playing\n📰 name: ${data.name} • ${data.artist}\n🔗 url: ${data.url}\n🎨 art (high): ${data.art.high}\n🎨 art (low): ${data.art.low}`);
 
+                // Update text
+                document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
 
-                // if no art, use spong
-                if (data.art.high & data.art.low === null) {
-                    document.getElementById("player_image").src = "./styles/spong.webp";
-                } else {
-                    // Use art.low if the user is on mobile data
+                // Update image
+                if (data.art.high || data.art.low) {
                     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
                     const isMobileConnection = connection && connection.effectiveType === 'cellular';
                     console.log("🔎 is on cellular player?", isMobileConnection);
 
-                    // check if image is available, else use spong
-                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high || "./styles/spong.webp";
+                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high;
+                } else {
+                    // if no art, use spong
+                    document.getElementById("player_image").src = "./styles/spong.webp";
                 }
 
                 // if no url, remove target attribute
@@ -55,17 +56,23 @@ function fetchAndDisplayTime() {
                 if (currentProgress >= currentDuration) {
                     fetchAndDisplayTime();
                 }
-            } else {
-                console.log(`🔴 not playing\n📰 name: ${data.name} • ${data.artist}\n🔗 url: ${data.url}\n🎨 art (high): ${data.art.high}\n🎨 art (low): ${data.art.low}`);
-                if (data.art === null) {
-                    document.getElementById("player_image").src = "./styles/spong.webp";
+                updateFakeProgressBar();
                 } else {
-                    // Use art.low if the user is on mobile data
+                console.log(`🔴 not playing\n📰 name: ${data.name} • ${data.artist}\n🔗 url: ${data.url}\n🎨 art (high): ${data.art.high}\n🎨 art (low): ${data.art.low}`);
+
+                // Update text
+                document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
+
+                // Update image
+                if (data.art.high || data.art.low) {
                     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
                     const isMobileConnection = connection && connection.effectiveType === 'cellular';
                     console.log("🔎 is on cellular player?", isMobileConnection);
 
-                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high  || "./styles/spong.webp";
+                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high;
+                } else {
+                    // if no art, use spong
+                    document.getElementById("player_image").src = "./styles/spong.webp";
                 }
 
                 if (data.url === null) {
@@ -89,6 +96,8 @@ function fetchAndDisplayTime() {
                 currentProgress = 0;
 
                 document.getElementById("player_progress").style.width = "100%";
+                updateFakeProgressBar();
+
             }
         });
 }
@@ -105,7 +114,6 @@ function updateFakeProgressBar() {
 
         // set width of progress bar
         const progressPercentage = (currentProgress / currentDuration) * 100;
-/*         console.log("⏯ progress:", progressPercentage.toFixed(0) + "%"); */
         document.getElementById("player_progress").style.width = progressPercentage + "%";
 
         if (currentProgress >= currentDuration) {
