@@ -371,7 +371,7 @@ async function getNowPlaying() {
 
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      setTimeout(refreshSpotifyAccessToken, 1000);
+      refreshSpotifyAccessToken();
       return getNowPlaying();
     } else {
       console.error('Error:', error);
