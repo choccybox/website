@@ -142,12 +142,17 @@
     font-size: 0.7rem !important;
   }
   #flag_icon {
-    width: 20px !important;
-    height: 14px !important;
     object-fit: cover;
-    margin: 6px;
-    margin-top: 6px !important;
-    border-radius: 3px !important;
+    border-radius: 2px !important;
+    margin-top: calc(1.05rem / 3.25) !important;
+    height: calc(1.05rem - 3.5px) !important;
+    margin-left: 6px !important;
+}
+
+#flag_icon::before {
+    content: '';
+    display: block;
+    padding-top: 57.89%;  /* (22 / 38) * 100% = 57.89% */
 }
 }
 
