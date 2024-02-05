@@ -9,21 +9,19 @@ function fetchAndDisplayTime() {
             isPlaying = data.isPlaying;
 
             if (isPlaying) {
-                console.log(`🟢 playing\n📰 name: ${data.name} • ${data.artist}\n🔗 url: ${data.url}\n🎨 art (high): ${data.art.high}\n🎨 art (low): ${data.art.low}`);
+                console.log(`🟢 playing\n📰 name: ${data.name} • ${data.artist}\n🔗 url: ${data.url}`);
 
                 // Update text
                 document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
 
                 // Update image
-                if (data.art.high || data.art.low) {
-                    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-                    const isMobileConnection = connection && connection.effectiveType === 'cellular';
-                    console.log("🔎 is on cellular player?", isMobileConnection);
+                const isCellular = navigator.connection.effectiveType;
+                console.log("📱 is cellular player?", isCellular);
 
-                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high;
+                if (isCellular === true) {
+                    document.getElementById("player_image").src = data.art.low;
                 } else {
-                    // if no art, use spong
-                    document.getElementById("player_image").src = "./styles/spong.webp";
+                    document.getElementById("player_image").src = data.art.high;
                 }
 
                 // if no url, remove target attribute
@@ -58,27 +56,19 @@ function fetchAndDisplayTime() {
                 }
                 updateFakeProgressBar();
                 } else {
-                console.log(`🔴 not playing\n📰 name: ${data.name} • ${data.artist}\n🔗 url: ${data.url}\n🎨 art (high): ${data.art.high}\n🎨 art (low): ${data.art.low}`);
+                console.log(`🔴 not playing\n📰 name: ${data.name} • ${data.artist}\n🔗 url: ${data.url}`);
 
                 // Update text
                 document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
 
-                // Update image
-                if (data.art.high || data.art.low) {
-                    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-                    const isMobileConnection = connection && connection.effectiveType === 'cellular';
-                    console.log("🔎 is on cellular player?", isMobileConnection);
+                const isCellular = navigator.connection.effectiveType;
+                console.log("📱 is cellular?", isCellular);
 
-                    document.getElementById("player_image").src = isMobileConnection ? data.art.low : data.art.high;
-                } else {
-                    // if no art, use spong
-                    document.getElementById("player_image").src = "./styles/spong.webp";
-                }
 
-                if (data.url === null) {
-                    document.getElementById("player_link").removeAttribute("target");
+                if (isCellular === true) {
+                    document.getElementById("player_image").src = data.art.low;
                 } else {
-                    document.getElementById("player_link").href = data.url;
+                    document.getElementById("player_image").src = data.art.high;
                 }
 
                 // if source is spotify, color the progress bar green

@@ -30,11 +30,10 @@
         
 
         // check if user is on cellular
-        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        const isMobileConnection = connection && connection.effectiveType === 'cellular';
-        console.log("🔎 is on cellular avatar?", isMobileConnection);
+        const isCellular = navigator.connection.effectiveType;
+        console.log("📱 is cellular avatar?", isCellular);
 
-        if (isMobileConnection) {
+        if (isCellular === true) {
             document.getElementById("avatar_image").src = data.avatar.low
         } else {
             document.getElementById("avatar_image").src = data.avatar.high
