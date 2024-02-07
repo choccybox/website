@@ -55,7 +55,7 @@ function saveDiscordToken(discordAccessToken, expiresIn, discordRefreshToken) {
 }
 
 // COMMENT OUT AFTER LOGGING.
-player.get('/playerauth', (req, res) => {
+/* player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: process.env.SPOTIFY_CLIENT_ID,
@@ -173,7 +173,7 @@ player.get('/usercallback', async (req, res) => {
   } else {
     res.status(400).send('Authorization code not provided.');
   }
-});
+}); */
 // COMMENT OUT AFTER LOGGING.
 
 player.get('/player', async (req, res) => {
