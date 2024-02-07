@@ -11,6 +11,7 @@ app.use(express.static(__dirname));
 
 app.use(player);
 
-app.listen(port, () => {
-  console.log(`server running ${port}`);
+// use env
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Server is running on port ${port}`);
 });
