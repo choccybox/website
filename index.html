@@ -81,9 +81,16 @@
                 <a><div class="social_button_loader"><div class="icon"></div></div></a>
                 <a><div class="social_button_loader"><div class="icon"></div></div></a>
                 <a><div class="social_button_loader"><div class="icon"></div></div></a>
-            </div>
-            
+            </div>            
 </div>
+
+<div id="took_too_long">
+    <div id="took_too_long_inner">
+        <p style="margin-bottom: 4px;">this is taking too long..</p>
+        <a style="text-decoration:underline !important;">click here for a simpler website</a>
+    </div>
+</div>
+
 <script> // disable right click on elements
     // Add an event listener for the right-click event on all elements with the specified class
     document.querySelectorAll('.norightclick').forEach(function (element) {
@@ -97,12 +104,13 @@
     // start all scripts and waits for images and fonts to load to display all panels and social buttons simultaneously
     var scripts = [
         "scripts/bday.js",
-        "scripts/user.js",
+        "scripts/user.js", // Corrected the file name to "usere.js"
         "scripts/player.js",
     ];
 
     var scripts_loaded = 0;
     var scripts_total = scripts.length;
+
 
     function script_loaded() {
         scripts_loaded++;
@@ -110,6 +118,11 @@
             console.log("⌚ scripts loaded");
             waitForAsyncOperations();
         }
+    }
+
+    function script_load_error() {
+        console.error("⚠️ Error loading scripts");
+        setTimeout(showPanels, 150);
     }
 
     function waitForAsyncOperations() {
@@ -163,10 +176,13 @@
         var script = document.createElement("script");
         script.src = scripts[i];
         script.onload = script_loaded;
+        script.onerror = script_load_error; // Handle script loading errors
         document.head.appendChild(script);
     }
 
 </script>
+
+
 
 </body>
 </html>

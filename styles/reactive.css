@@ -154,6 +154,12 @@
     display: block;
     padding-top: 57.89%;  /* (22 / 38) * 100% = 57.89% */
 }
+
+#took_too_long {
+  width: 276px !important;
+  height: 85px !important;
+  bottom: 157px !important;
+}
 }
 
 /* @media screen and (max-width: 316px) {

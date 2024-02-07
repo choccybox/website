@@ -21,18 +21,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment
 
 const PORT = 20002;
 
-const spotifyClientId = process.env.SPOTIFY_CLIENT_ID;
-const spotifyClientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-const spotifyRedirectUri = `http://localhost:3000/playercallback`;
 const spotifyScopes = 'user-read-currently-playing user-library-read user-read-recently-played user-top-read user-read-playback-state';
-
-// Discord Bot Token
-const token = process.env.DISCORD_BOT_TOKEN;
-// Redirect URI for OAuth2
-const redirectUri = `http://localhost:3000/usercallback`;
-
-// Scopes for OAuth2
-const scopes = ['identify', 'connections'];
+const discordScopes = ['identify', 'connections'];
 
 function saveSpotifyTokens(spotifyAccessToken, spotifyRefreshToken) {
   const tokens = {
@@ -53,12 +43,12 @@ function saveSoundcloudToken(soundcloudAccessToken, soundcloudRefreshToken) {
   fs.writeFileSync(path.resolve(__dirname, '../tokens/soundcloud.json'), JSON.stringify(tokens, null, 2), 'utf8');
 }
 
-function saveDiscordToken(accessToken, expiresIn, refreshToken) {
+function saveDiscordToken(discordAccessToken, expiresIn, discordRefreshToken) {
   
   const tokens = {
-    accessToken,
-    expiresIn,
-    refreshToken,
+    accessToken: discordAccessToken,
+    expiresIn: expiresIn,
+    refreshToken: discordRefreshToken,
   };
 
   fs.writeFileSync(path.resolve(__dirname, '../tokens/discord.json'), JSON.stringify(tokens, null, 2), 'utf8');
@@ -68,9 +58,9 @@ function saveDiscordToken(accessToken, expiresIn, refreshToken) {
 player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
-    client_id: spotifyClientId,
+    client_id: process.env.SPOTIFY_CLIENT_ID,
     scope: spotifyScopes,
-    redirect_uri: spotifyRedirectUri,
+    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
   })}`;
   res.redirect(authorizeUrl);
 });
@@ -82,9 +72,9 @@ player.get('/playercallback', async (req, res) => {
     const response = await axios.post('https://accounts.spotify.com/api/token', querystring.stringify({
       grant_type: 'authorization_code',
       code,
-      redirect_uri: spotifyRedirectUri,
-      client_id: spotifyClientId,
-      client_secret: spotifyClientSecret,
+      redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+      client_id: process.env.SPOTIFY_CLIENT_ID,
+      client_secret: process.env.SPOTIFY_CLIENT_SECRET,
     }), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -141,7 +131,7 @@ player.get('/soundcallback', async (req, res) => {
 });
 
 player.get('/userauth', (req, res) => {
-  res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`);
+  res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(process.env.DISCORD_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(discordScopes.join(' '))}`);
 });
 
 player.get('/usercallback', async (req, res) => {
@@ -156,8 +146,8 @@ player.get('/usercallback', async (req, res) => {
           client_secret: process.env.DISCORD_CLIENT_SECRET,
           code,
           grant_type: 'authorization_code',
-          redirect_uri: redirectUri,
-          scope: scopes.join(' '),
+          redirect_uri: process.env.DISCORD_REDIRECT_URI,
+          scope: discordScopes.join(' '),
         }),
         {
           headers: {
@@ -200,14 +190,14 @@ player.get('/user', async (req, res) => {
   try {
     // load tokens from .json
     const discordToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tokens/discord.json'), 'utf8'));
-    const discordAccessToken = discordToken.accessToken;
+    let discordAccessToken = discordToken.accessToken; // Changed 'const' to 'let' for reassignment
 
-    client.token = discordAccessToken;
+    client.token = discordAccessToken; // Corrected
 
     // Fetch the user's data from Discord API
     const userResponse = await axios.get('https://discord.com/api/users/@me', {
       headers: {
-        Authorization: `Bearer ${client.token}`,
+        Authorization: `Bearer ${discordAccessToken}`, // Corrected
       },
     });
 
@@ -222,7 +212,7 @@ player.get('/user', async (req, res) => {
 
     const connectionsResponse = await axios.get('https://discord.com/api/users/@me/connections', {
       headers: {
-        Authorization: `Bearer ${client.token}`,
+        Authorization: `Bearer ${discordAccessToken}`, // Corrected
       },
     });
 
@@ -593,8 +583,8 @@ async function refreshSpotifyAccessToken() {
     const response = await axios.post('https://accounts.spotify.com/api/token', querystring.stringify({
       grant_type: 'refresh_token',
       refresh_token: spotifyRefreshToken,
-      client_id: spotifyClientId,
-      client_secret: spotifyClientSecret,
+      client_id: process.env.SPOTIFY_CLIENT_ID,
+      client_secret: process.env.SPOTIFY_CLIENT_SECRET,
     }), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -613,15 +603,15 @@ async function refreshSpotifyAccessToken() {
   }
 }
 
-async function refreshDiscordAccessToken(refreshToken) {
+async function refreshDiscordAccessToken(discordRefreshToken) {
   try {
     const response = await axios.post(
       'https://discord.com/api/oauth2/token',
       new URLSearchParams({
-        client_id: client.user.id,
+        client_id: discordClient.user.id, // Corrected
         client_secret: process.env.DISCORD_CLIENT_SECRET,
         grant_type: 'refresh_token',
-        refresh_token: refreshToken,
+        refresh_token: discordRefreshToken,
         scope: scopes.join(' '),
       }),
       {
@@ -647,7 +637,7 @@ async function refreshDiscordAccessToken(refreshToken) {
   }
 }
 
-client.login(token);
+client.login(process.env.DISCORD_BOT_TOKEN);
 
 player.listen(PORT, async () => {
   console.log(`player running: ${PORT}`);

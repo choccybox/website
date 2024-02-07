@@ -179,3 +179,19 @@ body {
 #flag_name {
     font-size: 1.7rem;
 }
+
+#took_too_long {
+    width: 426px;
+    height: 135px;
+    background-color: var(--background);
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    bottom: -18px;
+    text-align: center;
+    display: none;
+}
+
+#took_too_long_inner {
+    margin: 10px;
+}
