@@ -1,5 +1,5 @@
-    //fetch /user endpoint
-    fetch ("/user")
+//fetch /user endpoint
+fetch("/user")
     .then(response => response.json())
     .then(data => {
         var socialHolder = document.getElementById("main_bottom");
@@ -17,7 +17,8 @@
             socialButton.setAttribute("href", data.connections[i].url);
             socialButton.setAttribute("target", "_blank");
             socialButton.classList.add("noselect");
-            socialButton.innerHTML = `<div class="social_button"><i class="fa-brands fa-${data.connections[i].type}"></i></div>`;
+            var iconPath = `../styles/icons/${data.connections[i].type}.svg`;
+            socialButton.innerHTML = `<div class="social_button"><div class="icon_holder"><img class="icon" src="${iconPath}" alt="${data.connections[i].type}"></div></div>`;
             socialHolder.appendChild(socialButton);
         }
 
@@ -43,8 +44,8 @@
         document.getElementById("avatar_credit_text").innerHTML = `made by <a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${avatarCreditFormatted}</a>`;
     });
 
-    // fetch user choccymilk from pronoun.page
-    fetch("https://en.pronouns.page/api/profile/get/choccymilk?version=2&props=pronouns,flags")
+// fetch user choccymilk from pronoun.page
+fetch("https://en.pronouns.page/api/profile/get/choccymilk?version=2&props=pronouns,flags")
     .then(response => response.json())
     .then(data => {
         var pronouns = [];
@@ -52,7 +53,7 @@
             pronouns.push(data.profiles.en.pronouns[i].value.toLowerCase());
         }
         var flags = [];
-        for (var i = 0; i <data.profiles.en.flags.length; i++) {
+        for (var i = 0; i < data.profiles.en.flags.length; i++) {
             flags.push(data.profiles.en.flags[i].toLowerCase());
         }
 
@@ -61,7 +62,7 @@
 
         // Form the flag URLs
         var flagsImg = flags.map(flag => `
-        <a id="flag_name" href='https://www.urbandictionary.com/define.php?term=${flags}' target='_blank'>${flag}</a>
+        <a id="flag_name" href='https://www.urbandictionary.com/define.php?term=${flag}' target='_blank'>${flag}</a>
         <img id="flag_icon" src="https://en.pronouns.page/flags/${flag.charAt(0).toUpperCase() + flag.slice(1)}.png"></img>`);
 
         // Set the innerHTML of the "pronouns" element

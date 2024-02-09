@@ -96,10 +96,6 @@
     width: 85px !important;
     height: 85px !important;
   }
-  .fa-brands, .fa-solid {
-    font-size: 65px !important;
-    width: 65px !important;
-  }
   .panel, .panel_loader {
     width: 180px !important;
     height: 180px !important;
@@ -155,11 +151,12 @@
     padding-top: 57.89%;  /* (22 / 38) * 100% = 57.89% */
 }
 
-#took_too_long {
-  width: 276px !important;
-  height: 85px !important;
-  bottom: 157px !important;
+.icon {
+  filter: invert(99%) sepia(64%) saturate(2%) hue-rotate(8deg) brightness(108%) contrast(101%);
+  max-width: 75px !important;
+  max-height: 75px !important;
 }
+
 }
 
 /* @media screen and (max-width: 316px) {

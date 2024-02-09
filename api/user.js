@@ -1,6 +1,5 @@
 const express = require('express');
 const axios = require('axios');
-const querystring = require('querystring');
 const { Client, GatewayIntentBits } = require('discord.js');
 const userinfo = express();
 const fs = require('fs');
