@@ -135,10 +135,8 @@ async function getNowPlaying() {
     });
 
     if (spotifyResponse.data && spotifyResponse.data.is_playing) {
-      // if not local, use spotify api to get art and url
       if (!spotifyResponse.data.item.is_local) {
       console.log('playing from spotify');
-      // get download it to playerimgs folder
       const originalspotifyimg = spotifyResponse.data.item.album.images[1].url;
 
       try {
@@ -178,7 +176,7 @@ async function getNowPlaying() {
       });
 
       if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
-        const track = soundCloudResponse.data.collection[0]; // Assuming you want the first track
+        const track = soundCloudResponse.data.collection[0];
         console.log('playing local file, found result on soundcloud with artist');
 
         const originalsoundcloudimg = track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp');
@@ -217,7 +215,7 @@ async function getNowPlaying() {
         });
 
         if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
-          const track = soundCloudResponse.data.collection[0]; // Assuming you want the first track
+          const track = soundCloudResponse.data.collection[0];
           console.log('playing local file, found result on soundcloud without artist');
         
           const originalsoundcloudimg = track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp');
@@ -279,7 +277,7 @@ async function getNowPlaying() {
         },
       });
       
-      // if found, return spotify data, if not, return null
+      // if found, return spotify data, if not, use soundcould, only then return last.fm data
       if (spotifySearchResponse.data.tracks.items[0]) {
         console.log('not playing, found spotify result');
         const originalspotifyimg = spotifySearchResponse.data.tracks.items[0].album.images[1].url;
@@ -390,21 +388,35 @@ async function getNowPlaying() {
               console.error('Error downloading or resizing image:', error);
             }
           } else {
+            const originallasfmimg = lastFmResponse.data.recenttracks.track[0].image[3]['#text'];
             console.log('not playing, no result found');
-            return {
-              isPlaying: false,
-              name: lastFmResponse.data.recenttracks.track[0].name,
-              artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
-              art: {
-                high: null,
-                low: null,
-              },
-              url: null,
-              progress: null,
-              duration: null,
-              message: 'not playing, no result found',
-              source: 'last.fm',
-            };
+            try {
+              const response = await axios({
+                method: 'get',
+                url: originallasfmimg,
+                responseType: 'arraybuffer',
+              });
+            
+              const highresizedlastfmimg = await sharp(response.data).resize(280, 280).toBuffer();
+              const lowresizedlastfmimg = await sharp(response.data).resize(128, 128).toBuffer();
+    
+              return {
+                isPlaying: false,
+                name: lastFmResponse.data.recenttracks.track[0].name,
+                artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
+                art: {
+                  high: `data:image/webp;base64,${highresizedlastfmimg.toString('base64')}`,
+                  low: `data:image/webp;base64,${lowresizedlastfmimg.toString('base64')}`,
+                },
+                url: lastFmResponse.data.recenttracks.track[0].url,
+                progress: null,
+                duration: null,
+                message: 'not playing, no result found',
+                source: 'last.fm',
+              };
+            } catch (error) {
+              console.error('Error downloading or resizing image:', error);
+            }
           }
           }
       }

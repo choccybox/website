@@ -83,14 +83,14 @@ userinfo.get('/user', async (req, res) => {
   try {
     // load tokens from .json
     const discordToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/discord.json'), 'utf8'));
-    let discordAccessToken = discordToken.accessToken; // Changed 'const' to 'let' for reassignment
+    let discordAccessToken = discordToken.accessToken;
 
-    client.token = discordAccessToken; // Corrected
+    client.token = discordAccessToken;
 
     // Fetch the user's data from Discord API
     const userResponse = await axios.get('https://discord.com/api/users/@me', {
       headers: {
-        Authorization: `Bearer ${discordAccessToken}`, // Corrected
+        Authorization: `Bearer ${discordAccessToken}`,
       },
     });
 
@@ -99,13 +99,11 @@ userinfo.get('/user', async (req, res) => {
       discordAccessToken = await refreshDiscordAccessToken(discordAccessToken);
       console.log('refreshed discord token');
       client.token = discordAccessToken;
-    } else {
-      console.log('discord token is still valid');
     }
 
     const connectionsResponse = await axios.get('https://discord.com/api/users/@me/connections', {
       headers: {
-        Authorization: `Bearer ${discordAccessToken}`, // Corrected
+        Authorization: `Bearer ${discordAccessToken}`,
       },
     });
 
@@ -198,7 +196,7 @@ async function refreshDiscordAccessToken(discordRefreshToken) {
     const response = await axios.post(
       'https://discord.com/api/oauth2/token',
       new URLSearchParams({
-        client_id: discordClient.user.id, // Corrected
+        client_id: discordClient.user.id,
         client_secret: process.env.DISCORD_CLIENT_SECRET,
         grant_type: 'refresh_token',
         refresh_token: discordRefreshToken,
