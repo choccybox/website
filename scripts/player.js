@@ -14,11 +14,22 @@ function fetchAndDisplayTime() {
                 // Update text
                 document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
 
-                // Update image
-                const isCellular = navigator.connection.effectiveType;
-                console.log("📱 is cellular player?", isCellular);
+                // Check if user is on a mobile device
+                var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-                if (isCellular === true) {
+                // Check if user is using cellular data
+                var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                var isCellular = false;
+
+                if (connection && connection.type === 'cellular') {
+                    isCellular = true;
+                }
+
+                console.log("📱 is mobile player?", isMobile);
+                console.log("📶 is cellular player?", isCellular);
+
+                // if user is on mobile, set the avatar to the mobile avatar
+                if (isMobile && isCellular) {
                     document.getElementById("player_image").src = data.art.low;
                 } else {
                     document.getElementById("player_image").src = data.art.high;
@@ -61,11 +72,22 @@ function fetchAndDisplayTime() {
                 // Update text
                 document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
 
-                const isCellular = navigator.connection.effectiveType;
-                console.log("📱 is cellular?", isCellular);
+                // Check if user is on a mobile device
+                var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
+                // Check if user is using cellular data
+                var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                var isCellular = false;
 
-                if (isCellular === true) {
+                if (connection && connection.type === 'cellular') {
+                    isCellular = true;
+                }
+
+                console.log("📱 is mobile player?", isMobile);
+                console.log("📶 is cellular player?", isCellular);
+
+                // if user is on mobile, set the avatar to the mobile avatar
+                if (isMobile && isCellular) {
                     document.getElementById("player_image").src = data.art.low;
                 } else {
                     document.getElementById("player_image").src = data.art.high;

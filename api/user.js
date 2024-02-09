@@ -33,7 +33,7 @@ function saveDiscordToken(discordAccessToken, expiresIn, discordRefreshToken) {
 }
 
 // COMMENT OUT AFTER LOGGING.
-userinfo.get('/userauth', (req, res) => {
+/* userinfo.get('/userauth', (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(process.env.DISCORD_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(discordScopes.join(' '))}`);
 });
 
@@ -76,7 +76,7 @@ userinfo.get('/usercallback', async (req, res) => {
   } else {
     res.status(400).send('Authorization code not provided.');
   }
-});
+}); */
 // COMMENT OUT AFTER LOGGING.
 
 userinfo.get('/user', async (req, res) => {
@@ -109,8 +109,8 @@ userinfo.get('/user', async (req, res) => {
       },
     });
 
-    // Filter connections with visibility 0, keep spotify
-    const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 || connection.type === 'spotify');
+    // Filter connections with visibility 0, keep spotify, ignore domain type
+    const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' || connection.type === 'spotify');
 
     // Mock Last.fm connection data
     const mockLastfmConnection = {
@@ -156,6 +156,12 @@ userinfo.get('/user', async (req, res) => {
 
     const originalavatarimg = `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.webp?size=1024`;
 
+    // get avatarcredit and modify to remove https://website.com/
+    const url = new URL(process.env.AVATAR_CREDIT);
+    const pathSegments = url.pathname.split('/');
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    const avatarCreditFormatted = lastSegment;
+
         try {
           const response = await axios({
             method: 'get',
@@ -172,6 +178,7 @@ userinfo.get('/user', async (req, res) => {
               low: `data:image/webp;base64,${lowresizedavatarimg.toString('base64')}`,
             },
             avatarCredit: process.env.AVATAR_CREDIT,
+            avatarCreditText: avatarCreditFormatted,
             userUrl: `https://discord.com/users/${userResponse.data.id}`,
             connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
           };

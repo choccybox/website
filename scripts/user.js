@@ -4,13 +4,6 @@ fetch("/user")
     .then(data => {
         var socialHolder = document.getElementById("main_bottom");
 
-        // ignore domain type 
-        for (var i = 0; i < data.connections.length; i++) {
-            if (data.connections[i].type == "domain") {
-                data.connections.splice(i, 1);
-            }
-        }
-
         // create social buttons
         for (var i = 0; i < data.connections.length; i++) {
             var socialButton = document.createElement("a");
@@ -22,26 +15,29 @@ fetch("/user")
             socialHolder.appendChild(socialButton);
         }
 
-        // remove https://website.com/ from url
-        const url = new URL(data.avatarCredit);
-        const pathSegments = url.pathname.split('/');
-        const lastSegment = pathSegments[pathSegments.length - 1];
-        
-        const avatarCreditFormatted = lastSegment;
-        
+        // Check if user is on a mobile device
+        var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-        // check if user is on cellular
-        const isCellular = navigator.connection.effectiveType;
-        console.log("📱 is cellular avatar?", isCellular);
+        // Check if user is using cellular data
+        var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        var isCellular = false;
 
-        if (isCellular === true) {
-            document.getElementById("avatar_image").src = data.avatar.low
-        } else {
-            document.getElementById("avatar_image").src = data.avatar.high
+        if (connection && connection.type === 'cellular') {
+            isCellular = true;
         }
-        
+
+        console.log("📱 is mobile avatar?", isMobile);
+        console.log("📶 is cellular avatar?", isCellular);
+
+        // If the user is on mobile and using cellular data, set the avatar to the low-quality version
+        if (isMobile && isCellular) {
+            document.getElementById("avatar_image").src = data.avatar.low;
+        } else {
+            document.getElementById("avatar_image").src = data.avatar.high;
+        }
+
         document.getElementById("avatar_link").href = data.userUrl;
-        document.getElementById("avatar_credit_text").innerHTML = `made by <a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${avatarCreditFormatted}</a>`;
+        document.getElementById("avatar_credit_text").innerHTML = `made by <a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${data.avatarCreditText}</a>`;
     });
 
 // fetch user choccymilk from pronoun.page

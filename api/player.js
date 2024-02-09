@@ -33,7 +33,7 @@ function saveSoundcloudToken(soundcloudAccessToken, soundcloudRefreshToken) {
 }
 
 // COMMENT OUT AFTER LOGGING.
-player.get('/playerauth', (req, res) => {
+/* player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: process.env.SPOTIFY_CLIENT_ID,
@@ -106,7 +106,7 @@ player.get('/soundcallback', async (req, res) => {
     console.error('Error exchanging code for token:', error.message);
     res.status(500).send('Error during authentication');
   }
-});
+}); */
 // COMMENT OUT AFTER LOGGING.
 
 player.get('/player', async (req, res) => {
