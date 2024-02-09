@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.static(__dirname));
 
 app.use(player);
-app.user(userinfo);
+app.use(userinfo);
 
 app.listen(port, "0.0.0.0", function () {
     console.log('Server started on port ' + port);
