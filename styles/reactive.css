@@ -64,6 +64,9 @@
   .panel:last-child {
     margin: 0px !important;
   }
+  #more_about_popup {
+    margin-top: -0px;
+  }
 }
 
 @media screen and (max-width: 486px) {
@@ -143,20 +146,20 @@
     margin-top: calc(1.05rem / 3.25) !important;
     height: calc(1.05rem - 3.5px) !important;
     margin-left: 6px !important;
-}
-
-#flag_icon::before {
+  }
+  #flag_icon::before {
     content: '';
     display: block;
     padding-top: 57.89%;  /* (22 / 38) * 100% = 57.89% */
-}
-
-.icon {
-  filter: invert(99%) sepia(64%) saturate(2%) hue-rotate(8deg) brightness(108%) contrast(101%);
-  max-width: 75px !important;
-  max-height: 75px !important;
-}
-
+  }
+  .icon {
+    filter: invert(99%) sepia(64%) saturate(2%) hue-rotate(8deg) brightness(108%) contrast(101%);
+    max-width: 75px !important;
+    max-height: 75px !important;
+  }
+  #more_about:hover .more_about_icon_holder {
+    margin-top: -22px !important
+  } 
 }
 
 /* @media screen and (max-width: 316px) {

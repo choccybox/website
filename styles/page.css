@@ -64,10 +64,21 @@ body {
     width: calc(100% - 10px);
  }
 
+ #socials {
+    height: fit-content;
+    width: calc(100% - 155px);
+    position: absolute;
+    display: flex;
+ }
+
 .social_button {
     margin-right: 10px;
     width: 135px;
     height: 135px;
+}
+
+.last_social_button {
+    margin-right: -10px;
 }
 
 .panel {
@@ -122,6 +133,25 @@ body {
     content: '';
     display: block;
     padding-top: 57.89%;
+}
+
+#more_about {
+    cursor: pointer;
+}
+
+#more_about:hover #more_about_popup {
+    display: block;
+}
+
+#more_about:hover .more_about_icon_holder {
+    margin-top: -32px;
+} 
+#more_about_popup {
+    margin-top: -0px;
+  }
+#more_me {
+    text-align: center !important;
+    margin-top: -2px;
 }
 
 
@@ -220,4 +250,16 @@ body {
 
 .icon:hover {
     filter: var(--icon-hover);
+}
+
+
+#panel_more {
+    width: 425px;
+    margin-right: 10px;
+    height: 100%;
+    background-color: red;
+}
+
+#panel_more:last-child {
+    margin-right: 0px;
 }

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>choccy</title>
+    <link rel="icon" href="styles/icon.png">
+    <link rel="stylesheet" href="fonts/stylesheet.css">
+    <link rel="stylesheet" href="styles/reactive.css">
+    <link rel="stylesheet" href="styles/page.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<style>
+     ::-webkit-scrollbar {
+        width: 0px;
+    } 
+
+    .noselect {
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+    }
+</style>
+</head>
+<body>
+        <div id="main_content" class="noselect">
+            <div id="main_top">
+                    <div id="panel_more"></div>
+                    <div id="panel_more"></div>         
+            </div>
+</div>
+
+<script> // disable right click on elements
+    // Add an event listener for the right-click event on all elements with the specified class
+    document.querySelectorAll('.norightclick').forEach(function (element) {
+      element.addEventListener('contextmenu', function (event) {
+        // Prevent the default right-click behavior
+        event.preventDefault();
+      });
+    });
+</script>
+<!-- <script>
+    // start all scripts and waits for images and fonts to load to display all panels and social buttons simultaneously
+/*     var scripts = [
+        "scripts/bday.js",
+    ]; */
+
+    var scripts_loaded = 0;
+    var scripts_total = scripts.length;
+
+
+    function script_loaded() {
+        scripts_loaded++;
+        if (scripts_loaded === scripts_total) {
+            console.log("⌚ scripts loaded");
+            setTimeout(showPanels, 150);
+        }
+    }
+
+    function showPanels() {
+        var panels = document.getElementsByClassName('panel');
+        for (var i = 0; i < panels.length; i++) {
+            panels[i].style.display = 'block';
+        }
+        var loaders = document.getElementsByClassName('panel_loader');
+        for (var i = loaders.length - 1; i >= 0; i--) {
+            // remove all loaders
+            loaders[i].parentNode.removeChild(loaders[i]);
+        }
+
+        var icons = document.querySelectorAll('a > .social_button_loader');
+        for (var i = 0; i < icons.length; i++) {
+            var icon = icons[i];
+            icon.parentNode.parentNode.removeChild(icon.parentNode);
+        }
+        var icons_show = document.getElementsByClassName('social_button');
+        for (var i = 0; i < icons_show.length; i++) {
+            icons_show[i].style.display = 'block';
+        }
+        console.log("✅ loading done, panels displayed");
+    }
+
+    for (var i = 0; i < scripts.length; i++) {
+        var script = document.createElement("script");
+        script.src = scripts[i];
+        script.onload = script_loaded;
+        document.head.appendChild(script);
+    }
+
+</script> -->
+
+
+
+</body>
+</html>

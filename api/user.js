@@ -83,7 +83,8 @@ userinfo.get('/user', async (req, res) => {
   try {
     // load tokens from .json
     const discordToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/discord.json'), 'utf8'));
-    let discordAccessToken = discordToken.accessToken;
+    const discordAccessToken = discordToken.accessToken;
+    const discordRefreshToken = discordToken.refreshToken;
 
     client.token = discordAccessToken;
 
@@ -95,10 +96,10 @@ userinfo.get('/user', async (req, res) => {
     });
 
     // Check if the access token needs to be refreshed
-    if (userResponse.status === 401) {
-      discordAccessToken = await refreshDiscordAccessToken(discordAccessToken);
+    if (userResponse.status === 401 && userResponse.status === 403 && userResponse.status === 500) {
+      const newAccessToken = await refreshDiscordAccessToken(client, discordRefreshToken);      
       console.log('refreshed discord token');
-      client.token = discordAccessToken;
+      client.token = newAccessToken;
     }
 
     const connectionsResponse = await axios.get('https://discord.com/api/users/@me/connections', {
@@ -107,7 +108,8 @@ userinfo.get('/user', async (req, res) => {
       },
     });
 
-    // Filter connections with visibility 0, keep spotify, ignore domain type
+    // Filter connections with visibility 0, keep spotify, ignore domain type, keep spotify, ignore domain type
+/*     const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain'); */
     const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' || connection.type === 'spotify');
 
     // Mock Last.fm connection data
@@ -191,16 +193,16 @@ userinfo.get('/user', async (req, res) => {
   }
 });
 
-async function refreshDiscordAccessToken(discordRefreshToken) {
+async function refreshDiscordAccessToken(client, discordRefreshToken) {
   try {
     const response = await axios.post(
       'https://discord.com/api/oauth2/token',
       new URLSearchParams({
-        client_id: discordClient.user.id,
+        client_id: client.user.id,
         client_secret: process.env.DISCORD_CLIENT_SECRET,
         grant_type: 'refresh_token',
         refresh_token: discordRefreshToken,
-        scope: scopes.join(' '),
+        scope: discordScopes.join(' '),
       }),
       {
         headers: {
@@ -220,11 +222,23 @@ async function refreshDiscordAccessToken(discordRefreshToken) {
 
     return newAccessToken;
   } catch (error) {
-    console.error('Error refreshing access token:', error);
-    throw error;
+    // Check if the error is due to a 404 or 500 status code
+    if (error.response && (error.response.status === 404 || error.response.status === 500)) {
+      console.log('Token refresh needed due to status:', error.response.status);
+      // Attempt to refresh the token
+      return refreshDiscordAccessToken(client, discordRefreshToken);
+    } else {
+      console.error('Error refreshing access token:', error);
+      throw error;
+    }
   }
 }
 
+client.once('ready', async () => {
+  console.log('Discord client is ready.');
+});
+
+// Login the client
 client.login(process.env.DISCORD_BOT_TOKEN);
 
 userinfo.listen(PORT, async () => {
