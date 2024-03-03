@@ -52,6 +52,7 @@ body {
     width: 100%;
     margin: 10px;
     border-radius: var(--radius);
+    scrollbar-width: none;
 }
 
 #main_bottom {
@@ -62,6 +63,7 @@ body {
     margin-left: 10px;
     border-radius: var(--radius);
     width: calc(100% - 10px);
+    scrollbar-width: none;
  }
 
  #socials {
