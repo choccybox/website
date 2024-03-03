@@ -22,10 +22,11 @@ const PORT = 20003;
 
 const discordScopes = ['identify', 'connections'];
 
-function saveDiscordToken(discordAccessToken, expiresIn, discordRefreshToken) {
+function saveDiscordToken(discordAccessToken, expiresIn, savedAt, discordRefreshToken) {
   const tokens = {
     accessToken: discordAccessToken,
     expiresIn: expiresIn,
+    savedAt: savedAt,
     refreshToken: discordRefreshToken,
   };
 
@@ -63,8 +64,9 @@ userinfo.get('/usercallback', async (req, res) => {
       const accessToken = response.data.access_token;
       const refreshToken = response.data.refresh_token;
       const expiresIn = response.data.expires_in;
+      const savedAt = Math.floor(Date.now() / 1000);
 
-      saveDiscordToken(accessToken, expiresIn, refreshToken);
+      saveDiscordToken(accessToken, expiresIn, savedAt, refreshToken);
 
       client.token = accessToken;
 
@@ -202,26 +204,23 @@ userinfo.get('/user', async (req, res) => {
   
       client.token = discordAccessToken;
 
-        // Fetch the user's data from Discord API
+      // get savedAt and expiry time, calculate if token needs to be refreshed
+      const savedAt = discordToken.savedAt;
+      const expiresIn = discordToken.expiresIn;
+      const currentTime = Math.floor(Date.now() / 1000);
+
+      // if expired or returning 401, refresh token
+      if (currentTime - savedAt >= expiresIn ) {
+        console.log('Token refresh needed due to expiry.');
+        discordAccessToken = await refreshDiscordAccessToken(client, discordToken.refreshToken);
+      } else {
+        console.log('Token refresh not needed.');
+      }
+
       const userResponse = await axios.get('https://discord.com/api/users/@me', {
         headers: {
           Authorization: `Bearer ${discordAccessToken}`,
         },
-      }) .catch(error => {
-        // refresh token if 401
-        if (error.response.status === 401) {
-          const newAccessToken = refreshDiscordAccessToken(client, discordAccessToken);
-          client.token = newAccessToken;
-          return axios.get('https://discord.com/api/users/@me', {
-            headers: {
-              Authorization: `Bearer ${newAccessToken}`,
-            },
-          });
-
-        } else {
-          console.error('Error fetching user information:', error);
-          res.status(500).send('Error fetching user information.');
-        }
       });
   
       const connectionsResponse = await axios.get('https://discord.com/api/users/@me/connections', {
@@ -229,6 +228,7 @@ userinfo.get('/user', async (req, res) => {
           Authorization: `Bearer ${discordAccessToken}`,
         },
       });
+
   
       // Filter connections with visibility 0, keep spotify, ignore domain type, keep spotify, ignore domain type
       const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' || connection.type === 'spotify');
@@ -336,9 +336,10 @@ async function refreshDiscordAccessToken(client, discordRefreshToken) {
     const newAccessToken = response.data.access_token;
     const newRefreshToken = response.data.refresh_token;
     const expiresIn = response.data.expires_in;
+    const savedAt = Math.floor(Date.now() / 1000);
 
     // Save the new access token and refresh token to the JSON file
-    saveDiscordToken(newAccessToken, expiresIn, newRefreshToken);
+    saveDiscordToken(newAccessToken, expiresIn, savedAt, newRefreshToken);
 
     console.log('Refreshed access token:', newAccessToken);
 
@@ -351,7 +352,6 @@ async function refreshDiscordAccessToken(client, discordRefreshToken) {
       return refreshDiscordAccessToken(client, discordRefreshToken);
     } else {
       console.error('Error refreshing access token:', error);
-      throw error;
     }
   }
 }
