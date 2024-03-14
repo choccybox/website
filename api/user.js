@@ -188,6 +188,11 @@ userinfo.get('/usercallback', async (req, res) => {
 
 client.once('ready', () => {
   console.log('Discord client is ready.');
+  checkTokenExpiration(client);
+  
+  setInterval(() => {
+    checkTokenExpiration(client);
+  }, 300000);
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN);
@@ -203,19 +208,6 @@ userinfo.get('/user', async (req, res) => {
       const discordAccessToken = discordToken.accessToken;
   
       client.token = discordAccessToken;
-
-      // get savedAt and expiry time, calculate if token needs to be refreshed
-      const savedAt = discordToken.savedAt;
-      const expiresIn = discordToken.expiresIn;
-      const currentTime = Math.floor(Date.now() / 1000);
-
-      // if expired or returning 401, refresh token
-      if (currentTime - savedAt >= expiresIn ) {
-        console.log('Token refresh needed due to expiry.');
-        discordAccessToken = await refreshDiscordAccessToken(client, discordToken.refreshToken);
-      } else {
-        console.log('Token refresh not needed.');
-      }
 
       const userResponse = await axios.get('https://discord.com/api/users/@me', {
         headers: {
@@ -353,6 +345,26 @@ async function refreshDiscordAccessToken(client, discordRefreshToken) {
     } else {
       console.error('Error refreshing access token:', error);
     }
+  }
+}
+
+// run function that checks if the token is expired every 5 minutes
+async function checkTokenExpiration(client) {
+  const discordToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/discord.json'), 'utf8'));
+  const savedAt = discordToken.savedAt;
+  const expiresIn = discordToken.expiresIn;
+  const discordRefreshToken = discordToken.refreshToken;
+
+  const tokenExpirationTime = savedAt + expiresIn;
+  const currentTime = Math.floor(Date.now() / 1000);
+
+  // Check if the token has expired
+  if (currentTime >= tokenExpirationTime) {
+    console.log('Access token has expired, refreshing...');
+    const newAccessToken = await refreshDiscordAccessToken(client, discordRefreshToken);
+    client.token = newAccessToken;
+  } else {
+    console.log('Access token is still valid.');
   }
 }
 
