@@ -81,111 +81,6 @@ userinfo.get('/usercallback', async (req, res) => {
 }); */
 // COMMENT OUT AFTER LOGGING.
 
-/* userinfo.get('/user', async (req, res) => {
-  try {
-    // load tokens from .json
-    const discordToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/discord.json'), 'utf8'));
-    const discordAccessToken = discordToken.accessToken;
-
-    client.token = discordAccessToken;
-   
-    // Fetch the user's data from Discord API
-    const userResponse = await axios.get('https://discord.com/api/users/@me', {
-      headers: {
-        Authorization: `Bearer ${discordAccessToken}`,
-      },
-    });
-
-    const connectionsResponse = await axios.get('https://discord.com/api/users/@me/connections', {
-      headers: {
-        Authorization: `Bearer ${discordAccessToken}`,
-      },
-    });
-
-    // Filter connections with visibility 0, keep spotify, ignore domain type, keep spotify, ignore domain type
-    const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' || connection.type === 'spotify');
-
-    // Mock Last.fm connection data
-    const mockLastfmConnection = {
-      type: 'lastfm',
-      url: `https://last.fm/user/${process.env.LASTFM_USERNAME}`,
-    };
-
-    // Insert the mock last.fm
-    const hasLastfmConnection = filteredConnections.some(connection => connection.type === 'lastfm');
-    // Simplify connections to id, name, type, and visibility with added "url" field
-    const simplifiedConnections = filteredConnections.map(connection => {
-      let url;
-      const baseHTTPS = "https://";
-      
-      switch (connection.type) {
-        case 'domain':
-          url = `${baseHTTPS}${connection.name}`;
-          break;
-        case 'spotify':
-          url = `${baseHTTPS}open.spotify.com/user/${connection.id}`;
-          break;
-        case 'steam':
-          url = `${baseHTTPS}steamcommunity.com/profiles/${connection.id}`;
-          break;
-        case 'youtube':
-          url = `${baseHTTPS}youtube.com/channel/${connection.id}`;
-          break;  
-        case 'tiktok':
-          url = `${baseHTTPS}tiktok.com/@${connection.name}`;
-          break;
-        case 'riotgames':
-          break;
-        default:
-          url = `${baseHTTPS}${connection.type}.com/${connection.name}`;
-          break;
-      }
-
-      return {
-        type: connection.type,
-        url: url,
-      };
-    });
-
-    const originalavatarimg = `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.webp?size=1024`;
-
-    const url = new URL(process.env.AVATAR_CREDIT);
-    const pathSegments = url.pathname.split('/');
-    const lastSegment = pathSegments[pathSegments.length - 1];
-    const avatarCreditFormatted = lastSegment;
-
-        try {
-          const response = await axios({
-            method: 'get',
-            url: originalavatarimg,
-            responseType: 'arraybuffer',
-          });
-
-          const highresizedavatarimg = await sharp(response.data).resize(300, 300).toBuffer();
-          const lowresizedavatarimg = await sharp(response.data).resize(128, 128).toBuffer();
-
-          const userInfo = {
-            avatar: {
-              high: `data:image/webp;base64,${highresizedavatarimg.toString('base64')}`,
-              low: `data:image/webp;base64,${lowresizedavatarimg.toString('base64')}`,
-            },
-            avatarCredit: process.env.AVATAR_CREDIT,
-            avatarCreditText: avatarCreditFormatted,
-            userUrl: `https://discord.com/users/${userResponse.data.id}`,
-            connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
-          };
-          res.json(userInfo);
-        }
-        catch (error) {
-          console.error('Error downloading or resizing image:', error);
-        }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error fetching user information.');
-  }
-});
- */
-
 client.once('ready', () => {
   console.log('Discord client is ready.');
   checkTokenExpiration(client);
@@ -221,6 +116,15 @@ userinfo.get('/user', async (req, res) => {
         },
       });
 
+      // check channel id 1229488636408627200 for any messages
+      const messagesResponse = await axios.get('https://discord.com/api/channels/1229488636408627200/messages', {
+         headers: {
+           Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+        },
+      });
+      
+      // only get one message and display it as raw text
+      const avatarCredit = messagesResponse.data[0].content;
   
       // Filter connections with visibility 0, keep spotify, ignore domain type, keep spotify, ignore domain type
       const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' || connection.type === 'spotify');
@@ -269,11 +173,6 @@ userinfo.get('/user', async (req, res) => {
   
       const originalavatarimg = `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.webp?size=1024`;
   
-      const url = new URL(process.env.AVATAR_CREDIT);
-      const pathSegments = url.pathname.split('/');
-      const lastSegment = pathSegments[pathSegments.length - 1];
-      const avatarCreditFormatted = lastSegment;
-  
       try {
         const response = await axios({
           method: 'get',
@@ -288,9 +187,10 @@ userinfo.get('/user', async (req, res) => {
           avatar: {
             high: `data:image/webp;base64,${highresizedavatarimg.toString('base64')}`,
             low: `data:image/webp;base64,${lowresizedavatarimg.toString('base64')}`,
+            original: originalavatarimg,
           },
-          avatarCredit: process.env.AVATAR_CREDIT,
-          avatarCreditText: avatarCreditFormatted,
+          avatarCredit: `https://twitter.com/${avatarCredit}`,
+          avatarCreditText: avatarCredit,
           userUrl: `https://discord.com/users/${userResponse.data.id}`,
           connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
         };
