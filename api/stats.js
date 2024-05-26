@@ -57,36 +57,44 @@ stats.get('/wakacallback', async (req, res) => {
 });
 // COMMENT OUT AFTER LOGGING.
 
-// if access_token is invalid (404 or 401), use refresh_token to get a new access_token
-if (response.status === 404 || response.status === 401) {
-  const refreshToken = fs.readFileSync(path.resolve(__dirname, './tokens/wakatime.json'), 'utf8');
-  const response = await axios.post(
-    'https://wakatime.com/oauth/token',
-    new URLSearchParams({
-      client_id: process.env.WAKATIME_CLIENT_ID,
-      client_secret: process.env.WAKATIME_CLIENT_SECRET,
-      redirect_uri: process.env.WAKATIME_REDIRECT_URI,
-      refresh_token: refreshToken,
-      grant_type: 'refresh_token',
-    }),
-    {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    }
-  );
+// refresh token if accessing /stats returns 401
+stats.get('/refresh', async (req, res) => {
+  const refreshToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/wakatime.json'), 'utf8')).refreshToken;
 
-  // get the token from the response
-  const wakatimeAccessToken = response.data.access_token;
-  const wakatimeRefreshToken = response.data.refresh_token;
+  try {
+    const response = await axios.post(
+      'https://wakatime.com/oauth/token',
+      new URLSearchParams({
+        client_id: process.env.WAKATIME_CLIENT_ID,
+        client_secret: process.env.WAKATIME_CLIENT_SECRET,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token',
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
 
-  fs.writeFileSync(path.resolve(__dirname, './tokens/wakatime.json'), JSON.stringify({ accessToken: wakatimeAccessToken, refreshToken: wakatimeRefreshToken }, null, 2), 'utf8');
-  console.log(fs.readFileSync(path.resolve(__dirname, './tokens/wakatime.json'), 'utf8'));
-}
+    const wakatimeAccessToken = response.data.access_token;
+    const wakatimeRefreshToken = response.data.refresh_token;
+
+    fs.writeFileSync(path.resolve(__dirname, './tokens/wakatime.json'), JSON.stringify({ accessToken: wakatimeAccessToken, refreshToken: wakatimeRefreshToken }, null, 2), 'utf8');
+    console.log(fs.readFileSync(path.resolve(__dirname, './tokens/wakatime.json'), 'utf8'));
+    res.send('Token refreshed.');
+  } catch (error) {
+    console.error('Error during token refresh:', error);
+    res.status(500).send('Error during token refresh.');
+  }
+});
 
 stats.get('/stats', async (req, res) => {
-  // say hi
-    res.send('hi');
+    // if the token is expired, refresh it
+    if (req.query.error === 'invalid_token') {
+      res.redirect('/refresh');
+      return;
+    }
 });
 
 
@@ -94,4 +102,4 @@ stats.listen(PORT, async () => {
   console.log(`stats running: ${PORT}`);
 });
 
-module.exports = userinfo;
+module.exports = stats;
