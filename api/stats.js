@@ -49,6 +49,8 @@ stats.get('/wakacallback', async (req, res) => {
       // get the token from the response
       const wakatimeAccessToken = response.data.access_token;
       const wakatimeRefreshToken = response.data.refresh_token;
+      console.log('Access token:', wakatimeAccessToken);
+      console.log('Refresh token:', wakatimeRefreshToken);
 
       // write both tokens to a .json file
       fs.writeFileSync(path.resolve(__dirname, './tokens/wakatime.json'), JSON.stringify({ accessToken: wakatimeAccessToken, refreshToken: wakatimeRefreshToken }, null, 2), 'utf8');
