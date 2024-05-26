@@ -145,17 +145,53 @@ body {
     display: block;
 }
 
-#more_about:hover .more_about_icon_holder {
-    margin-top: -32px;
-} 
-#more_about_popup {
-    margin-top: -0px;
-  }
-#more_me {
-    text-align: center !important;
-    margin-top: -2px;
+#moreabout_transition_top {
+    height: 280px;
+    background-color: var(--panel);
+    position: absolute;
+    z-index: 9999;
+    display: none;
 }
 
+#moreabout_transition_bottom {
+    height: 135px;
+    background-color: var(--panel);
+    position: absolute;
+    z-index: 9999;
+    display: none;
+}
+
+@keyframes moreabout_transition_top_anim_desktop {
+    0% {margin-left:0; width: 0px;}
+    25% {margin-left:0; width: calc(100% - 10px);}
+    50% {margin-left:0; width: calc(100% - 10px);}
+    75% {margin-left:0; width: calc(100% - 10px);}
+    100% {margin-left: calc(100% - 10px); width: 0px;}
+}
+
+@keyframes moreabout_transition_top_anim_mobile {
+    0% {margin-left: 0; width: 0px;}
+    25% {margin-left: 0; width: 100%;}
+    50% {margin-left: 0; width: 100%;}
+    75% {margin-left: 0; width: 100%;}
+    100% {margin-left: calc(100% + 1px); width: 0px;}
+}
+
+@keyframes moreabout_transition_bottom_anim_desktop {
+    0% {margin-left: 0; width: 0px;}
+    25% {margin-left: 0; width: calc(100% - 155px);}
+    50% {margin-left: 0; width: calc(100% - 155px);}
+    75% {margin-left: 0; width: calc(100% - 155px);}
+    100% {margin-left: calc(100% - 155px); width: 0px;}
+}
+
+@keyframes moreabout_transition_bottom_anim_mobile {
+    0% {margin-left: 0; width: 0px;}
+    25% {margin-left: 0; width: 100%;}
+    50% {margin-left: 0; width: 100%;}
+    75% {margin-left: 0; width: 100%;}
+    100% {margin-left: calc(100% + 1px); width: 0px;}
+}
 
 #player_progress {
     background-color: var(--progress);

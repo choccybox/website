@@ -127,7 +127,7 @@ userinfo.get('/user', async (req, res) => {
       const avatarCredit = messagesResponse.data[0].content;
   
       // Filter connections with visibility 0, keep spotify, ignore domain type, keep spotify, ignore domain type
-      const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' || connection.type === 'spotify');
+      const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain');
   
       // Mock Last.fm connection data
       const mockLastfmConnection = {
@@ -247,7 +247,6 @@ async function refreshDiscordAccessToken(client, discordRefreshToken) {
     }
   }
 }
-
 // run function that checks if the token is expired every 5 minutes
 async function checkTokenExpiration(client) {
   const discordToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/discord.json'), 'utf8'));

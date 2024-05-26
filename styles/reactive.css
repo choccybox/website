@@ -67,6 +67,14 @@
   #more_about_popup {
     margin-top: -0px;
   }
+
+  #moreabout_transition_top {
+    height: 100% !important;
+  }
+
+  #moreabout_transition_bottom {
+    height: calc(100% - 145px) !important;
+  }
 }
 
 @media screen and (max-width: 486px) {

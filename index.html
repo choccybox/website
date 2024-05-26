@@ -35,6 +35,8 @@
                     <div class="panel_loader"></div>
                     <div class="panel_loader"></div>
 
+                    <div id="moreabout_transition_top"></div>
+
                     <div id="avatar" class="panel noselect">
                         <a id="avatar_link" target="_blank" class="noselect">
                             <img id="avatar_image" class="panel noselect norightclick" src="styles/blank.png"></img>
@@ -73,13 +75,14 @@
             </div>
 
             <div id="main_bottom">
-                <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                <a><div class="social_button_loader"><div class="icon"></div></div></a>
-                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <div id="moreabout_transition_bottom"></div>
 
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
+                <a><div class="social_button_loader"><div class="icon"></div></div></a>
         </div>
 
 
@@ -100,8 +103,7 @@
         "scripts/bday.js",
         "scripts/user.js",
         "scripts/player.js",
-/*         "scripts/format.js",
-        "config.js" */
+        "scripts/stats.js"
     ];
 
     var scripts_loaded = 0;
@@ -166,6 +168,52 @@
             icons_show[i].style.display = 'block';
         }
         console.log("✅ loading done, panels displayed");
+
+        var clickCount = 0;
+        var isAnimating = false;
+        var animationDuration = 1000;
+
+        document.getElementById('moreabout').addEventListener('click', function () {
+            if (isAnimating) {
+            return; // Ignore click if animation is already in progress
+            }
+
+            var moreaboutTransitionTop = document.getElementById('moreabout_transition_top');
+            var moreaboutTransitionBottom = document.getElementById('moreabout_transition_bottom');
+
+            clickCount++;
+
+            if (clickCount % 2 === 1) {
+            // Play animations normally
+            moreaboutTransitionTop.style.display = 'block';
+            moreaboutTransitionBottom.style.display = 'block';
+
+            if (window.innerWidth < 926) {
+                moreaboutTransitionBottom.style.animation = 'moreabout_transition_bottom_anim_mobile ' + animationDuration + 'ms forwards';
+                moreaboutTransitionTop.style.animation = 'moreabout_transition_top_anim_mobile ' + animationDuration + 'ms forwards';
+            } else {
+                moreaboutTransitionBottom.style.animation = 'moreabout_transition_bottom_anim_desktop ' + animationDuration + 'ms forwards';
+                moreaboutTransitionTop.style.animation = 'moreabout_transition_top_anim_desktop ' + animationDuration + 'ms forwards';
+            }
+            } else {
+            // Play animations in reverse
+            if (window.innerWidth < 926) {
+                moreaboutTransitionBottom.style.animation = 'moreabout_transition_bottom_anim_mobile ' + animationDuration + 'ms reverse';
+                moreaboutTransitionTop.style.animation = 'moreabout_transition_top_anim_mobile ' + animationDuration + 'ms reverse';
+            } else {
+                moreaboutTransitionBottom.style.animation = 'moreabout_transition_bottom_anim_desktop ' + animationDuration + 'ms reverse';
+                moreaboutTransitionTop.style.animation = 'moreabout_transition_top_anim_desktop ' + animationDuration + 'ms reverse';
+            }
+            }
+
+            isAnimating = true;
+
+            setTimeout(function () {
+            moreaboutTransitionBottom.style.animation = '';
+            moreaboutTransitionTop.style.animation = '';
+            isAnimating = false;
+            }, animationDuration);
+        });
     }
 
     for (var i = 0; i < scripts.length; i++) {
@@ -177,8 +225,6 @@
     }
 
 </script>
-
-
 
 </body>
 </html>

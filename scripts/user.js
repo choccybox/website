@@ -16,35 +16,25 @@ fetch("/user")
         }
 
 
-        /* var moreAboutA = document.createElement("a");
-        moreAboutA.href = "more.html";
+        var moreAboutA = document.createElement("a");
+        moreAboutA.id = "moreabout";
         // create div for more about
         var moreAboutDiv = document.createElement("div");
         moreAboutDiv.id = "more_about";
         moreAboutDiv.classList.add("social_button");
-        // add popup text
-        var moreAboutPopup = document.createElement("div");
-        moreAboutPopup.id = "more_about_popup";
-        moreAboutPopup.classList.add("popup");
-        // create text
-        var moreAboutText = document.createElement("p");
-        moreAboutText.id = "more_me";
-        moreAboutText.innerHTML = "more me"
         // create icon_holder
         var iconHolder = document.createElement("div");
-        iconHolder.className = "icon_holder more_about_icon_holder";
+        iconHolder.className = "icon_holder";
         // create icon
         var icon = document.createElement("img");
         icon.classList.add("icon");
         icon.src = "../styles/icons/more.svg";
         icon.alt = "more";
         // append elements
-        moreAboutDiv.appendChild(moreAboutPopup);
-        moreAboutPopup.appendChild(moreAboutText);
         iconHolder.appendChild(icon);
         moreAboutDiv.appendChild(iconHolder);
         moreAboutA.appendChild(moreAboutDiv);
-        socialHolder.appendChild(moreAboutA); */
+        socialHolder.appendChild(moreAboutA);
 
 
         // Check if user is on a mobile device
