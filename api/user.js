@@ -34,7 +34,7 @@ function saveDiscordToken(discordAccessToken, expiresIn, savedAt, discordRefresh
 }
 
 // COMMENT OUT AFTER LOGGING.
-/* userinfo.get('/userauth', (req, res) => {
+userinfo.get('/userauth', (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(process.env.DISCORD_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(discordScopes.join(' '))}`);
 });
 
@@ -78,7 +78,7 @@ userinfo.get('/usercallback', async (req, res) => {
   } else {
     res.status(400).send('Authorization code not provided.');
   }
-}); */
+});
 // COMMENT OUT AFTER LOGGING.
 
 client.once('ready', () => {
