@@ -37,6 +37,7 @@ stats.get('/wakacallback', async (req, res) => {
           client_secret: process.env.WAKATIME_CLIENT_SECRET,
           code,
           grant_type: 'authorization_code',
+          redirect_uri: process.env.WAKATIME_REDIRECT_URI,
         }),
         {
           headers: {
