@@ -17,7 +17,7 @@ stats.get('/wakaauth', (req, res) => {
  const wakatimeAuthUrl = 'https://wakatime.com/oauth/authorize?',
     params = {
       client_id: process.env.WAKATIME_CLIENT_ID,
-      response_type: code,
+      response_type: 'code',
       scope: wakatimeScopes.join(' '),
       redirect_uri: `${process.env.WAKATIME_REDIRECT_URI}`,
     };
@@ -35,7 +35,7 @@ stats.get('/wakacallback', async (req, res) => {
         new URLSearchParams({
           client_id: process.env.WAKATIME_CLIENT_ID,
           client_secret: process.env.WAKATIME_CLIENT_SECRET,
-          code: code,
+          code,
           grant_type: 'authorization_code',
         }),
         {
