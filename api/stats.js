@@ -14,7 +14,15 @@ const wakatimeScopes = ['read_stats'];
 
 // COMMENT OUT AFTER LOGGING.
 stats.get('/wakaauth', (req, res) => {
-  res.redirect(`https://wakatime.com/oauth/authorize?client_id=${process.env.WAKATIME_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.WAKATIME_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(wakatimeScopes.join(' '))}`);
+ const wakatimeAuthUrl = 'https://wakatime.com/oauth/authorize?',
+    params = {
+      client_id: process.env.WAKATIME_CLIENT_ID,
+      response_type: code,
+      scope: wakatimeScopes.join(' '),
+      redirect_uri: `${process.env.WAKATIME_REDIRECT_URI}`,
+    };
+
+  res.redirect(wakatimeAuthUrl + new URLSearchParams(params));
 });
 
 stats.get('/wakacallback', async (req, res) => {
@@ -27,9 +35,8 @@ stats.get('/wakacallback', async (req, res) => {
         new URLSearchParams({
           client_id: process.env.WAKATIME_CLIENT_ID,
           client_secret: process.env.WAKATIME_CLIENT_SECRET,
-          code,
+          code: code,
           grant_type: 'authorization_code',
-          redirect_uri: process.env.WAKATIME_REDIRECT_URI,
         }),
         {
           headers: {
