@@ -179,7 +179,12 @@ async function getNowPlaying() {
         const track = soundCloudResponse.data.collection[0];
         console.log('playing local file, found result on soundcloud with artist');
 
-        const originalsoundcloudimg = track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp');
+        // check if track.artwork_url is null, if so, use user.avatar_url
+        const originalsoundcloudimg = track.artwork_url ? 
+          track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp') : 
+          track.user.avatar_url.replace('-large', '-t300x300').replace('jpg', 'webp');
+
+
         try {
           const response = await axios({
             method: 'get',

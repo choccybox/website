@@ -28,6 +28,7 @@ fetch("/user")
         // create icon
         var icon = document.createElement("img");
         icon.classList.add("icon");
+        icon.id = "more_icon";
         icon.src = "../styles/icons/more.svg";
         icon.alt = "more";
         // append elements

@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, Guild } = require('discord.js');
 const userinfo = express();
 const fs = require('fs');
 const path = require('path');
@@ -34,7 +34,7 @@ function saveDiscordToken(discordAccessToken, expiresIn, savedAt, discordRefresh
 }
 
 // COMMENT OUT AFTER LOGGING.
-/* userinfo.get('/userauth', (req, res) => {
+userinfo.get('/userauth', (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(process.env.DISCORD_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(discordScopes.join(' '))}`);
 });
 
@@ -78,7 +78,7 @@ userinfo.get('/usercallback', async (req, res) => {
   } else {
     res.status(400).send('Authorization code not provided.');
   }
-}); */
+});
 // COMMENT OUT AFTER LOGGING.
 
 client.once('ready', () => {
@@ -122,8 +122,25 @@ userinfo.get('/user', async (req, res) => {
            Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
         },
       });
+/*       
+      const presences = client.guilds.cache.map(guild => guild.members.cache.filter(member => !member.user.bot).map(member => member.presence));
+      presences.forEach(guildPresences => {
+        guildPresences.forEach(presence => {
+          if (!presence || presence.status === 'offline') {
+            console.log('offline');
+          } else {
+            console.log(presence.activities.filter(activity => activity.name !== 'Spotify' && activity.name !== 'Custom Status'));
+
+            // make a custom map to only get name and type
+            const activities = presence.activities.filter(activity => activity.name !== 'Spotify' && activity.name !== 'Custom Status').map(activity => {
+              return {
+                name: activity.name,
+                type: activity.type,
+              };
+            });
+        });
+      }); */
       
-      // only get one message and display it as raw text
       const avatarCredit = messagesResponse.data[0].content;
   
       // Filter connections with visibility 0, keep spotify, ignore domain type, keep spotify, ignore domain type

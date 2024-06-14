@@ -54,6 +54,7 @@
     height: 280px !important;
     padding-top: 40px;
     margin-top: -40px !important;
+    margin-bottom: 0px !important;
   }
   #player_timeline {
     margin-top: -322px !important;
@@ -61,8 +62,11 @@
   .popup {
     margin-top: 10px;
   }
-  .panel:last-child {
+  .panel:last-child, .panel_more:last-child {
     margin: 0px !important;
+  }
+  .panel_more {
+    margin-right: 0px !important;
   }
   #more_about_popup {
     margin-top: -0px;
@@ -73,7 +77,7 @@
   }
 
   #moreabout_transition_bottom {
-    height: calc(100% - 145px) !important;
+    height: 100% !important;
   }
 }
 
@@ -107,7 +111,7 @@
     width: 85px !important;
     height: 85px !important;
   }
-  .panel, .panel_loader {
+  .panel, .panel_more, .panel_loader {
     width: 180px !important;
     height: 180px !important;
   }
@@ -137,6 +141,9 @@
     margin-top: -30px !important;
   }
   .panel:last-child {
+    margin: 0px !important;
+  }
+  .panel_more:last-child {
     margin: 0px !important;
   }
   h1 {
