@@ -136,7 +136,7 @@ async function getNowPlaying() {
 
     if (spotifyResponse.data && spotifyResponse.data.is_playing) {
       if (!spotifyResponse.data.item.is_local) {
-      console.log('playing from spotify');
+      // console.log('playing from spotify');
       const originalspotifyimg = spotifyResponse.data.item.album.images[1].url;
 
       try {
@@ -177,7 +177,7 @@ async function getNowPlaying() {
 
       if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
         const track = soundCloudResponse.data.collection[0];
-        console.log('playing local file, found result on soundcloud with artist');
+        // console.log('playing local file, found result on soundcloud with artist');
 
         // check if track.artwork_url is null, if so, use user.avatar_url
         const originalsoundcloudimg = track.artwork_url ? 
@@ -221,7 +221,7 @@ async function getNowPlaying() {
 
         if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
           const track = soundCloudResponse.data.collection[0];
-          console.log('playing local file, found result on soundcloud without artist');
+          // console.log('playing local file, found result on soundcloud without artist');
         
           const originalsoundcloudimg = track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp');
           try {
@@ -252,7 +252,7 @@ async function getNowPlaying() {
             console.error('Error downloading or resizing image:', error);
           }
         } else {
-          console.log('playing local file, no result found on soundcloud');
+          // console.log('playing local file, no result found on soundcloud');
           return {
             isPlaying: true,
             name: spotifyResponse.data.item.name,
@@ -284,7 +284,7 @@ async function getNowPlaying() {
       
       // if found, return spotify data, if not, use soundcould, only then return last.fm data
       if (spotifySearchResponse.data.tracks.items[0]) {
-        console.log('not playing, found spotify result');
+        // console.log('not playing, found spotify result');
         const originalspotifyimg = spotifySearchResponse.data.tracks.items[0].album.images[1].url;
 
         try {
@@ -324,7 +324,7 @@ async function getNowPlaying() {
         if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
           const originalsoundcloudimg = soundCloudResponse.data.collection[0].artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp');
           const track = soundCloudResponse.data.collection[0];
-          console.log('not playing, found soundcloud result with artist');
+          // console.log('not playing, found soundcloud result with artist');
 
           try {
             const response = await axios({
@@ -363,7 +363,7 @@ async function getNowPlaying() {
           if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
             const originalsoundcloudimg = soundCloudResponse.data.collection[0].artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp');
             const track = soundCloudResponse.data.collection[0];
-            console.log('not playing, found soundcloud result without artist');
+            // console.log('not playing, found soundcloud result without artist');
 
             try {
               const response = await axios({
@@ -394,7 +394,7 @@ async function getNowPlaying() {
             }
           } else {
             const originallasfmimg = lastFmResponse.data.recenttracks.track[0].image[3]['#text'];
-            console.log('not playing, no result found');
+            // console.log('not playing, no result found');
             try {
               const response = await axios({
                 method: 'get',

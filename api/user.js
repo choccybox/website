@@ -144,7 +144,7 @@ userinfo.get('/user', async (req, res) => {
       const avatarCredit = messagesResponse.data[0].content;
   
       // Filter connections with visibility 0, keep spotify, ignore domain type, keep spotify, ignore domain type
-      const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain');
+      const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' && connection.type !== 'spotify');
   
       // Mock Last.fm connection data
       const mockLastfmConnection = {
@@ -155,7 +155,7 @@ userinfo.get('/user', async (req, res) => {
       // Insert the mock last.fm
       const hasLastfmConnection = filteredConnections.some(connection => connection.type === 'lastfm');
       // Simplify connections to id, name, type, and visibility with added "url" field
-      const simplifiedConnections = filteredConnections.map(connection => {
+      const simplifiedConnections = filteredConnections.slice(0, 4).map(connection => {
         let url;
         const baseHTTPS = "https://";
         

@@ -82,7 +82,11 @@
 }
 
 @media screen and (max-width: 486px) {
-  #main_top {
+  #main_content {
+    transform: scale(0.65) translate(-77%, -77%) !important;
+    /* im not changing allat */
+  }
+  /* #main_top {
     flex-wrap: wrap;
     display: flex;
     overflow: hidden;
@@ -165,7 +169,7 @@
   #flag_icon::before {
     content: '';
     display: block;
-    padding-top: 57.89%;  /* (22 / 38) * 100% = 57.89% */
+    padding-top: 57.89%;
   }
   .icon {
     filter: invert(99%) sepia(64%) saturate(2%) hue-rotate(8deg) brightness(108%) contrast(101%);
@@ -174,7 +178,7 @@
   }
   #more_about:hover .more_about_icon_holder {
     margin-top: -22px !important
-  } 
+  }  */
 }
 
 /* @media screen and (max-width: 316px) {

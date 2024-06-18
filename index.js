@@ -17,5 +17,5 @@ app.use(userinfo);
 app.use(stats);
 
 app.listen(port, "0.0.0.0", function () {
-    console.log('Server started on port ' + port);
+    console.log('server started on port ' + port);
 });

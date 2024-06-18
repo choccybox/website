@@ -204,11 +204,11 @@ stats.get('/stats', async (req, res) => {
       await updateTopTracksWithSpotify();
       await updateTopArtistsWithSpotify();
       await updateTopAlbumsWithSpotify();
-      console.log('Updated track and artist information with Spotify data:', {
-        recentTracks: lastFMOrganized.recentTracks,
-        topTracks: lastFMOrganized.topTracks,
-        topArtists: lastFMOrganized.topArtists,
-      });
+      // console.log('Updated track and artist information with Spotify data:', {
+        // recentTracks: lastFMOrganized.recentTracks,
+        // topTracks: lastFMOrganized.topTracks,
+        // topArtists: lastFMOrganized.topArtists,
+      // });
 
       const wakaOrganized = {
         projects: wakatime.data.data.projects
@@ -238,18 +238,17 @@ stats.get('/stats', async (req, res) => {
         total_time: convertToHuman(wakatime.data.data.total_seconds_including_other_language),
       };
 
-      // Cache the data and set the expiration time to 30 minutes from now
+      // Cache the data and set the expiration time to 6 hours
       cachedData = {
         lastfm: lastFMOrganized,
         waka: wakaOrganized,
         cached_at: Date.now(),
         isCached: true,
       };
-      cacheExpiration = Date.now() + 30 * 60 * 1000;
+      cacheExpiration = Date.now() + 6 * 60 * 60 * 1000;
 
       // calculate in minutes how long the cache will last
-      console.log('Data will be cached for:', Math.round((cacheExpiration - Date.now()) / 1000 / 60), 'minutes.');
-
+      console.log('data will be refetched in 6 hours');
       res.json(cachedData);
     }
   } catch (error) {
@@ -264,32 +263,6 @@ function convertToHuman(total_seconds) {
   const minutes = Math.floor(((total_seconds % 86400) % 3600) / 60);
 
   return `${days ? days + 'd ' : ''}${hours ? hours + 'h' : ''}${days && hours ? '' : minutes ? ' ' + minutes + 'm' : ''}`;
-}
-
-function convertToHowLongAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-  let interval = Math.floor(seconds / 31536000);
-
-  if (interval > 1) {
-    return interval + ' years ago';
-  }
-  interval = Math.floor(seconds / 2592000);
-  if (interval > 1) {
-    return interval + ' months ago';
-  }
-  interval = Math.floor(seconds / 86400);
-  if (interval > 1) {
-    return interval + ' days ago';
-  }
-  interval = Math.floor(seconds / 3600);
-  if (interval > 1) {
-    return interval + ' hours ago';
-  }
-  interval = Math.floor(seconds / 60);
-  if (interval > 1) {
-    return interval + ' minutes ago';
-  }
-  return Math.floor(seconds) + ' seconds ago';
 }
 
 stats.listen(PORT, async () => {
