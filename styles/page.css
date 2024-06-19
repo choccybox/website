@@ -36,7 +36,7 @@ body {
 
 #main_content {
     background-color: var(--foreground);
-    max-width: 880px;
+    width: 880px;
     height: 445px;
     position: absolute;
     display: flex;

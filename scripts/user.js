@@ -15,6 +15,29 @@ fetch("/user")
             socialHolder.appendChild(socialButton);
         }
 
+        for (var i = 1; i <= 5; i++) {
+            var info = document.createElement("a");
+            info.id = "lastfminfo" + i;
+            info.style.display = "none";
+            
+            var infoDiv = document.createElement("div");
+            infoDiv.id = "social_button";
+            infoDiv.classList.add("social_button");
+
+            var infoIconHolder = document.createElement("div");
+            infoIconHolder.className = "icon_holder";
+
+            var infoIcon = document.createElement("img");
+            infoIcon.classList.add("icon");
+            infoIcon.id = "lastfminfo" + i + "_icon";
+            infoIcon.src = "../styles/icons/info" + i + ".svg";
+            infoIcon.alt = "lastfminfo" + i;
+
+            infoIconHolder.appendChild(infoIcon);
+            infoDiv.appendChild(infoIconHolder);
+            info.appendChild(infoDiv);
+            socialHolder.appendChild(info);
+        }
 
         var moreAboutA = document.createElement("a");
         moreAboutA.id = "moreabout";

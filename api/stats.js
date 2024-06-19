@@ -4,6 +4,7 @@ const stats = express();
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
+const { constrainedMemory } = require('process');
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
 const PORT = 20004;
@@ -17,12 +18,6 @@ stats.get('/stats', async (req, res) => {
       // Return cached data if it exists and has not expired
       res.json(cachedData);
     } else {
-      const wakatime = await axios.get('https://api.wakatime.com/api/v1/users/current/stats/all_time', {
-        headers: {
-          Authorization: `Basic ${process.env.WAKATIME_API_KEY}`,
-        },
-      });
-
       const lastFMAlbums = await axios.get('https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums', {
         params: {
           user: process.env.LASTFM_USERNAME,
@@ -50,7 +45,7 @@ stats.get('/stats', async (req, res) => {
         },
       });
 
-      const lastFMTotal = await axios.get('https://ws.audioscrobbler.com/2.0/?method=user.getinfo', {
+      const lastFMInfo = await axios.get('https://ws.audioscrobbler.com/2.0/?method=user.getinfo', {
         params: {
           user: process.env.LASTFM_USERNAME,
           api_key: process.env.LASTFM_API_KEY,
@@ -58,6 +53,37 @@ stats.get('/stats', async (req, res) => {
         },
       });
 
+      let totalPlaytime = 0;
+      let totalTracks = 0;
+      let page = 1;
+      let totalPages = 1;
+
+      while (page <= totalPages) {
+        const response = await axios.get('https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks', {
+          params: {
+        user: process.env.LASTFM_USERNAME,
+        api_key: process.env.LASTFM_API_KEY,
+        format: 'json',
+        page: page,
+        limit: 1000,
+          },
+        });
+
+        // once we get @attr, get total and remove 1000 from it to get the next limits, divide into max of 1000
+        if (page === 1) {
+          totalPages = Math.ceil(response.data.toptracks['@attr'].total / 1000);
+        }
+        
+        const tracks = response.data.toptracks.track;
+        for (const track of tracks) {
+          totalTracks++;
+          if (parseInt(track.duration, 10) !== 0) {
+        totalPlaytime += parseInt(track.duration, 10);
+          }
+        }
+
+        page++;
+      }
       function spotifySearchSong(track) {
         const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/spotify.json'), 'utf8'));
         const spotifyAccessToken = spotifyToken.accessToken;
@@ -120,7 +146,7 @@ stats.get('/stats', async (req, res) => {
           });
       }
 
-      const limit = 4;
+      const limit = 20;
 
       const lastFMOrganized = {
 
@@ -160,10 +186,11 @@ stats.get('/stats', async (req, res) => {
           .slice(0, limit),
 
         userInfo: {
-          total_plays: lastFMTotal.data.user.playcount,
-          total_tracks: lastFMTotal.data.user.track_count,
-          total_albums: lastFMTotal.data.user.album_count,
-          total_artists: lastFMTotal.data.user.artist_count,
+          total_plays: lastFMInfo.data.user.playcount,
+          total_tracks: lastFMInfo.data.user.track_count,
+          total_albums: lastFMInfo.data.user.album_count,
+          total_artists: lastFMInfo.data.user.artist_count,
+          total_playtime: convertToHuman(totalPlaytime),
         },
       };
 
@@ -210,38 +237,9 @@ stats.get('/stats', async (req, res) => {
         // topArtists: lastFMOrganized.topArtists,
       // });
 
-      const wakaOrganized = {
-        projects: wakatime.data.data.projects
-          .filter(project => project.percent >= 2)
-          .slice(0, limit)
-          .map(project => ({
-            name: project.name,
-            total_time: convertToHuman(project.total_seconds),
-            percent: Math.round(project.percent) + '%',
-          })),
-
-        languages: wakatime.data.data.languages
-          .filter(language => language.percent >= 2)
-          .slice(0, limit)
-          .map(language => ({
-            name: language.name,
-            total_time: convertToHuman(language.total_seconds),
-            percent: Math.round(language.percent) + '%',
-          })),
-
-        best_day: {
-          date: wakatime.data.data.best_day.date,
-          total_time: convertToHuman(wakatime.data.data.best_day.total_seconds),
-        },
-
-        daily_average: convertToHuman(wakatime.data.data.daily_average_including_other_language),
-        total_time: convertToHuman(wakatime.data.data.total_seconds_including_other_language),
-      };
-
       // Cache the data and set the expiration time to 6 hours
       cachedData = {
         lastfm: lastFMOrganized,
-        waka: wakaOrganized,
         cached_at: Date.now(),
         isCached: true,
       };

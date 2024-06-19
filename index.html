@@ -73,33 +73,24 @@
                         </div>
                     </div>
 
-                    <div id="lastfm" class="panel_more noselect">
+                    <div id="lastfm1" class="panel_more noselect">
                         <div id="lastfm_topalbums_holder" class="lastfm_holder">
                             <p class="lastfm_title" style="display: block;">top albums</p>
                         </div>
+                    </div>
 
+                    <div id="lastfm2" class="panel_more noselect">
                         <div id="lastfm_topartist_holder" class="lastfm_holder">
                             <p class="lastfm_title" style="display: block;">top artist</p>
                         </div>
+                    </div>
 
+                    <div id="lastfm3" class="panel_more noselect">
                         <div id="lastfm_toptracks_holder" class="lastfm_holder">
                             <p class="lastfm_title" style="display: block;">top tracks</p>
                         </div>
-
-                        <div id="lastfm_userinfo_holder" class="lastfm_holder">
-                            <p class="lastfm_title" style="display: block;">user info</p>
-                        </div>
                     </div>
-
-                    <div id="waka" class="panel_more noselect">
-                        <div id="waka_languages"></div>
-                    </div>
-
-                    <div id="waka" class="panel_more noselect" class="lastfm_holder">
-                        <div id="waka_projects">
-                            <p class="lastfm_title" style="display: block;">projects</p>
-                        </div>
-                    </div>
+                    
                                         
             </div>
 
@@ -199,7 +190,7 @@
 
         var clickCount = 0;
         var isAnimating = false;
-        var animationDuration = 1000;
+        var animationDuration = 500;
 
         document.getElementById('moreabout').addEventListener('click', function () {
             if (isAnimating) {
@@ -223,7 +214,7 @@
                 moreaboutTransitionBottom.style.display = 'block';
                 iconFlip.style.display = 'block';
 
-                if (window.innerWidth < 926) {
+               /*  if (window.innerWidth < 926) {
                     moreaboutTransitionBottom.style.animation = 'moreabout_transition_anim_mobile ' + animationDuration + 'ms forwards';
                     moreaboutTransitionTop.style.animation = 'moreabout_transition_anim_mobile ' + animationDuration + 'ms forwards';
                 } else {
@@ -231,13 +222,37 @@
                     moreaboutTransitionTop.style.animation = 'moreabout_transition_anim_desktop ' + animationDuration + 'ms forwards';
                 }
 
+                var transTop = document.getElementById('moreabout_transition_top');
+                var transBottom = document.getElementById('moreabout_transition_bottom');
+                transTop.style.height = 'calc(100% + 46px)';
+                transBottom.style.height = 'calc(100% + 46px)'; */
+
                 // Add transform rotate(180deg) to more_icon
                 setTimeout(function () {
                     iconFlip.style.transform = 'rotate3d(0, 1, 0, 180deg)';
+
+                    // remove all a elements in main_bottom except moreabout
+                    var socialButtons = document.querySelectorAll('#main_bottom > a');
+                    // ignore moreabout id
+                    for (var i = 0; i < socialButtons.length; i++) {
+                        socialButtons[i].style.display = 'none';
+                        if (socialButtons[i].id === 'moreabout' || socialButtons[i].id === 'lastfminfo1' || socialButtons[i].id === 'lastfminfo2' || socialButtons[i].id === 'lastfminfo3' || socialButtons[i].id === 'lastfminfo4' || socialButtons[i].id === 'lastfminfo5' ) {
+                            socialButtons[i].style.display = 'block';
+                        }
+                    }
+                    
+                    /* var transTop = document.getElementById('moreabout_transition_top');
+                    var transBottom = document.getElementById('moreabout_transition_bottom');
+                    transTop.style.height = 'calc(100% + 40px)';
+                    transBottom.style.height = 'calc(100% + 40px)'; */
+
+                    var mainTop = document.getElementById('main_top');
+                    mainTop.style.marginBottom = '5px';
                 }, animationDuration / 2);
+
             } else {
                 // Play animations in reverse
-                if (window.innerWidth < 926) {
+               /*  if (window.innerWidth < 926) {
                     moreaboutTransitionBottom.style.animation = 'moreabout_transition_anim_mobile ' + animationDuration + 'ms reverse';
                     moreaboutTransitionTop.style.animation = 'moreabout_transition_anim_mobile ' + animationDuration + 'ms reverse';
                 } else {
@@ -245,9 +260,31 @@
                     moreaboutTransitionTop.style.animation = 'moreabout_transition_anim_desktop ' + animationDuration + 'ms reverse';
                 }
 
+                var transTop = document.getElementById('moreabout_transition_top');
+                var transBottom = document.getElementById('moreabout_transition_bottom');
+                transTop.style.height = 'calc(100% + 40px)';
+                transBottom.style.height = 'calc(100% + 40px)'; */
+
                 // Remove transform rotate(180deg) from more_icon
                 setTimeout(function () {
                     iconFlip.style.transform = 'none';
+                    // remove all a elements in main_bottom except moreabout
+                    var socialButtons = document.querySelectorAll('#main_bottom > a');
+                    // ignore moreabout id
+                    for (var i = 0; i < socialButtons.length; i++) {
+                        socialButtons[i].style.display = 'block';
+                        if (socialButtons[i].id === 'lastfminfo1' || socialButtons[i].id === 'lastfminfo2' || socialButtons[i].id === 'lastfminfo3' || socialButtons[i].id === 'lastfminfo4' || socialButtons[i].id === 'lastfminfo5' ) {
+                            socialButtons[i].style.display = 'none';
+                        }
+                    }
+
+                    /* var transTop = document.getElementById('moreabout_transition_top');
+                    var transBottom = document.getElementById('moreabout_transition_bottom');
+                    transTop.style.height = 'calc(100% + 46px)';
+                    transBottom.style.height = 'calc(100% + 46px)';
+ */
+                    var mainTop = document.getElementById('main_top');
+                    mainTop.style.marginBottom = '10px';
                 }, animationDuration / 2);
             }
 
@@ -297,43 +334,55 @@
 </script>
 
 <script>
-    // custom scrolling for #lastfm
-    var lastfmDiv = document.getElementById('lastfm');
-    const scrollAmount = 280;
-    var scrollCount = 0;
-    var maxScroll = 3;
+    // custom scrolling for .lastfmHolder
+    var lastfmDivs = document.querySelectorAll('.lastfm_holder');
 
-    // disable default scrolling behavior
-    lastfmDiv.addEventListener('wheel', function (e) {
-        e.preventDefault();
+    // create an observer instance for each lastfmDiv
+    lastfmDivs.forEach(function(lastfmDiv) {
+        var observer = new IntersectionObserver(function(entries) {
+            /* entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    // element is now visible, do something
+                    console.log('Lastfm div is visible');
+                } else {
+                    // element is no longer visible, do something else
+                    console.log('Lastfm div is hidden');
+                }
+            });
+ */
+            // get all data-ranks inside lastfmDiv
+            var ranks = lastfmDiv.querySelectorAll('[data-rank]');
+            // console.log(ranks);
 
-        // scroll up or down by scrollAmount pixels when the mouse wheel is used
-        if (e.deltaY > 0 && scrollCount < maxScroll) {
-            lastfmDiv.scrollBy(0, scrollAmount);
-            scrollCount++;
-        } else if (e.deltaY < 0 && scrollCount > -maxScroll) {
-            lastfmDiv.scrollBy(0, -scrollAmount);
-            scrollCount--;
-        }
+            var maxClicks = Math.ceil(ranks.length / 4) - 1;
+            var clickCount = 0;
 
-        //console.log("Scrolls left: " + (maxScroll - Math.abs(scrollCount)));
+            // on mouse scroll, hide currently shown data-rank divs and show next 4
+            lastfmDiv.addEventListener('wheel', function (event) {
+                if (event.deltaY > 0) {
+                    clickCount++;
+                } else {
+                    clickCount--;
+                }
 
-        // reset scrollCount if at the top or bottom of the element
-        if (lastfmDiv.scrollTop === 0 || lastfmDiv.scrollTop === (lastfmDiv.scrollHeight - lastfmDiv.clientHeight)) {
-            scrollCount = 0;
-        }
-    });
+                if (clickCount > maxClicks) {
+                    clickCount = 0;
+                } else if (clickCount < 0) {
+                    clickCount = maxClicks;
+                }
 
-    // move the element all the way up when the page starts
-    window.onbeforeunload = function () {
-        lastfmDiv.scrollTop = 0;
-    }
+                for (var i = 0; i < ranks.length; i++) {
+                    if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
+                        ranks[i].style.display = 'block';
+                    } else {
+                        ranks[i].style.display = 'none';
+                    }
+                }
+            });
+        });
 
-    // stop scrolling when reaching the limit
-    lastfmDiv.addEventListener('scroll', function () {
-        if (lastfmDiv.scrollTop < 0 || lastfmDiv.scrollTop > (lastfmDiv.scrollHeight - lastfmDiv.clientHeight)) {
-            lastfmDiv.scrollTop = Math.max(0, Math.min(lastfmDiv.scrollTop, lastfmDiv.scrollHeight - lastfmDiv.clientHeight));
-        }
+        // observe the lastfmDiv
+        observer.observe(lastfmDiv);
     });
 </script>
 

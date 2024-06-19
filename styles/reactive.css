@@ -30,7 +30,7 @@
   #main_content {
     max-height: calc(100% - 40px) !important;
     height: 880px !important;
-    width: 445px;
+    width: 445px !important;
   }
   .panel_loader {
     margin-bottom: 10px;
@@ -63,7 +63,7 @@
     margin-top: 10px;
   }
   .panel:last-child, .panel_more:last-child {
-    margin: 0px !important;
+    margin-bottom: 4px !important;
   }
   .panel_more {
     margin-right: 0px !important;
@@ -73,17 +73,18 @@
   }
 
   #moreabout_transition_top {
-    height: 100% !important;
+    height: calc(100% + 45px);
   }
 
   #moreabout_transition_bottom {
-    height: 100% !important;
+    height: calc(100% + 45px);
   }
 }
 
 @media screen and (max-width: 486px) {
   #main_content {
     transform: scale(0.65) translate(-77%, -77%) !important;
+    max-height: calc(100% + 192px) !important
     /* im not changing allat */
   }
   /* #main_top {
