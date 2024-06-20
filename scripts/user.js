@@ -27,13 +27,6 @@ fetch("/user")
             var infoIconHolder = document.createElement("div");
             infoIconHolder.className = "icon_holder";
 
-            var infoIcon = document.createElement("img");
-            infoIcon.classList.add("icon");
-            infoIcon.id = "lastfminfo" + i + "_icon";
-            infoIcon.src = "../styles/icons/info" + i + ".svg";
-            infoIcon.alt = "lastfminfo" + i;
-
-            infoIconHolder.appendChild(infoIcon);
             infoDiv.appendChild(infoIconHolder);
             info.appendChild(infoDiv);
             socialHolder.appendChild(info);

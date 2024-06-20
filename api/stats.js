@@ -4,7 +4,6 @@ const stats = express();
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const { constrainedMemory } = require('process');
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
 const PORT = 20004;
@@ -73,17 +72,22 @@ stats.get('/stats', async (req, res) => {
         if (page === 1) {
           totalPages = Math.ceil(response.data.toptracks['@attr'].total / 1000);
         }
-        
+
         const tracks = response.data.toptracks.track;
         for (const track of tracks) {
           totalTracks++;
           if (parseInt(track.duration, 10) !== 0) {
-        totalPlaytime += parseInt(track.duration, 10);
+            totalPlaytime += parseInt(track.duration, 10) * parseInt(track.playcount, 10);
+            // console.log(`Duration of ${track.name}: ${parseInt(track.duration, 10)} seconds, totalling to ${parseInt(track.duration, 10) * parseInt(track.playcount, 10)} seconds`);
           }
         }
 
+        // this all totals to the total playtime
+        // console.log(`Total playtime: ${totalPlaytime} seconds`);
+
         page++;
       }
+
       function spotifySearchSong(track) {
         const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/spotify.json'), 'utf8'));
         const spotifyAccessToken = spotifyToken.accessToken;
@@ -237,16 +241,14 @@ stats.get('/stats', async (req, res) => {
         // topArtists: lastFMOrganized.topArtists,
       // });
 
-      // Cache the data and set the expiration time to 6 hours
+      // Cache the data and set the expiration time to 24 hours
       cachedData = {
         lastfm: lastFMOrganized,
         cached_at: Date.now(),
         isCached: true,
       };
-      cacheExpiration = Date.now() + 6 * 60 * 60 * 1000;
-
-      // calculate in minutes how long the cache will last
-      console.log('data will be refetched in 6 hours');
+      cacheExpiration = Date.now() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
+      console.log('data will be refetched in 24 hours');
       res.json(cachedData);
     }
   } catch (error) {
@@ -256,11 +258,38 @@ stats.get('/stats', async (req, res) => {
 });
 
 function convertToHuman(total_seconds) {
-  const days = Math.floor(total_seconds / 86400);
-  const hours = Math.floor((total_seconds % 86400) / 3600);
-  const minutes = Math.floor(((total_seconds % 86400) % 3600) / 60);
 
-  return `${days ? days + 'd ' : ''}${hours ? hours + 'h' : ''}${days && hours ? '' : minutes ? ' ' + minutes + 'm' : ''}`;
+  const years = Math.floor(total_seconds / 31536000);
+  const months = Math.floor((total_seconds % 31536000) / 2592000);
+  const days = Math.floor((total_seconds % 2592000) / 86400);
+  const hours = Math.floor((total_seconds % 86400) / 3600);
+  const minutes = Math.floor((total_seconds % 3600) / 60);
+
+  if (years > 0 && months > 0) {
+    return `${years}y ${months}mo`;
+  } else if (years > 0 && days > 0) {
+    return `${years}y ${days}d`;
+  } else if (years > 0 && hours > 0) {
+    return `${years}y ${hours}h`;
+  } else if (months > 0 && days > 0) {
+    return `${months}mo ${days}d`;
+  } else if (months > 0 && hours > 0) {
+    return `${months}mo ${hours}h`;
+  } else if (days > 0 && hours > 0) {
+    return `${days}d ${hours}h`;
+  } else if (years > 0) {
+    return `${years}y`;
+  } else if (months > 0) {
+    return `${months}mo`;
+  } else if (days > 0) {
+    return `${days}d`;
+  } else if (hours > 0) {
+    return `${hours}h`;
+  } else if (minutes > 0) {
+    return `${minutes}m`;
+  } else {
+    return `${total_seconds}s`;
+  }
 }
 
 stats.listen(PORT, async () => {

@@ -82,12 +82,11 @@
 }
 
 @media screen and (max-width: 486px) {
-  #main_content {
+/*   #main_content {
     transform: scale(0.65) translate(-77%, -77%) !important;
     max-height: calc(100% + 192px) !important
-    /* im not changing allat */
-  }
-  /* #main_top {
+  } */
+  #main_top {
     flex-wrap: wrap;
     display: flex;
     overflow: hidden;
@@ -110,7 +109,7 @@
   #main_content {
     max-height: calc(100% - 40px) !important;
     height: 580px !important;
-    width: 295px;
+    width: 295px !important;
   }
   .social_button, .social_button_loader {
     width: 85px !important;
@@ -179,7 +178,23 @@
   }
   #more_about:hover .more_about_icon_holder {
     margin-top: -22px !important
-  }  */
+  }
+  .lastfmTextTop {
+    font-size: 0.7rem !important;
+  }
+  .lastfmTextSub {
+    font-size: 0.55rem !important;
+  }
+  .lastfm_title {
+    height: 18px !important;
+  }
+  .lastfm_holder {
+    height: calc(100% - 18px) !important;
+    margin-bottom: 16px !important;
+  }
+  .lastfm_track > div {
+    margin-bottom: calc(-100% + 9px) !important;
+  }
 }
 
 /* @media screen and (max-width: 316px) {

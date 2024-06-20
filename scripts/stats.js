@@ -8,6 +8,12 @@ if (!isDataFetched) {
         const topArtistHolder = document.getElementById('lastfm_topartist_holder');
         const topTracksHolder = document.getElementById('lastfm_toptracks_holder');
 
+        // get all lastfm_title classes and add display:block
+        const lastfmTitles = document.querySelectorAll('.lastfm_title');
+        lastfmTitles.forEach(title => {
+            title.style.display = 'block';
+        });
+
         // Reusable function to generate HTML elements for each item
         const generateItemHTML = (item, className) => {
             const itemDiv = document.createElement('div');
@@ -25,13 +31,13 @@ if (!isDataFetched) {
             itemImage.style.filter = 'brightness(0.5)';
 
             const itemNameDiv = document.createElement('div');
-            itemDiv.classList.add(className);
             itemNameDiv.style.height = '100%';
             itemNameDiv.style.marginBottom = 'calc(-100% + 18px)';
 
             const itemName = document.createElement('p');
-            itemName.innerHTML = item.name + '<br>' + '<p style="font-size:0.75rem;">' + item.playcount + ' plays' + '</p>';
+            itemName.innerHTML = item.name + '<br>' + '<p class="lastfmTextSub" style="font-size:0.75rem;">' + item.playcount + ' plays' + '</p>';
             itemName.style.fontSize = '1rem';
+            itemName.classList.add(`lastfmTextTop`);
             itemName.style.overflow = 'hidden';
             itemName.style.textOverflow = 'ellipsis';
             itemName.style.wordBreak = 'break-word';

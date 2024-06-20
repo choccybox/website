@@ -75,19 +75,19 @@
 
                     <div id="lastfm1" class="panel_more noselect">
                         <div id="lastfm_topalbums_holder" class="lastfm_holder">
-                            <p class="lastfm_title" style="display: block;">top albums</p>
+                            <p class="lastfm_title">top albums</p>
                         </div>
                     </div>
 
                     <div id="lastfm2" class="panel_more noselect">
                         <div id="lastfm_topartist_holder" class="lastfm_holder">
-                            <p class="lastfm_title" style="display: block;">top artist</p>
+                            <p class="lastfm_title">top artist</p>
                         </div>
                     </div>
 
                     <div id="lastfm3" class="panel_more noselect">
                         <div id="lastfm_toptracks_holder" class="lastfm_holder">
-                            <p class="lastfm_title" style="display: block;">top tracks</p>
+                            <p class="lastfm_title">top tracks</p>
                         </div>
                     </div>
                     
@@ -357,18 +357,12 @@
             var maxClicks = Math.ceil(ranks.length / 4) - 1;
             var clickCount = 0;
 
-            // on mouse scroll, hide currently shown data-rank divs and show next 4
-            lastfmDiv.addEventListener('wheel', function (event) {
-                if (event.deltaY > 0) {
-                    clickCount++;
-                } else {
-                    clickCount--;
-                }
+            // on mouse click, hide currently shown data-rank divs and show next 4
+            lastfmDiv.addEventListener('click', function (event) {
+                clickCount++;
 
                 if (clickCount > maxClicks) {
                     clickCount = 0;
-                } else if (clickCount < 0) {
-                    clickCount = maxClicks;
                 }
 
                 for (var i = 0; i < ranks.length; i++) {

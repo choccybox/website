@@ -234,6 +234,7 @@ body {
     height: 36px;
     overflow: hidden;
     text-align: center;
+    display: none;
 }
 #player_title {
     margin-top: -28px;
@@ -307,6 +308,7 @@ body {
     flex-basis: 50%;
     justify-content: space-between;
     margin-bottom: 36px;
+    cursor: pointer;
 }
 
 #lastfm {
