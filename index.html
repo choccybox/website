@@ -362,12 +362,12 @@
             // if user is on mobile, use taps instead of clicks
             if (isMobile) {
                 console.log('User is on mobile');
-                lastfmDiv.addEventListener('touchstart', function (event) {
-                    // Prevent default behavior of touch events, if needed
-                    event.preventDefault();
+                var touchInProgress = false;
 
-                    // Increment clickCount only on the first touch
-                    if (event.touches.length === 1) {
+                lastfmDiv.addEventListener('touchstart', function (event) {
+                    if (!touchInProgress) {
+                        touchInProgress = true;
+
                         clickCount++;
 
                         if (clickCount > maxClicks) {
@@ -381,10 +381,11 @@
                                 ranks[i].style.display = 'none';
                             }
                         }
-
-                        // Reset clickCount after displaying items
-                        clickCount = 0;
                     }
+                });
+
+                lastfmDiv.addEventListener('touchend', function (event) {
+                    touchInProgress = false;
                 });
             } else {
                 console.log('User is on desktop');
