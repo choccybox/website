@@ -334,6 +334,18 @@
 </script>
 
 <script>
+    // console log whenver user clicks
+    document.addEventListener('click', function (event) {
+        console.log('User clicked on', event.target);
+    });
+    // or taps
+    document.addEventListener('touchstart', function (event) {
+        console.log('User tapped on', event.target);
+    });
+
+</script>
+
+<script>
     // custom scrolling for .lastfmHolder
     var lastfmDivs = document.querySelectorAll('.lastfm_holder');
 
@@ -361,6 +373,7 @@
 
             // if user is on mobile, use taps instead of clicks
             if (isMobile) {
+                console.log('User is on mobile');
                 lastfmDiv.addEventListener('touchstart', function (event) {
                     clickCount++;
 
@@ -377,6 +390,7 @@
                     }
                 });
             } else {
+                console.log('User is on desktop');
                 lastfmDiv.addEventListener('click', function (event) {
                     clickCount++;
 
