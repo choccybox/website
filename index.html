@@ -363,18 +363,27 @@
             if (isMobile) {
                 console.log('User is on mobile');
                 lastfmDiv.addEventListener('touchstart', function (event) {
-                    clickCount++;
+                    // Prevent default behavior of touch events, if needed
+                    event.preventDefault();
 
-                    if (clickCount > maxClicks) {
-                        clickCount = 0;
-                    }
+                    // Increment clickCount only on the first touch
+                    if (event.touches.length === 1) {
+                        clickCount++;
 
-                    for (var i = 0; i < ranks.length; i++) {
-                        if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
-                            ranks[i].style.display = 'block';
-                        } else {
-                            ranks[i].style.display = 'none';
+                        if (clickCount > maxClicks) {
+                            clickCount = 0;
                         }
+
+                        for (var i = 0; i < ranks.length; i++) {
+                            if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
+                                ranks[i].style.display = 'block';
+                            } else {
+                                ranks[i].style.display = 'none';
+                            }
+                        }
+
+                        // Reset clickCount after displaying items
+                        clickCount = 0;
                     }
                 });
             } else {
