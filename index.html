@@ -357,38 +357,45 @@
             var maxClicks = Math.ceil(ranks.length / 4) - 1;
             var clickCount = 0;
 
-            // on mouse click or tap, hide currently shown data-rank divs and show next 4
-            lastfmDiv.addEventListener('click', function (event) {
-                clickCount++;
+            var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-                if (clickCount > maxClicks) {
-                    clickCount = 0;
-                }
+            // if user is on mobile, use taps instead of clicks
+            if (isMobile) {
+                console.log('User is on mobile');
+                lastfmDiv.addEventListener('touchstart', function (event) {
+                    clickCount++;
 
-                for (var i = 0; i < ranks.length; i++) {
-                    if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
-                        ranks[i].style.display = 'block';
-                    } else {
-                        ranks[i].style.display = 'none';
+                    if (clickCount > maxClicks) {
+                        clickCount = 0;
                     }
-                }
-            });
 
-            lastfmDiv.addEventListener('touchstart', function (event) {
-                clickCount++;
-
-                if (clickCount > maxClicks) {
-                    clickCount = 0;
-                }
-
-                for (var i = 0; i < ranks.length; i++) {
-                    if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
-                        ranks[i].style.display = 'block';
-                    } else {
-                        ranks[i].style.display = 'none';
+                    for (var i = 0; i < ranks.length; i++) {
+                        if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
+                            ranks[i].style.display = 'block';
+                        } else {
+                            ranks[i].style.display = 'none';
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                console.log('User is on desktop');
+                lastfmDiv.addEventListener('click', function (event) {
+                    clickCount++;
+
+                    if (clickCount > maxClicks) {
+                        clickCount = 0;
+                    }
+
+                    for (var i = 0; i < ranks.length; i++) {
+                        if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
+                            ranks[i].style.display = 'block';
+                        } else {
+                            ranks[i].style.display = 'none';
+                        }
+                    }
+                });
+            }
+
         });
 
         // observe the lastfmDiv
