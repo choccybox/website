@@ -362,30 +362,37 @@
             // if user is on mobile, use taps instead of clicks
             if (isMobile) {
                 console.log('User is on mobile');
-                var touchInProgress = false;
-
                 lastfmDiv.addEventListener('touchstart', function (event) {
-                    if (!touchInProgress) {
-                        touchInProgress = true;
+                    clickCount++;
 
-                        clickCount++;
+                    if (clickCount > maxClicks) {
+                        clickCount = 0;
+                    }
 
-                        if (clickCount > maxClicks) {
-                            clickCount = 0;
-                        }
-
-                        for (var i = 0; i < ranks.length; i++) {
-                            if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
-                                ranks[i].style.display = 'block';
-                            } else {
-                                ranks[i].style.display = 'none';
-                            }
+                    for (var i = 0; i < ranks.length; i++) {
+                        if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
+                            ranks[i].style.display = 'block';
+                        } else {
+                            ranks[i].style.display = 'none';
                         }
                     }
                 });
 
                 lastfmDiv.addEventListener('touchend', function (event) {
-                    touchInProgress = false;
+                    // go back to the previous 4
+                    clickCount--;
+
+                    if (clickCount < 0) {
+                        clickCount = maxClicks;
+                    }
+
+                    for (var i = 0; i < ranks.length; i++) {
+                        if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
+                            ranks[i].style.display = 'block';
+                        } else {
+                            ranks[i].style.display = 'none';
+                        }
+                    }
                 });
             } else {
                 console.log('User is on desktop');
