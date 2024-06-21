@@ -361,7 +361,6 @@
 
             // if user is on mobile, use taps instead of clicks
             if (isMobile) {
-                console.log('User is on mobile');
                 lastfmDiv.addEventListener('touchstart', function (event) {
                     clickCount++;
 
@@ -377,25 +376,7 @@
                         }
                     }
                 });
-
-                lastfmDiv.addEventListener('touchend', function (event) {
-                    // go back to the previous 4
-                    clickCount--;
-
-                    if (clickCount < 0) {
-                        clickCount = maxClicks;
-                    }
-
-                    for (var i = 0; i < ranks.length; i++) {
-                        if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
-                            ranks[i].style.display = 'block';
-                        } else {
-                            ranks[i].style.display = 'none';
-                        }
-                    }
-                });
             } else {
-                console.log('User is on desktop');
                 lastfmDiv.addEventListener('click', function (event) {
                     clickCount++;
 
