@@ -352,16 +352,6 @@
     // create an observer instance for each lastfmDiv
     lastfmDivs.forEach(function(lastfmDiv) {
         var observer = new IntersectionObserver(function(entries) {
-            /* entries.forEach(function(entry) {
-                if (entry.isIntersecting) {
-                    // element is now visible, do something
-                    console.log('Lastfm div is visible');
-                } else {
-                    // element is no longer visible, do something else
-                    console.log('Lastfm div is hidden');
-                }
-            });
- */
             // get all data-ranks inside lastfmDiv
             var ranks = lastfmDiv.querySelectorAll('[data-rank]');
             // console.log(ranks);
@@ -369,44 +359,37 @@
             var maxClicks = Math.ceil(ranks.length / 4) - 1;
             var clickCount = 0;
 
-            var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            lastfmDiv.addEventListener('click', function (event) {
+                clickCount++;
 
-            // if user is on mobile, use taps instead of clicks
-            if (isMobile) {
-                console.log('User is on mobile');
-                lastfmDiv.addEventListener('touchstart', function (event) {
-                    clickCount++;
+                if (clickCount > maxClicks) {
+                    clickCount = 0;
+                }
 
-                    if (clickCount > maxClicks) {
-                        clickCount = 0;
+                for (var i = 0; i < ranks.length; i++) {
+                    if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
+                        ranks[i].style.display = 'block';
+                    } else {
+                        ranks[i].style.display = 'none';
                     }
+                }
+            });
 
-                    for (var i = 0; i < ranks.length; i++) {
-                        if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
-                            ranks[i].style.display = 'block';
-                        } else {
-                            ranks[i].style.display = 'none';
-                        }
-                    }
-                });
-            } else {
-                console.log('User is on desktop');
-                lastfmDiv.addEventListener('click', function (event) {
-                    clickCount++;
+            lastfmDiv.addEventListener('touchstart', function (event) {
+                clickCount++;
 
-                    if (clickCount > maxClicks) {
-                        clickCount = 0;
-                    }
+                if (clickCount > maxClicks) {
+                    clickCount = 0;
+                }
 
-                    for (var i = 0; i < ranks.length; i++) {
-                        if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
-                            ranks[i].style.display = 'block';
-                        } else {
-                            ranks[i].style.display = 'none';
-                        }
+                for (var i = 0; i < ranks.length; i++) {
+                    if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
+                        ranks[i].style.display = 'block';
+                    } else {
+                        ranks[i].style.display = 'none';
                     }
-                });
-            }
+                }
+            });
 
         });
 
