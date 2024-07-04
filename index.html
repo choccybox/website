@@ -214,20 +214,6 @@
                 moreaboutTransitionBottom.style.display = 'block';
                 iconFlip.style.display = 'block';
 
-               /*  if (window.innerWidth < 926) {
-                    moreaboutTransitionBottom.style.animation = 'moreabout_transition_anim_mobile ' + animationDuration + 'ms forwards';
-                    moreaboutTransitionTop.style.animation = 'moreabout_transition_anim_mobile ' + animationDuration + 'ms forwards';
-                } else {
-                    moreaboutTransitionBottom.style.animation = 'moreabout_transition_anim_desktop ' + animationDuration + 'ms forwards';
-                    moreaboutTransitionTop.style.animation = 'moreabout_transition_anim_desktop ' + animationDuration + 'ms forwards';
-                }
-
-                var transTop = document.getElementById('moreabout_transition_top');
-                var transBottom = document.getElementById('moreabout_transition_bottom');
-                transTop.style.height = 'calc(100% + 46px)';
-                transBottom.style.height = 'calc(100% + 46px)'; */
-
-                // Add transform rotate(180deg) to more_icon
                 setTimeout(function () {
                     iconFlip.style.transform = 'rotate3d(0, 1, 0, 180deg)';
 
@@ -240,31 +226,12 @@
                             socialButtons[i].style.display = 'block';
                         }
                     }
-                    
-                    /* var transTop = document.getElementById('moreabout_transition_top');
-                    var transBottom = document.getElementById('moreabout_transition_bottom');
-                    transTop.style.height = 'calc(100% + 40px)';
-                    transBottom.style.height = 'calc(100% + 40px)'; */
 
                     var mainTop = document.getElementById('main_top');
                     mainTop.style.marginBottom = '5px';
                 }, animationDuration / 2);
 
             } else {
-                // Play animations in reverse
-               /*  if (window.innerWidth < 926) {
-                    moreaboutTransitionBottom.style.animation = 'moreabout_transition_anim_mobile ' + animationDuration + 'ms reverse';
-                    moreaboutTransitionTop.style.animation = 'moreabout_transition_anim_mobile ' + animationDuration + 'ms reverse';
-                } else {
-                    moreaboutTransitionBottom.style.animation = 'moreabout_transition_anim_desktop ' + animationDuration + 'ms reverse';
-                    moreaboutTransitionTop.style.animation = 'moreabout_transition_anim_desktop ' + animationDuration + 'ms reverse';
-                }
-
-                var transTop = document.getElementById('moreabout_transition_top');
-                var transBottom = document.getElementById('moreabout_transition_bottom');
-                transTop.style.height = 'calc(100% + 40px)';
-                transBottom.style.height = 'calc(100% + 40px)'; */
-
                 // Remove transform rotate(180deg) from more_icon
                 setTimeout(function () {
                     iconFlip.style.transform = 'none';
@@ -278,11 +245,6 @@
                         }
                     }
 
-                    /* var transTop = document.getElementById('moreabout_transition_top');
-                    var transBottom = document.getElementById('moreabout_transition_bottom');
-                    transTop.style.height = 'calc(100% + 46px)';
-                    transBottom.style.height = 'calc(100% + 46px)';
- */
                     var mainTop = document.getElementById('main_top');
                     mainTop.style.marginBottom = '10px';
                 }, animationDuration / 2);
@@ -334,18 +296,6 @@
 </script>
 
 <script>
-    // console log whenver user clicks
-    document.addEventListener('click', function (event) {
-        console.log('User clicked on', event.target);
-    });
-    // or taps
-    document.addEventListener('touchstart', function (event) {
-        console.log('User tapped on', event.target);
-    });
-
-</script>
-
-<script>
     // custom scrolling for .lastfmHolder
     var lastfmDivs = document.querySelectorAll('.lastfm_holder');
 
@@ -354,7 +304,6 @@
         var observer = new IntersectionObserver(function(entries) {
             // get all data-ranks inside lastfmDiv
             var ranks = lastfmDiv.querySelectorAll('[data-rank]');
-            // console.log(ranks);
 
             var maxClicks = Math.ceil(ranks.length / 4) - 1;
             var clickCount = 0;
