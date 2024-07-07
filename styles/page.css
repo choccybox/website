@@ -101,6 +101,7 @@ body {
     display: none;
     margin-bottom: 10px;
     margin-right: 10px;
+    overflow: hidden;
 }
 
 .panel_loader {
@@ -300,7 +301,7 @@ body {
     filter: var(--icon-hover);
 }
 
-.lastfm_holder {
+.lastfm_holder{
     width: 100%;
     height: calc(100% - 36px);
     display: flex;
@@ -311,10 +312,16 @@ body {
     cursor: pointer;
 }
 
-#lastfm {
+.lastfm_scrollable {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    cursor: pointer;
     overflow-y: scroll;
-    -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
+    scrollbar-width: none;
+    overflow-x: hidden;
 }
 
 .lastfm_track {
@@ -326,25 +333,6 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-}
-
-#waka_languages {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    height: 280px;
-    transform: rotate3d(1, 0, 0, 180deg);
-    margin-top: 0px;
-    overflow: hidden;
-}
-
-#waka_projects {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    height: 280px;
-    margin-top: 0px;
-    overflow: hidden;
 }
 
 .language-name-icon-div:hover p {

@@ -4,9 +4,9 @@ if (!isDataFetched) {
     fetch('/stats')
         .then(response => response.json())
         .then(data => {
-        const topAlbumsHolder = document.getElementById('lastfm_topalbums_holder');
-        const topArtistHolder = document.getElementById('lastfm_topartist_holder');
-        const topTracksHolder = document.getElementById('lastfm_toptracks_holder');
+        const topAlbumsHolder = document.getElementById('lastfm1scrollable');
+        const topArtistHolder = document.getElementById('lastfm2scrollable');
+        const topTracksHolder = document.getElementById('lastfm3scrollable');
 
         // get all lastfm_title classes and add display:block
         const lastfmTitles = document.querySelectorAll('.lastfm_title');
@@ -20,10 +20,10 @@ if (!isDataFetched) {
             itemDiv.classList.add(className);
             itemDiv.setAttribute('data-rank', item.rank);
 
-            // if data-rank is above 4, hide all elements with data-rank above 4
+/*             // if data-rank is above 4, hide all elements with data-rank above 4
             if (item.rank > 4) {
                 itemDiv.style.display = 'none';
-            }
+            } */
 
             const itemImage = document.createElement('img');
             itemImage.classList.add(`${className}_image`);

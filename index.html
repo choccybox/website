@@ -76,18 +76,21 @@
                     <div id="lastfm1" class="panel_more noselect">
                         <div id="lastfm_topalbums_holder" class="lastfm_holder">
                             <p class="lastfm_title">top albums</p>
+                            <div id="lastfm1scrollable" class="lastfm_scrollable"></div>
                         </div>
                     </div>
 
                     <div id="lastfm2" class="panel_more noselect">
                         <div id="lastfm_topartist_holder" class="lastfm_holder">
                             <p class="lastfm_title">top artist</p>
+                            <div id="lastfm2scrollable" class="lastfm_scrollable"></div>
                         </div>
                     </div>
 
                     <div id="lastfm3" class="panel_more noselect">
                         <div id="lastfm_toptracks_holder" class="lastfm_holder">
                             <p class="lastfm_title">top tracks</p>
+                            <div id="lastfm3scrollable" class="lastfm_scrollable"></div>
                         </div>
                     </div>
                     
@@ -296,55 +299,51 @@
 </script>
 
 <script>
-    // custom scrolling for .lastfmHolder
+    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        console.log("📱 mobile detected");
+    } else {
+        // custom scrolling for .lastfmHolder
     var lastfmDivs = document.querySelectorAll('.lastfm_holder');
 
     // create an observer instance for each lastfmDiv
     lastfmDivs.forEach(function(lastfmDiv) {
-        var observer = new IntersectionObserver(function(entries) {
-            // get all data-ranks inside lastfmDiv
-            var ranks = lastfmDiv.querySelectorAll('[data-rank]');
+    var observer = new IntersectionObserver(function(entries) {
+        // get all data-ranks inside lastfmDiv
+        var ranks = lastfmDiv.querySelectorAll('[data-rank]');
 
-            var maxClicks = Math.ceil(ranks.length / 4) - 1;
-            var clickCount = 0;
+        var maxClicks = Math.ceil(ranks.length / 4) - 1;
+        var clickCount = 0;
 
-            lastfmDiv.addEventListener('click', function (event) {
+        lastfmDiv.addEventListener('wheel', function (event) {
+            if (event.deltaY > 0) {
                 clickCount++;
+            } else {
+                clickCount--;
+            }
 
-                if (clickCount > maxClicks) {
-                    clickCount = 0;
+            if (clickCount > maxClicks) {
+                clickCount = 0;
+            } else if (clickCount < 0) {
+                clickCount = maxClicks;
+            }
+
+            for (var i = 0; i < ranks.length; i++) {
+                if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
+                    ranks[i].style.display = 'block';
+                } else {
+                    ranks[i].style.display = 'none';
                 }
-
-                for (var i = 0; i < ranks.length; i++) {
-                    if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
-                        ranks[i].style.display = 'block';
-                    } else {
-                        ranks[i].style.display = 'none';
-                    }
-                }
-            });
-
-            lastfmDiv.addEventListener('touchstart', function (event) {
-                clickCount++;
-
-                if (clickCount > maxClicks) {
-                    clickCount = 0;
-                }
-
-                for (var i = 0; i < ranks.length; i++) {
-                    if (i >= clickCount * 4 && i < (clickCount + 1) * 4) {
-                        ranks[i].style.display = 'block';
-                    } else {
-                        ranks[i].style.display = 'none';
-                    }
-                }
-            });
-
+            }
         });
 
-        // observe the lastfmDiv
-        observer.observe(lastfmDiv);
     });
+
+    // observe the lastfmDiv
+    observer.observe(lastfmDiv);
+});
+    }
 </script>
 
 </body>
