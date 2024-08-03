@@ -224,6 +224,50 @@ userinfo.get('/user', async (req, res) => {
   }
 });
 
+userinfo.get('/useravatar', async (req, res) => {
+  try {
+    const discordToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/discord.json'), 'utf8'));
+    const discordAccessToken = discordToken.accessToken;
+
+    const userResponse = await axios.get('https://discord.com/api/users/@me', {
+      headers: {
+        Authorization: `Bearer ${discordAccessToken}`,
+      },
+    });
+
+    const originalavatarimg = `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.webp?size=1024`;
+
+    try {
+      const response = await axios({
+        method: 'get',
+        url: originalavatarimg,
+        responseType: 'arraybuffer',
+      });
+
+      // Use sharp to resize the image to 300px
+      sharp(response.data)
+        .resize(300, 300) // Resize to 300x300 pixels
+        .toBuffer()
+        .then(resizedImageBuffer => {
+          // Set the appropriate headers to serve the image directly
+          res.set('Content-Type', 'image/webp');
+          res.send(resizedImageBuffer);
+        })
+        .catch(error => {
+          console.error('Error resizing image:', error);
+          res.status(500).send('Error resizing image.');
+        });
+
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      res.status(500).send('Error downloading image.');
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching user information.');
+  }
+});
+
 async function refreshDiscordAccessToken(client, discordRefreshToken) {
   try {
     const response = await axios.post(
