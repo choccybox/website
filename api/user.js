@@ -244,9 +244,13 @@ userinfo.get('/useravatar', async (req, res) => {
         responseType: 'arraybuffer',
       });
 
-      // Use sharp to resize the image to 300px
+      const roundedCorners = Buffer.from(
+        `<svg><rect x="0" y="0" width="160" height="160" rx="30" ry="30"/></svg>`
+      );
+
       sharp(response.data)
-        .resize(300, 300) // Resize to 300x300 pixels
+        .resize(160, 160) // Resize to 160x160 pixels
+        .composite([{ input: roundedCorners, blend: 'dest-in' }]) // Apply rounded corners
         .toBuffer()
         .then(resizedImageBuffer => {
           // Set the appropriate headers to serve the image directly
@@ -254,8 +258,8 @@ userinfo.get('/useravatar', async (req, res) => {
           res.send(resizedImageBuffer);
         })
         .catch(error => {
-          console.error('Error resizing image:', error);
-          res.status(500).send('Error resizing image.');
+          console.error('Error processing image:', error);
+          res.status(500).send('Error processing image.');
         });
 
     } catch (error) {
