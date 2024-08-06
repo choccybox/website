@@ -346,5 +346,86 @@
     }
 </script>
 
+<script>
+    // register when user double clicks/touches on the page
+    var clickCount = 0;
+    var isLight = false;
+    var isDark = false;
+
+    const colorScheme = localStorage.getItem('colorScheme');
+    if (localStorage.getItem('colorScheme') === 'dark') {
+        document.documentElement.style.setProperty('--background', '#2e2f37');
+        document.documentElement.style.setProperty('--timeline', '#2a2b33');
+        document.documentElement.style.setProperty('--progress', '#646466');
+        document.documentElement.style.setProperty('--foreground', '#3e3f4b');
+        document.documentElement.style.setProperty('--panel', '#505161');
+        document.documentElement.style.setProperty('--text', 'white');
+        document.documentElement.style.setProperty('--text-hover', '#cdcdd2');
+        document.documentElement.style.setProperty('--icon', 'invert(99%) sepia(64%) saturate(2%) hue-rotate(8deg) brightness(108%) contrast(101%)');
+        document.documentElement.style.setProperty('--icon-hover', 'invert(95%) sepia(8%) saturate(101%) hue-rotate(202deg) brightness(87%) contrast(90%)');
+        document.documentElement.style.setProperty('--radius', '0px');
+    } else if (localStorage.getItem('colorScheme') === 'light') {
+        document.documentElement.style.setProperty('--background', '#e2dfdf');
+        document.documentElement.style.setProperty('--timeline', '#dad9d9');
+        document.documentElement.style.setProperty('--progress', '#999999');
+        document.documentElement.style.setProperty('--foreground', '#cecccc');
+        document.documentElement.style.setProperty('--panel', '#b9b6b6');
+        document.documentElement.style.setProperty('--text', '#333333');
+        document.documentElement.style.setProperty('--text-hover', '#595959');
+        document.documentElement.style.setProperty('--icon', 'invert(13%) sepia(0%) saturate(117%) hue-rotate(159deg) brightness(101%) contrast(83%)');
+        document.documentElement.style.setProperty('--icon-hover', 'invert(35%) sepia(0%) saturate(1%) hue-rotate(102deg) brightness(94%) contrast(87%)');
+        document.documentElement.style.setProperty('--radius', '0px');
+    }
+
+    // if click count is two, console log it
+    document.addEventListener('click', function(event) {
+        var target = event.target;
+        if (!target.closest('#main_content')) {
+            clickCount++;
+            if (clickCount === 2) {
+                // change :root css variables
+                var preferscolorscheme = window.matchMedia('(prefers-color-scheme: dark)') ? 'dark' : 'light';
+                
+                // make the localstorage a toggle between light and dark
+                if (localStorage.getItem('colorScheme') === 'light') {
+                    document.documentElement.style.setProperty('--background', '#2e2f37');
+                    document.documentElement.style.setProperty('--timeline', '#2a2b33');
+                    document.documentElement.style.setProperty('--progress', '#646466');
+                    document.documentElement.style.setProperty('--foreground', '#3e3f4b');
+                    document.documentElement.style.setProperty('--panel', '#505161');
+                    document.documentElement.style.setProperty('--text', 'white');
+                    document.documentElement.style.setProperty('--text-hover', '#cdcdd2');
+                    document.documentElement.style.setProperty('--icon', 'invert(99%) sepia(64%) saturate(2%) hue-rotate(8deg) brightness(108%) contrast(101%)');
+                    document.documentElement.style.setProperty('--icon-hover', 'invert(95%) sepia(8%) saturate(101%) hue-rotate(202deg) brightness(87%) contrast(90%)');
+                    document.documentElement.style.setProperty('--radius', '0px');
+                } else if (localStorage.getItem('colorScheme') === 'dark') {
+                    document.documentElement.style.setProperty('--background', '#e2dfdf');
+                    document.documentElement.style.setProperty('--timeline', '#dad9d9');
+                    document.documentElement.style.setProperty('--progress', '#999999');
+                    document.documentElement.style.setProperty('--foreground', '#cecccc');
+                    document.documentElement.style.setProperty('--panel', '#b9b6b6');
+                    document.documentElement.style.setProperty('--text', '#333333');
+                    document.documentElement.style.setProperty('--text-hover', '#595959');
+                    document.documentElement.style.setProperty('--icon', 'invert(13%) sepia(0%) saturate(117%) hue-rotate(159deg) brightness(101%) contrast(83%)');
+                    document.documentElement.style.setProperty('--icon-hover', 'invert(35%) sepia(0%) saturate(1%) hue-rotate(102deg) brightness(94%) contrast(87%)');
+                    document.documentElement.style.setProperty('--radius', '0px');
+                }
+
+                if (localStorage.getItem('colorScheme') === 'dark') {
+                    localStorage.setItem('colorScheme', 'light');
+                } else if (localStorage.getItem('colorScheme') === 'light') {
+                    localStorage.setItem('colorScheme', 'dark');
+                }
+
+                clickCount = 0;
+            }
+        }
+            
+        });
+</script>
+    
+
+</script>
+
 </body>
 </html>

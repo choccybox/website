@@ -33,7 +33,6 @@ function saveDiscordToken(discordAccessToken, expiresIn, savedAt, discordRefresh
   fs.writeFileSync(path.resolve(__dirname, './tokens/discord.json'), JSON.stringify(tokens, null, 2), 'utf8');
 }
 
-// COMMENT OUT AFTER LOGGING.
 userinfo.get('/userauth', (req, res) => {
   res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&redirect_uri=${encodeURIComponent(process.env.DISCORD_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(discordScopes.join(' '))}`);
 });
@@ -66,11 +65,30 @@ userinfo.get('/usercallback', async (req, res) => {
       const expiresIn = response.data.expires_in;
       const savedAt = Math.floor(Date.now() / 1000);
 
-      saveDiscordToken(accessToken, expiresIn, savedAt, refreshToken);
+      const approvedID = process.env.DISCORD_APPROVED_ID;
+
+      fetch('https://discordapp.com/api/users/@me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        const discordID = data.id;
+
+        if (discordID !== approvedID) {
+          res.json({ youre_not_choccy: 'what are you trying to do?? stop it' });
+          console.log('Unauthorized user tried to access userinfo.');
+          return;
+        } else {
+          res.redirect('/user');
+          console.log('Authorized user accessed userinfo.');
+          saveDiscordToken(accessToken, expiresIn, savedAt, refreshToken);
+        }
+      });
 
       client.token = accessToken;
 
-      res.redirect('/user');
     } catch (error) {
       console.error('Error during authorization:', error);
       res.status(500).send('Error during authorization.');
@@ -79,7 +97,6 @@ userinfo.get('/usercallback', async (req, res) => {
     res.status(400).send('Authorization code not provided.');
   }
 });
-// COMMENT OUT AFTER LOGGING.
 
 client.once('ready', () => {
   console.log('Discord client is ready.');
@@ -122,24 +139,6 @@ userinfo.get('/user', async (req, res) => {
            Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
         },
       });
-/*       
-      const presences = client.guilds.cache.map(guild => guild.members.cache.filter(member => !member.user.bot).map(member => member.presence));
-      presences.forEach(guildPresences => {
-        guildPresences.forEach(presence => {
-          if (!presence || presence.status === 'offline') {
-            console.log('offline');
-          } else {
-            console.log(presence.activities.filter(activity => activity.name !== 'Spotify' && activity.name !== 'Custom Status'));
-
-            // make a custom map to only get name and type
-            const activities = presence.activities.filter(activity => activity.name !== 'Spotify' && activity.name !== 'Custom Status').map(activity => {
-              return {
-                name: activity.name,
-                type: activity.type,
-              };
-            });
-        });
-      }); */
       
       const avatarCredit = messagesResponse.data[0].content;
   
@@ -189,6 +188,12 @@ userinfo.get('/user', async (req, res) => {
       });
   
       const originalavatarimg = `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.webp?size=1024`;
+
+      // custom sort connections
+      simplifiedConnections.sort((a, b) => {
+        const typeOrder = ['twitter', 'tiktok', 'lastfm', 'github', 'steam'];
+        return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type);
+      });
   
       try {
         const response = await axios({
@@ -199,6 +204,7 @@ userinfo.get('/user', async (req, res) => {
       
         const highresizedavatarimg = await sharp(response.data).resize(300, 300).toBuffer();
         const lowresizedavatarimg = await sharp(response.data).resize(128, 128).toBuffer();
+        
       
         const userInfo = {
           avatar: {

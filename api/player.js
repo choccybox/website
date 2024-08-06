@@ -32,8 +32,7 @@ function saveSoundcloudToken(soundcloudAccessToken, soundcloudRefreshToken) {
   fs.writeFileSync(path.resolve(__dirname, './tokens/soundcloud.json'), JSON.stringify(tokens, null, 2), 'utf8');
 }
 
-// COMMENT OUT AFTER LOGGING.
-/* player.get('/playerauth', (req, res) => {
+player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: process.env.SPOTIFY_CLIENT_ID,
@@ -61,10 +60,27 @@ player.get('/playercallback', async (req, res) => {
 
     const { access_token, refresh_token } = response.data;
 
-    // save to spotify.json
-    saveSpotifyTokens(access_token, refresh_token);
+    fetch('https://api.spotify.com/v1/me', {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      const spotifyURL = data.uri;
+      const approvedID = process.env.SPOTIFY_APPROVED_ID;
 
-    res.redirect('/player');
+      if (spotifyURL !== approvedID) {
+        res.json({ youre_not_choccy: 'what are you trying to do?? stop it' });
+        console.log('Unauthorized user tried to access userinfo.');
+        return;
+      } else {
+        res.redirect('/player');
+        console.log('Authorized user accessed userinfo.');
+        saveSpotifyTokens(access_token, refresh_token);
+      }
+    });
+
   } catch (error) {
     console.error('Error:', error.response ? error.response.data : error.message);
     setTimeout(() => {
@@ -98,16 +114,33 @@ player.get('/soundcallback', async (req, res) => {
     const accessToken = response.data.access_token;
     const refreshToken = response.data.refresh_token;
 
-   // save into soundcloud.json
-    saveSoundcloudToken(accessToken, refreshToken);
+    fetch('https://api.soundcloud.com/me', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+      const soundcloudURL = data.id
+      const approvedID = process.env.SOUNDCLOUD_APPROVED_ID;
 
-    res.redirect('/player');
+      if (soundcloudURL !== approvedID) {
+        res.json({ youre_not_choccy: 'what are you trying to do?? stop it' });
+        console.log('Unauthorized user tried to access userinfo.');
+        return;
+      } else {
+        res.redirect('/player');
+        console.log('Authorized user accessed userinfo.');
+        saveSoundcloudToken(accessToken, refreshToken);
+      }
+    });
+
   } catch (error) {
     console.error('Error exchanging code for token:', error.message);
     res.status(500).send('Error during authentication');
   }
-}); */
-// COMMENT OUT AFTER LOGGING.
+});
 
 player.get('/player', async (req, res) => {
   try {
@@ -118,6 +151,7 @@ player.get('/player', async (req, res) => {
     res.status(error.response ? error.response.status : 500).send('Error occurred while fetching currently playing track.');
   }
 });
+
 
 async function getNowPlaying() {
 

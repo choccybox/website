@@ -28,7 +28,6 @@ if (!isDataFetched) {
             const itemImage = document.createElement('img');
             itemImage.classList.add(`${className}_image`);
             itemImage.src = item.imageHigh;
-            itemImage.style.filter = 'brightness(0.5)';
 
             const itemNameDiv = document.createElement('div');
             itemNameDiv.style.height = '100%';
