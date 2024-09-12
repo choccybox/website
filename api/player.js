@@ -152,313 +152,72 @@ player.get('/player', async (req, res) => {
   }
 });
 
-
 async function getNowPlaying() {
-
   try {
-    const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/spotify.json'), 'utf8'));
-    const spotifyAccessToken = spotifyToken.accessToken;
+    const lastfmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=2`);
+    const lastfmData = lastfmResponse.data;
+    const lastfmTrack = lastfmData.recenttracks.track[0];
+    const lastfmPrevTrack = lastfmData.recenttracks.track[0];
+    const lastfmNowPlaying = lastfmTrack['@attr'] && lastfmTrack['@attr'].nowplaying === 'true' ? true : false;
 
-    const soundcloudToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/soundcloud.json'), 'utf8'));
-    const soundcloudAccessToken = soundcloudToken.accessToken;
+    const name = lastfmTrack.name;
+    const artist = lastfmTrack.artist['#text'];
+    const namePrev = lastfmPrevTrack.name;
+    const artistPrev = lastfmPrevTrack.artist['#text'];
 
-    const spotifyResponse = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
-      headers: {
-        'Authorization': `Bearer ${spotifyAccessToken}`,
-      },
-    });
+    console.log('lastfm now playing:', lastfmNowPlaying);
 
-    if (spotifyResponse.data && spotifyResponse.data.is_playing) {
-      if (!spotifyResponse.data.item.is_local) {
-      // console.log('playing from spotify');
-      const originalspotifyimg = spotifyResponse.data.item.album.images[1].url;
+    if (lastfmNowPlaying === true) {
+      const youtubeResponse = await axios.get(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${name} ${artist}&type=video&key=${process.env.YOUTUBE_API_KEY}`);
 
-      try {
-        const response = await axios({
-          method: 'get',
-          url: originalspotifyimg,
-          responseType: 'arraybuffer',
-        });
-      
-        const highresizedspotifyimg = await sharp(response.data).resize(280, 280).toBuffer();
-        const lowresizedspotifyimg = await sharp(response.data).resize(128, 128).toBuffer();
-            
-        return {
-          isPlaying: true,
-          name: spotifyResponse.data.item.name,
-          artist: spotifyResponse.data.item.artists[0].name,
-          art: {
-            high: `data:image/webp;base64,${highresizedspotifyimg.toString('base64')}`,
-            low: `data:image/webp;base64,${lowresizedspotifyimg.toString('base64')}`,
-          },
-          url: spotifyResponse.data.item.external_urls.spotify,
-          progress: spotifyResponse.data.progress_ms,
-          duration: spotifyResponse.data.item.duration_ms,
-          message: 'playing from spotify',
-          source: 'spotify',
-        };
-      } catch (error) {
-        console.error('Error downloading or resizing image:', error);
-      }
-      // check if there are images, if not, use soundcloud api to get art and url
-    } else if (spotifyResponse.data.item.album.images.length === 0) {
-      
-      const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)} ${encodeURIComponent(spotifyResponse.data.item.artists[0].name)}&limit=3&linked_partitioning=true`, {
-        headers: {
-          'Authorization': `Bearer ${soundcloudAccessToken}`,
+      const youtubeData = youtubeResponse.data.items[0];
+      const youtubeURL = `https://music.youtube.com/watch?v=${youtubeData.id.videoId}`;
+      const youtubeName = youtubeData.snippet.title;
+      const youtubeArtist = youtubeData.snippet.channelTitle;
+      const youtubeThumbnail = youtubeData.snippet.thumbnails.high.url;
+
+      // convert the youtube thumbnail to a base64 string and use sharp to resize it (280 and 140)
+      const youtubeThumbnailBuffer = await axios.get(youtubeThumbnail, { responseType: 'arraybuffer' });
+
+      const youtubeArtHigh = await sharp(Buffer.from(youtubeThumbnailBuffer.data)).resize(280).toBuffer().then(data => {return `data:image/png;base64,${data.toString('base64')}`;});
+      const youtubeArtLow = await sharp(Buffer.from(youtubeThumbnailBuffer.data)).resize(140).toBuffer().then(data => {return `data:image/png;base64,${data.toString('base64')}`;});
+
+      return {
+        isPlaying: true,
+        name: youtubeName ? youtubeName : null,
+        artist: youtubeArtist ? youtubeArtist : null,
+        art: {
+          high: youtubeArtHigh ? youtubeArtHigh : null,
+          low: youtubeArtLow ? youtubeArtLow : null,
         },
-      });
+        url: youtubeURL ? youtubeURL : null,
+      };
+    } else if (lastfmNowPlaying === false) {
+      const youtubeResponse = await axios.get(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${namePrev} ${artistPrev}&type=video&key=${process.env.YOUTUBE_API_KEY}`);
 
-      if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
-        const track = soundCloudResponse.data.collection[0];
-        // console.log('playing local file, found result on soundcloud with artist');
+      const youtubeData = youtubeResponse.data.items[0];
+      const youtubeURL = `https://music.youtube.com/watch?v=${youtubeData.id.videoId}`;
+      const youtubeName = youtubeData.snippet.title;
+      const youtubeArtist = youtubeData.snippet.channelTitle;
+      const youtubeThumbnail = youtubeData.snippet.thumbnails.high.url;
 
-        // check if track.artwork_url is null, if so, use user.avatar_url
-        const originalsoundcloudimg = track.artwork_url ? 
-          track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp') : 
-          track.user.avatar_url.replace('-large', '-t300x300').replace('jpg', 'webp');
+      // convert the youtube thumbnail to a base64 string and use sharp to resize it (280 and 140)
+      const youtubeThumbnailBuffer = await axios.get(youtubeThumbnail, { responseType: 'arraybuffer' });
+
+      const youtubeArtHigh = await sharp(Buffer.from(youtubeThumbnailBuffer.data)).resize(280).toBuffer().then(data => {return `data:image/png;base64,${data.toString('base64')}`;});
+      const youtubeArtLow = await sharp(Buffer.from(youtubeThumbnailBuffer.data)).resize(140).toBuffer().then(data => {return `data:image/png;base64,${data.toString('base64')}`;});
 
 
-        try {
-          const response = await axios({
-            method: 'get',
-            url: originalsoundcloudimg,
-            responseType: 'arraybuffer',
-          });
-        
-          const highresizedsoundcloudimg = await sharp(response.data).resize(280, 280).toBuffer();
-          const lowresizedsoundcloudimg = await sharp(response.data).resize(128, 128).toBuffer();
-                
-          return {
-            isPlaying: true,
-            name: spotifyResponse.data.item.name,
-            artist: spotifyResponse.data.item.artists[0].name,
-            art: {
-              high: `data:image/webp;base64,${highresizedsoundcloudimg.toString('base64')}`,
-              low: `data:image/webp;base64,${lowresizedsoundcloudimg.toString('base64')}`,
-            },
-            url: soundCloudResponse.data.collection[0].permalink_url,
-            progress: spotifyResponse.data.progress_ms,
-            duration: spotifyResponse.data.item.duration_ms,
-            message: 'playing local file, found result on soundcloud with artist',
-            source: 'soundcloud',
-          };
-        } catch (error) {
-          console.error('Error downloading or resizing image:', error);
-        }
-      } else {
-        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(spotifyResponse.data.item.name)}&limit=3&linked_partitioning=true`, {
-          headers: {
-            'Authorization': `Bearer ${soundcloudAccessToken}`,
-          },
-        });
-
-        if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
-          const track = soundCloudResponse.data.collection[0];
-          // console.log('playing local file, found result on soundcloud without artist');
-        
-          const originalsoundcloudimg = track.artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp');
-          try {
-            const response = await axios({
-              method: 'get',
-              url: originalsoundcloudimg,
-              responseType: 'arraybuffer',
-            });
-        
-            const highresizedsoundcloudimg = await sharp(response.data).resize(280, 280).toBuffer();
-            const lowresizedsoundcloudimg = await sharp(response.data).resize(128, 128).toBuffer();
-                
-            return {
-              isPlaying: true,
-              name: spotifyResponse.data.item.name,
-              artist: spotifyResponse.data.item.artists[0].name,
-              art: {
-                high: `data:image/webp;base64,${highresizedsoundcloudimg.toString('base64')}`,
-                low: `data:image/webp;base64,${lowresizedsoundcloudimg.toString('base64')}`,
-              },
-              url: soundCloudResponse.data.collection[0].permalink_url,
-              progress: spotifyResponse.data.progress_ms,
-              duration: spotifyResponse.data.item.duration_ms,
-              message: 'playing local file, found result on soundcloud without artist',
-              source: 'soundcloud',
-            };
-          } catch (error) {
-            console.error('Error downloading or resizing image:', error);
-          }
-        } else {
-          // console.log('playing local file, no result found on soundcloud');
-          return {
-            isPlaying: true,
-            name: spotifyResponse.data.item.name,
-            artist: spotifyResponse.data.item.artists[0].name.replace(/\s*\(.*?\)\s*/g, ''),
-            art: {
-              high: null,
-              low: null,
-            },
-            url: null,
-            progress: spotifyResponse.data.progress_ms,
-            duration: spotifyResponse.data.item.duration_ms,
-            message: 'player is playing a local file, no result found on SoundCloud',
-            source: 'soundcloud',
-          };
-        
-        }
-      }
-    }
-    
-    } else if (spotifyResponse.data && !spotifyResponse.data.is_playing || !spotifyResponse.data) {
-
-      const lastFmResponse = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
-      // use spotify api to replace art and url from last.fm
-      const spotifySearchResponse = await axios.get(`https://api.spotify.com/v1/search?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}%20artist:${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&type=track&limit=1`, {
-        headers: {
-          'Authorization': `Bearer ${spotifyAccessToken}`,
+      return {
+        isPlaying: false,
+        name: youtubeName ? youtubeName : null,
+        artist: youtubeArtist ? youtubeArtist : null,
+        art: {
+          high: youtubeArtHigh ? youtubeArtHigh : null,
+          low: youtubeArtLow ? youtubeArtLow : null,
         },
-      });
-      
-      // if found, return spotify data, if not, use soundcould, only then return last.fm data
-      if (spotifySearchResponse.data.tracks.items[0]) {
-        // console.log('not playing, found spotify result');
-        const originalspotifyimg = spotifySearchResponse.data.tracks.items[0].album.images[1].url;
-
-        try {
-          const response = await axios({
-            method: 'get',
-            url: originalspotifyimg,
-            responseType: 'arraybuffer',
-          });
-        
-          const highresizedspotifyimg = await sharp(response.data).resize(280, 280).toBuffer();
-          const lowresizedspotifyimg = await sharp(response.data).resize(128, 128).toBuffer();
-
-          return {
-            isPlaying: false,
-            name: spotifySearchResponse.data.tracks.items[0].name,
-            artist: spotifySearchResponse.data.tracks.items[0].artists[0].name,
-            art: {
-              high: `data:image/webp;base64,${highresizedspotifyimg.toString('base64')}`,
-              low: `data:image/webp;base64,${lowresizedspotifyimg.toString('base64')}`,
-            },
-            url: spotifySearchResponse.data.tracks.items[0].external_urls.spotify,
-            progress: null,
-            duration: null,
-            message: 'not playing, found spotify result',
-            source: 'spotify',
-          };
-        } catch (error) {
-          console.error('Error downloading or resizing image:', error);
-        }
-      } else {
-  
-        const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)} ${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].artist['#text'])}&limit=3&linked_partitioning=true`, {
-          headers: {
-            'Authorization': `Bearer ${soundcloudAccessToken}`,
-          },
-        });
-        if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
-          const originalsoundcloudimg = soundCloudResponse.data.collection[0].artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp');
-          const track = soundCloudResponse.data.collection[0];
-          // console.log('not playing, found soundcloud result with artist');
-
-          try {
-            const response = await axios({
-              method: 'get',
-              url: originalsoundcloudimg,
-              responseType: 'arraybuffer',
-            });
-          
-            const highresizedsoundcloudimg = await sharp(response.data).resize(280, 280).toBuffer();
-            const lowresizedsoundcloudimg = await sharp(response.data).resize(128, 128).toBuffer();
-  
-            return {
-              isPlaying: false,
-              name: track.title,
-              artist: track.user.username,
-              art: {
-                high: `data:image/webp;base64,${highresizedsoundcloudimg.toString('base64')}`,
-                low: `data:image/webp;base64,${lowresizedsoundcloudimg.toString('base64')}`,
-              },
-              url: track.permalink_url,
-              progress: null,
-              duration: null,
-              message: 'not playing, found soundcloud result with artist',
-              source: 'soundcloud',
-            };
-          } catch (error) {
-            console.error('Error downloading or resizing image:', error);
-          }
-        } else {
-          const soundCloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${encodeURIComponent(lastFmResponse.data.recenttracks.track[0].name)}&limit=3&linked_partitioning=true`, {
-            headers: {
-              'Authorization': `Bearer ${soundcloudAccessToken}`,
-            },
-          });
-
-          if (soundCloudResponse.data.collection && soundCloudResponse.data.collection.length > 0) {
-            const originalsoundcloudimg = soundCloudResponse.data.collection[0].artwork_url.replace('-large', '-t300x300').replace('jpg', 'webp');
-            const track = soundCloudResponse.data.collection[0];
-            // console.log('not playing, found soundcloud result without artist');
-
-            try {
-              const response = await axios({
-                method: 'get',
-                url: originalsoundcloudimg,
-                responseType: 'arraybuffer',
-              });
-            
-              const highresizedsoundcloudimg = await sharp(response.data).resize(280, 280).toBuffer();
-              const lowresizedsoundcloudimg = await sharp(response.data).resize(128, 128).toBuffer();
-    
-              return {
-                isPlaying: false,
-                name: track.title,
-                artist: track.user.username,
-                art: {
-                  high: `data:image/webp;base64,${highresizedsoundcloudimg.toString('base64')}`,
-                  low: `data:image/webp;base64,${lowresizedsoundcloudimg.toString('base64')}`,
-                },
-                url: track.permalink_url,
-                progress: null,
-                duration: null,
-                message: 'not playing, found soundcloud result without artist',
-                source: 'soundcloud',
-              };
-            } catch (error) {
-              console.error('Error downloading or resizing image:', error);
-            }
-          } else {
-            const originallasfmimg = lastFmResponse.data.recenttracks.track[0].image[3]['#text'];
-            // console.log('not playing, no result found');
-            try {
-              const response = await axios({
-                method: 'get',
-                url: originallasfmimg,
-                responseType: 'arraybuffer',
-              });
-            
-              const highresizedlastfmimg = await sharp(response.data).resize(280, 280).toBuffer();
-              const lowresizedlastfmimg = await sharp(response.data).resize(128, 128).toBuffer();
-    
-              return {
-                isPlaying: false,
-                name: lastFmResponse.data.recenttracks.track[0].name,
-                artist: lastFmResponse.data.recenttracks.track[0].artist['#text'],
-                art: {
-                  high: `data:image/webp;base64,${highresizedlastfmimg.toString('base64')}`,
-                  low: `data:image/webp;base64,${lowresizedlastfmimg.toString('base64')}`,
-                },
-                url: lastFmResponse.data.recenttracks.track[0].url,
-                progress: null,
-                duration: null,
-                message: 'not playing, no result found',
-                source: 'last.fm',
-              };
-            } catch (error) {
-              console.error('Error downloading or resizing image:', error);
-            }
-          }
-          }
-      }
+        url: youtubeURL ? youtubeURL : null,
+      };
     }
 
   } catch (error) {

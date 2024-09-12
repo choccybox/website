@@ -237,11 +237,12 @@ body {
     text-align: center;
     display: none;
 }
-#player_title {
-    margin-top: -28px;
-}
+
 #player:hover #player_timeline {
     display: block;
+}
+#player_timeline {
+    background-color: #ff0000;
 }
 #avatar:hover #avatar_credit {
     display: block;
