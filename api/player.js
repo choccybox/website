@@ -167,56 +167,57 @@ async function getNowPlaying() {
 
     console.log('lastfm now playing:', lastfmNowPlaying);
 
+    const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/spotify.json'), 'utf8'));
+
     if (lastfmNowPlaying === true) {
-      const youtubeResponse = await axios.get(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${name} ${artist}&type=video&key=${process.env.YOUTUBE_API_KEY}`);
+      const spotifyResponse = await axios.get(`https://api.spotify.com/v1/search?q=track:${name} artist:${artist}&type=track`, {
+        headers: {
+          Authorization: `Bearer ${spotifyToken.accessToken}`,
+        },
+      });
 
-      const youtubeData = youtubeResponse.data.items[0];
-      const youtubeURL = `https://music.youtube.com/watch?v=${youtubeData.id.videoId}`;
-      const youtubeName = youtubeData.snippet.title;
-      const youtubeArtist = youtubeData.snippet.channelTitle;
-      const youtubeThumbnail = youtubeData.snippet.thumbnails.high.url;
+      console.log('spotify response:', spotifyResponse.data);
 
-      // convert the youtube thumbnail to a base64 string and use sharp to resize it (280 and 140)
-      const youtubeThumbnailBuffer = await axios.get(youtubeThumbnail, { responseType: 'arraybuffer' });
-
-      const youtubeArtHigh = await sharp(Buffer.from(youtubeThumbnailBuffer.data)).resize(280).toBuffer().then(data => {return `data:image/png;base64,${data.toString('base64')}`;});
-      const youtubeArtLow = await sharp(Buffer.from(youtubeThumbnailBuffer.data)).resize(140).toBuffer().then(data => {return `data:image/png;base64,${data.toString('base64')}`;});
+      const spotifyData = spotifyResponse.data.tracks.items[0];
+      const spotifyURL = spotifyData.external_urls.spotify;
+      const spotifyName = spotifyData.name;
+      const spotifyArtist = spotifyData.artists[0].name;
+      const spotifyArtHigh = spotifyData.album.images[0].url;
+      const spotifyArtLow = spotifyData.album.images[1].url;
 
       return {
         isPlaying: true,
-        name: youtubeName ? youtubeName : null,
-        artist: youtubeArtist ? youtubeArtist : null,
+        name: spotifyName ? spotifyName : null,
+        artist: spotifyArtist ? spotifyArtist : null,
         art: {
-          high: youtubeArtHigh ? youtubeArtHigh : null,
-          low: youtubeArtLow ? youtubeArtLow : null,
+          high: spotifyArtHigh ? spotifyArtHigh : null,
+          low: spotifyArtLow ? spotifyArtLow : null,
         },
-        url: youtubeURL ? youtubeURL : null,
+        url: spotifyURL ? spotifyURL : null,
       };
     } else if (lastfmNowPlaying === false) {
-      const youtubeResponse = await axios.get(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${namePrev} ${artistPrev}&type=video&key=${process.env.YOUTUBE_API_KEY}`);
+      const spotifyResponse = await axios.get(`https://api.spotify.com/v1/search?q=track:${namePrev} artist:${artistPrev}&type=track`, {
+        headers: {
+          Authorization: `Bearer ${spotifyToken.accessToken}`,
+        },
+      });
 
-      const youtubeData = youtubeResponse.data.items[0];
-      const youtubeURL = `https://music.youtube.com/watch?v=${youtubeData.id.videoId}`;
-      const youtubeName = youtubeData.snippet.title;
-      const youtubeArtist = youtubeData.snippet.channelTitle;
-      const youtubeThumbnail = youtubeData.snippet.thumbnails.high.url;
-
-      // convert the youtube thumbnail to a base64 string and use sharp to resize it (280 and 140)
-      const youtubeThumbnailBuffer = await axios.get(youtubeThumbnail, { responseType: 'arraybuffer' });
-
-      const youtubeArtHigh = await sharp(Buffer.from(youtubeThumbnailBuffer.data)).resize(280).toBuffer().then(data => {return `data:image/png;base64,${data.toString('base64')}`;});
-      const youtubeArtLow = await sharp(Buffer.from(youtubeThumbnailBuffer.data)).resize(140).toBuffer().then(data => {return `data:image/png;base64,${data.toString('base64')}`;});
-
+      const spotifyData = spotifyResponse.data.tracks.items[0];
+      const spotifyURL = spotifyData.external_urls.spotify;
+      const spotifyName = spotifyData.name;
+      const spotifyArtist = spotifyData.artists[0].name;
+      const spotifyArtHigh = spotifyData.album.images[0].url;
+      const spotifyArtLow = spotifyData.album.images[1].url;
 
       return {
         isPlaying: false,
-        name: youtubeName ? youtubeName : null,
-        artist: youtubeArtist ? youtubeArtist : null,
+        name: spotifyName ? spotifyName : null,
+        artist: spotifyArtist ? spotifyArtist : null,
         art: {
-          high: youtubeArtHigh ? youtubeArtHigh : null,
-          low: youtubeArtLow ? youtubeArtLow : null,
+          high: spotifyArtHigh ? spotifyArtHigh : null,
+          low: spotifyArtLow ? spotifyArtLow : null,
         },
-        url: youtubeURL ? youtubeURL : null,
+        url: spotifyURL ? spotifyURL : null,
       };
     }
 
@@ -228,7 +229,6 @@ async function getNowPlaying() {
       console.error('Error:', error);
       return {
         isPlaying: false,
-        isLocal: null,
         name: null,
         artist: null,
         art: null,

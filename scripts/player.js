@@ -22,12 +22,13 @@ function fetchAndDisplayTime() {
             // if user is on mobile, set the avatar to the mobile avatar
             if (isMobile && isCellular) {
                 document.getElementById("player_image").src = data.art.low;
+            } if (data.art === null) {
+                document.getElementById("player_image").src = "../styles/spong.webp";
+                document.getElementById("player_timeline").style.display = "none";
+                document.getElementById("player_link").style.cursor = "default";
+
             } else {
                 document.getElementById("player_image").src = data.art.high;
-            }
-
-            if (data.art === null) {
-                document.getElementById("player_image").src = "/assets/album.png";
             }
 
             document.getElementById("player_link").href = data.url;
