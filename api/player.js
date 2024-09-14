@@ -159,27 +159,21 @@ async function getNowPlaying() {
     const lastfmTrack = lastfmData.recenttracks.track[0];
     const lastfmPrevTrack = lastfmData.recenttracks.track[0];
     const lastfmNowPlaying = lastfmTrack['@attr'] && lastfmTrack['@attr'].nowplaying === 'true' ? true : false;
-
     const name = lastfmTrack.name;
     const artist = lastfmTrack.artist['#text'];
     const namePrev = lastfmPrevTrack.name;
     const artistPrev = lastfmPrevTrack.artist['#text'];
-
-    console.log('lastfm now playing:', lastfmNowPlaying);
-
     const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/spotify.json'), 'utf8'));
 
-    if (lastfmNowPlaying === true) {
+    // if playing and image is not available by lastfm
+    if (lastfmNowPlaying && lastfmData.recenttracks.track[0].image[3]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
       const spotifyResponse = await axios.get(`https://api.spotify.com/v1/search?q=track:${name} artist:${artist}&type=track`, {
         headers: {
           Authorization: `Bearer ${spotifyToken.accessToken}`,
         },
       });
 
-      console.log('spotify response:', spotifyResponse.data);
-
       const spotifyData = spotifyResponse.data.tracks.items[0];
-      const spotifyURL = spotifyData.external_urls.spotify;
       const spotifyName = spotifyData.name;
       const spotifyArtist = spotifyData.artists[0].name;
       const spotifyArtHigh = spotifyData.album.images[0].url;
@@ -192,10 +186,24 @@ async function getNowPlaying() {
         art: {
           high: spotifyArtHigh ? spotifyArtHigh : null,
           low: spotifyArtLow ? spotifyArtLow : null,
-        },
-        url: spotifyURL ? spotifyURL : null,
+        }
       };
-    } else if (lastfmNowPlaying === false) {
+      // if playing and image is available by lastfm
+    } else if (lastfmNowPlaying && lastfmData.recenttracks.track[0].image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
+      const lowQualityArt = lastfmData.recenttracks.track[0].image[2]['#text'];
+      const highQualityArt = lastfmData.recenttracks.track[0].image[3]['#text'];
+      
+      return {
+        isPlaying: true,
+        name: name ? name : null,
+        artist: artist ? artist : null,
+        art: {
+          high: highQualityArt ? highQualityArt : null,
+          low: lowQualityArt ? lowQualityArt : null,
+        }
+      };
+      // if not playing and image is not available by lastfm
+    } else if (!lastfmNowPlaying && lastfmData.recenttracks.track[0].image[3]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
       const spotifyResponse = await axios.get(`https://api.spotify.com/v1/search?q=track:${namePrev} artist:${artistPrev}&type=track`, {
         headers: {
           Authorization: `Bearer ${spotifyToken.accessToken}`,
@@ -203,7 +211,6 @@ async function getNowPlaying() {
       });
 
       const spotifyData = spotifyResponse.data.tracks.items[0];
-      const spotifyURL = spotifyData.external_urls.spotify;
       const spotifyName = spotifyData.name;
       const spotifyArtist = spotifyData.artists[0].name;
       const spotifyArtHigh = spotifyData.album.images[0].url;
@@ -216,11 +223,23 @@ async function getNowPlaying() {
         art: {
           high: spotifyArtHigh ? spotifyArtHigh : null,
           low: spotifyArtLow ? spotifyArtLow : null,
-        },
-        url: spotifyURL ? spotifyURL : null,
+        }
+      };
+      // if not playing and image is available by lastfm
+    } else if (!lastfmNowPlaying && lastfmData.recenttracks.track[0].image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
+      const lowQualityArt = lastfmData.recenttracks.track[0].image[3]['#text'];
+      const highQualityArt = lastfmData.recenttracks.track[0].image[3]['#text'];
+
+      return {
+        isPlaying: false,
+        name: namePrev ? namePrev : null,
+        artist: artistPrev ? artistPrev : null,
+        art: {
+          high: highQualityArt ? highQualityArt : null,
+          low: lowQualityArt ? lowQualityArt : null,
+        }
       };
     }
-
   } catch (error) {
     if (error.response && error.response.status === 401) {
       refreshSpotifyAccessToken();

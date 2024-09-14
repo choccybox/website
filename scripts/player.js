@@ -25,13 +25,9 @@ function fetchAndDisplayTime() {
             } if (data.art === null) {
                 document.getElementById("player_image").src = "../styles/spong.webp";
                 document.getElementById("player_timeline").style.display = "none";
-                document.getElementById("player_link").style.cursor = "default";
-
             } else {
                 document.getElementById("player_image").src = data.art.high;
             }
-
-            document.getElementById("player_link").href = data.url;
             document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
         });
 }
