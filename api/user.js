@@ -154,16 +154,13 @@ userinfo.get('/user', async (req, res) => {
       // Insert the mock last.fm
       const hasLastfmConnection = filteredConnections.some(connection => connection.type === 'lastfm');
       // Simplify connections to id, name, type, and visibility with added "url" field
-      const simplifiedConnections = filteredConnections.slice(0, 4).map(connection => {
+      const simplifiedConnections = filteredConnections.slice(0, 10).map(connection => {
         let url;
         const baseHTTPS = "https://";
         
         switch (connection.type) {
           case 'domain':
             url = `${baseHTTPS}${connection.name}`;
-            break;
-          case 'spotify':
-            url = `${baseHTTPS}open.spotify.com/user/${connection.id}`;
             break;
           case 'steam':
             url = `${baseHTTPS}steamcommunity.com/profiles/${connection.id}`;
@@ -175,6 +172,9 @@ userinfo.get('/user', async (req, res) => {
             url = `${baseHTTPS}tiktok.com/@${connection.name}`;
             break;
           case 'riotgames':
+            break;
+          case 'roblox':
+            url = `${baseHTTPS}roblox.com/users/${connection.id}/profile`;
             break;
           default:
             url = `${baseHTTPS}${connection.type}.com/${connection.name}`;
@@ -191,7 +191,7 @@ userinfo.get('/user', async (req, res) => {
 
       // custom sort connections
       simplifiedConnections.sort((a, b) => {
-        const typeOrder = ['twitter', 'tiktok', 'lastfm', 'github', 'steam'];
+        const typeOrder = ['twitter', 'tiktok', 'roblox', 'youtube', 'github', 'steam'];
         return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type);
       });
   
@@ -214,7 +214,6 @@ userinfo.get('/user', async (req, res) => {
           },
           avatarCredit: `https://twitter.com/${avatarCredit}`,
           avatarCreditText: avatarCredit,
-          userUrl: `https://discord.com/users/${userResponse.data.id}`,
           connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
         };
         // Send the response inside the try block

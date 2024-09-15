@@ -2,7 +2,7 @@
 fetch("/user")
     .then(response => response.json())
     .then(data => {
-        var socialHolder = document.getElementById("main_bottom");
+        var socialHolder = document.getElementById("main_bottom_scrollable");
 
         // create social buttons
         for (var i = 0; i < data.connections.length; i++) {

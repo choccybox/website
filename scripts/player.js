@@ -1,6 +1,6 @@
 let isPlaying = false;
 
-function fetchAndDisplayTime() {
+function player() {
     fetch('/player')
         .then(response => response.json())
         .then(data => {
@@ -21,17 +21,17 @@ function fetchAndDisplayTime() {
 
             // if user is on mobile, set the avatar to the mobile avatar
             if (isMobile && isCellular) {
-                document.getElementById("player_image").src = data.art.low;
+                document.getElementById("player_image").src = data.image.low;
             } if (data.art === null) {
                 document.getElementById("player_image").src = "../styles/spong.webp";
                 document.getElementById("player_timeline").style.display = "none";
             } else {
-                document.getElementById("player_image").src = data.art.high;
+                document.getElementById("player_image").src = data.image.high;
             }
             document.getElementById("player_title").innerHTML = data.name + " • " + data.artist;
         });
 }
 
-fetchAndDisplayTime();
-setInterval(fetchAndDisplayTime, 30000);
+player();
+setInterval(player, 30000);
 

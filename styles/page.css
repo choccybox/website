@@ -66,6 +66,17 @@ body {
     scrollbar-width: none;
  }
 
+ #main_bottom_scrollable {
+    position: absolute;
+    bottom: 0px;
+    display: flex;
+    border-radius: var(--radius);
+    width: calc(100% - 155px);
+    scrollbar-width: none;
+    overflow: scroll;
+    gap: 10px;
+ }
+
  #socials {
     height: fit-content;
     width: calc(100% - 155px);
@@ -74,7 +85,6 @@ body {
  }
 
 .social_button {
-    margin-right: 10px;
     width: 135px;
     height: 135px;
 }
@@ -154,6 +164,11 @@ body {
 
 #more_about:hover #more_about_popup {
     display: block;
+}
+
+#moreabout {
+    position: fixed;
+    margin-left: calc(100% - 155px);
 }
 
 #moreabout_transition_top {
@@ -240,9 +255,6 @@ body {
 
 #player:hover #player_timeline {
     display: block;
-}
-#player_timeline {
-    background-color: #ff0000;
 }
 #avatar:hover #avatar_credit {
     display: block;
