@@ -11,12 +11,27 @@
   #main_bottom {
     position: relative !important;
     width: 135px !important;
-    max-height: 860px !important;
+    max-height: 870px !important;
     overflow-y: scroll !important;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 0px;
+    margin-left: 0px !important;
+  }
+  #main_bottom_scrollable {
+    position: relative !important;
+    width: 135px !important;
+    max-height: 715px !important;
+    overflow-y: scroll !important;
+    display: flex;
+    flex-wrap: wrap;
+    top: 10px;
+    gap: 10px;
+    margin-left: 0px !important;
+  }
+  #moreabout {
+    margin-top: calc(100% + 280px) !important;
     margin-left: 0px !important;
   }
   .social_button {
@@ -98,13 +113,28 @@
   #main_bottom {
     position: relative !important;
     width: 85px !important;
-    max-height: 560px !important;
+    max-height: 570px !important;
     overflow-y: scroll !important;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     margin-left: 0px !important;
-    margin-top: 10px;
+    margin-top: 0px;
+  }
+  #main_bottom_scrollable {
+    position: relative !important;
+    width: 135px !important;
+    max-height: 465px !important;
+    overflow-y: scroll !important;
+    display: flex;
+    flex-wrap: wrap;
+    top: 10px;
+    gap: 10px;
+    margin-left: 0px !important;
+  }
+  #moreabout {
+    margin-top: calc(100% + 180px) !important;
+    margin-left: 0px !important;
   }
   #main_content {
     max-height: calc(100% - 40px) !important;

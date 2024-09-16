@@ -296,16 +296,16 @@
 <script>
     var scrollable = document.getElementById('main_bottom_scrollable');
     var scrollAmount = 145;
+    var scrollAmount2 = 95;
 
     scrollable.addEventListener('wheel', function(event) {
         event.preventDefault();
-        scrollable.scrollLeft += event.deltaY > 0 ? scrollAmount : -scrollAmount;
-    });
-
-    window.addEventListener('load', function() {
-        var lastfmLink = document.querySelector('a[href="https://www.last.fm/user/choccymilku"]');
-        if (lastfmLink) {
-            lastfmLink.style.marginRight = '-10px';
+        if (window.innerWidth < 926 && window.innerWidth > 486) {
+            scrollable.scrollTop += event.deltaY > 0 ? scrollAmount : -scrollAmount;
+        } else if (window.innerWidth < 486) {
+            scrollable.scrollTop += event.deltaY > 0 ? scrollAmount2 : -scrollAmount2;
+        } else {
+            scrollable.scrollLeft += event.deltaY > 0 ? scrollAmount : -scrollAmount;
         }
     });
 </script>
