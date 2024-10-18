@@ -72,7 +72,7 @@
     margin-bottom: 0px !important;
   }
   #player_timeline {
-    margin-top: -322px !important;
+    margin-top: -332px !important;
   }
   .popup {
     margin-top: 10px;
@@ -159,7 +159,7 @@
     width: 160px !important;
   }
   #player_timeline {
-    margin-top: -212px !important;
+    margin-top: -222px !important;
   }
   .popup {
     height: 22px !important;
@@ -170,9 +170,6 @@
   }
   #avatar_credit_link {
     font-size: 0.9rem !important;
-  }
-  #player_title { 
-    margin-top: -30px !important;
   }
   .panel:last-child {
     margin: 0px !important;
