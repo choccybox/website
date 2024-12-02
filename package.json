@@ -19,6 +19,5 @@
     "querystring": "^0.2.1",
     "sharp": "^0.33.2"
   },
-  "devDependencies": {},
   "description": ""
 }

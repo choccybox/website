@@ -162,9 +162,6 @@ async function getNowPlaying() {
     const artist = lastfmTrack.artist['#text'];
     const namePrev = lastfmPrevTrack.name;
     const artistPrev = lastfmPrevTrack.artist['#text'];
-    const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/spotify.json'), 'utf8'));
-    const soundcloudToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/soundcloud.json'), 'utf8'));
- /*    console.log(lastfmResponse); */
   
     // If the track is currently playing and has an image or is not a default image, use last.fm
     if (lastfmNowPlaying && lastfmTrack.image[3]['#text'] !== '' && lastfmTrack.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
@@ -180,65 +177,30 @@ async function getNowPlaying() {
       }
       // If the track is currently playing but has no image OR is a default image, use either spotify or soundcloud
     } else if (lastfmNowPlaying && lastfmTrack.image[3]['#text'] === '' || lastfmTrack.image[3]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
-      try {
-        const spotifyResponse = await axios.get(`https://api.spotify.com/v1/search?q=track:${name} artist:${artist}&type=track&limit=3`, {
-          headers: {
-            Authorization: `Bearer ${spotifyToken.accessToken}`,
-          },
-        });
-        console.log('using spotify');
-        const spotifyData = spotifyResponse.data;
-        const artLow = spotifyData.tracks.items[0].album.images[2].url;
-        const artHigh = spotifyData.tracks.items[0].album.images[0].url;
-
-        return {
-          isPlaying: true,
-          name: name,
-          artist: artist,
-          image: {
-            low: artLow,
-            high: artHigh,
-          },
-          source: 'spotify'
+      // combine name and artist for search query, replace spaces with %20
+      const albumSearchComb = `${name.replace(/ /g, '%20')}%20${artist.replace(/ /g, '%20')}`;
+      const lastFMsearch = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=album.search&album=${albumSearchComb}&api_key=${process.env.LASTFM_API_KEY}&format=json`);
+      // go through each entry, and find image that is not default or empty
+      for (let i = 0; i < lastFMsearch.data.results.albummatches.album.length; i++) {
+        const album = lastFMsearch.data.results.albummatches.album[i];
+        // console log all the images
+        console.log(album.image[3]['#text']);
+        if (album.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
+          const artLow = album.image[2]['#text'];
+          const artHigh = album.image[3]['#text'];
+          const source = 'lastfm';
+          return {
+            isPlaying: true,
+            name: name,
+            artist: artist,
+            image: {
+              low: artLow,
+              high: artHigh,
+            },
+            source
+          };
         }
-        // if spotify fails to find a track, use soundcloud
-        } catch (error) {
-          console.error('couldnt get track from spotify, using soundcloud');
-          try {
-            const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${name}&limit=2&offset=0&linked_partitioning=true`, {
-              headers: {
-                Authorization: `Bearer ${soundcloudToken.accessToken}`,
-              },
-            });
-            console.log('using soundcloud');
-            const soundcloudData = soundcloudResponse.data;
-            const artLow = soundcloudData.collection[0].artwork_url.replace('large', 't140x140');
-            const artHigh = soundcloudData.collection[0].artwork_url.replace('large', 't300x300');
-  
-            return {
-              isPlaying: true,
-              name: name,
-              artist: artist,
-              image: {
-                low: artLow,
-                high: artHigh,
-              },
-              source: 'soundcloud'
-            }
-          } catch (error) {
-            console.error('song not found on soundcloud, using last.fm');
-            return {
-              isPlaying: true,
-              name: name,
-              artist: artist,
-              image: {
-                low: lastfmTrack.image[2]['#text'],
-                high: lastfmTrack.image[3]['#text'],
-              },
-              source: 'lastfm'
-            }
-          }
-        }
+      }
     } else if (!lastfmNowPlaying && lastfmPrevTrack.image[3]['#text'] !== '' && lastfmPrevTrack.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
       return {
         isPlaying: false,
@@ -251,65 +213,30 @@ async function getNowPlaying() {
         source: 'lastfm'
       }
     } else if (!lastfmNowPlaying && lastfmPrevTrack.image[3]['#text'] === '' || lastfmPrevTrack.image[3]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
-      try {
-        const spotifyResponse = await axios.get(`https://api.spotify.com/v1/search?q=track:${namePrev} artist:${artistPrev}&type=track&limit=3`, {
-          headers: {
-            Authorization: `Bearer ${spotifyToken.accessToken}`,
-          },
-        });
-        console.log('using spotify');
-        const spotifyData = spotifyResponse.data;
-        const artLow = spotifyData.tracks.items[0].album.images[2].url;
-        const artHigh = spotifyData.tracks.items[0].album.images[0].url;
-
-        return {
-          isPlaying: false,
-          name: namePrev,
-          artist: artistPrev,
-          image: {
-            low: artLow,
-            high: artHigh,
-          },
-          source: 'spotify'
+      // combine name and artist for search query, replace spaces with %20
+      const albumSearchComb = `${namePrev.replace(/ /g, '%20')}%20${artistPrev.replace(/ /g, '%20')}`;
+      const lastFMsearch = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=album.search&album=${albumSearchComb}&api_key=${process.env.LASTFM_API_KEY}&format=json`);
+      // go through each entry, and find image that is not default or empty
+      for (let i = 0; i < lastFMsearch.data.results.albummatches.album.length; i++) {
+        const album = lastFMsearch.data.results.albummatches.album[i];
+        // console log all the images
+        console.log(album.image[3]['#text']);
+        if (album.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
+          const artLow = album.image[2]['#text'];
+          const artHigh = album.image[3]['#text'];
+          const source = 'lastfm';
+          return {
+            isPlaying: false,
+            name: namePrev,
+            artist: artistPrev,
+            image: {
+              low: artLow,
+              high: artHigh,
+            },
+            source
+          };
         }
-        // if spotify fails to find a track, use soundcloud
-        } catch (error) {
-          console.error('couldnt get track from spotify, using soundcloud');
-          try {
-            const soundcloudResponse = await axios.get(`https://api.soundcloud.com/tracks?q=${namePrev}&limit=2&offset=0&linked_partitioning=true`, {
-              headers: {
-                Authorization: `Bearer ${soundcloudToken.accessToken}`,
-              },
-            });
-            console.log('using soundcloud');
-            const soundcloudData = soundcloudResponse.data;
-            const artLow = soundcloudData.collection[0].artwork_url.replace('large', 't140x140');
-            const artHigh = soundcloudData.collection[0].artwork_url.replace('large', 't300x300');
-  
-            return {
-              isPlaying: false,
-              name: namePrev,
-              artist: artistPrev,
-              image: {
-                low: artLow,
-                high: artHigh,
-              },
-              source: 'soundcloud'
-            }
-          } catch (error) {
-            console.error('song not found on soundcloud, using last.fm');
-            return {
-              isPlaying: false,
-              name: namePrev,
-              artist: artistPrev,
-              image: {
-                low: lastfmPrevTrack.image[2]['#text'],
-                high: lastfmPrevTrack.image[3]['#text'],
-              },
-              source: 'lastfm'
-            }
-          }
-        }
+      }
     }
 
 }

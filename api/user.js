@@ -188,6 +188,7 @@ userinfo.get('/user', async (req, res) => {
       });
   
       const originalavatarimg = `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.webp?size=1024`;
+      const discordUsername = userResponse.data.username;
 
       // custom sort connections
       simplifiedConnections.sort((a, b) => {
@@ -212,8 +213,8 @@ userinfo.get('/user', async (req, res) => {
             low: `data:image/webp;base64,${lowresizedavatarimg.toString('base64')}`,
             original: originalavatarimg,
           },
-          avatarCredit: `https://twitter.com/${avatarCredit}`,
-          avatarCreditText: avatarCredit,
+          avatarCredit: ``,
+          avatarCreditText: `discord is ${discordUsername}`,
           connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
         };
         // Send the response inside the try block

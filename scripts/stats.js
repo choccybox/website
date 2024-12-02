@@ -54,25 +54,25 @@ if (!isDataFetched) {
         };
 
         // Loop through data.lastfm.recentTracks
-        const topAlbumsHTML = data.lastfm.topAlbums.map(track => generateItemHTML(track, 'lastfm_track'));
+        const topAlbumsHTML = data.topAlbums.map(track => generateItemHTML(track, 'lastfm_track'));
         topAlbumsHolder.append(...topAlbumsHTML);
 
         // Loop through data.lastfm.topArtists
-        const topArtistsHTML = data.lastfm.topArtists.map(artist => generateItemHTML(artist, 'lastfm_track'));
+        const topArtistsHTML = data.topArtists.map(artist => generateItemHTML(artist, 'lastfm_track'));
         topArtistHolder.append(...topArtistsHTML);
 
         // Loop through data.lastfm.topSongs
-        const topSongsHTML = data.lastfm.topTracks.map(song => generateItemHTML(song, 'lastfm_track'));
+        const topSongsHTML = data.topTracks.map(song => generateItemHTML(song, 'lastfm_track'));
         topTracksHolder.append(...topSongsHTML);
 
         // get the total plays from userInfo and display it into id lastfminfo1
         const infoElements = [];
         for (let i = 0; i < 5; i++) {
-            infoElements.push({ id: `lastfminfo${i+1}`, key: Object.keys(data.lastfm.userInfo)[i] });
+            infoElements.push({ id: `lastfminfo${i+1}`, key: Object.keys(data.userInfo)[i] });
         }
 
         infoElements.forEach(element => {
-            const value = data.lastfm.userInfo[element.key];
+            const value = data.userInfo[element.key];
             const label = element.key.replace(/^total_/, '');
             document.getElementById(element.id).innerHTML = `<div id="social_button" class="social_button" style="display: block;"><div class="icon_holder"><p style="text-align:center">${value} ${label}</p></div></div>`;
         });

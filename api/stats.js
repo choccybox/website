@@ -8,49 +8,29 @@ const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
 const PORT = 20004;
 
-let cachedData = null;
 let cacheExpiration = null;
 
 stats.get('/stats', async (req, res) => {
-  try {
-    if (cachedData && cacheExpiration && Date.now() < cacheExpiration) {
-      // Return cached data if it exists and has not expired
-      res.json(cachedData);
-    } else {
-      const lastFMAlbums = await axios.get('https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums', {
-        params: {
-          user: process.env.LASTFM_USERNAME,
-          api_key: process.env.LASTFM_API_KEY,
-          period: 'overall',
-          format: 'json',
-        },
-      });
+  // check lastfm.json file and compare the cacheExpiration time to the current time
+  if (fs.existsSync(path.resolve(__dirname, 'lastfm.json'))) {
+    const lastFMOrganized = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'lastfm.json')));
+    console.log('cacheExpiration:', lastFMOrganized.cacheExpiration);
+    console.log('current time:', parseInt(Date.now(), 10));
+    if (parseInt(lastFMOrganized.cacheExpiration, 10) > Date.now()) {
+      // if the cache is still valid, return the cached data
+      return res.json(lastFMOrganized);
+    }
+  }
+    try {
+      const lastFMAlbums = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&period=overall&format=json`);
 
-      const lastFMArtists = await axios.get('https://ws.audioscrobbler.com/2.0/?method=user.gettopartists', {
-        params: {
-          user: process.env.LASTFM_USERNAME,
-          api_key: process.env.LASTFM_API_KEY,
-          period: 'overall',
-          format: 'json',
-        },
-      });
+      const lastFMArtists = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&period=overall&format=json`);
 
-      const lastFMTracks = await axios.get('https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks', {
-        params: {
-          user: process.env.LASTFM_USERNAME,
-          api_key: process.env.LASTFM_API_KEY,
-          period: 'overall',
-          format: 'json',
-        },
-      });
+      const lastFMTracks = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&period=overall&format=json`);
 
-      const lastFMInfo = await axios.get('https://ws.audioscrobbler.com/2.0/?method=user.getinfo', {
-        params: {
-          user: process.env.LASTFM_USERNAME,
-          api_key: process.env.LASTFM_API_KEY,
-          format: 'json',
-        },
-      });
+      const lastFMInfo = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json`);
+
+      const lastFMRecent = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&limit=1`);
 
       let totalPlaytime = 0;
       let totalTracks = 0;
@@ -58,15 +38,7 @@ stats.get('/stats', async (req, res) => {
       let totalPages = 1;
 
       while (page <= totalPages) {
-        const response = await axios.get('https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks', {
-          params: {
-        user: process.env.LASTFM_USERNAME,
-        api_key: process.env.LASTFM_API_KEY,
-        format: 'json',
-        page: page,
-        limit: 1000,
-          },
-        });
+        const response = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${process.env.LASTFM_USERNAME}&api_key=${process.env.LASTFM_API_KEY}&format=json&page=${page}&limit=1000`);
 
         // once we get @attr, get total and remove 1000 from it to get the next limits, divide into max of 1000
         if (page === 1) {
@@ -78,80 +50,13 @@ stats.get('/stats', async (req, res) => {
           totalTracks++;
           if (parseInt(track.duration, 10) !== 0) {
             totalPlaytime += parseInt(track.duration, 10) * parseInt(track.playcount, 10);
-            // console.log(`Duration of ${track.name}: ${parseInt(track.duration, 10)} seconds, totalling to ${parseInt(track.duration, 10) * parseInt(track.playcount, 10)} seconds`);
           }
         }
-
-        // this all totals to the total playtime
-        // console.log(`Total playtime: ${totalPlaytime} seconds`);
-
+        
         page++;
       }
 
-      function spotifySearchSong(track) {
-        const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/spotify.json'), 'utf8'));
-        const spotifyAccessToken = spotifyToken.accessToken;
-
-        return axios.get('https://api.spotify.com/v1/search', {
-          params: {
-            q: 'track:' + track.name + ' artist:' + track.artist,
-            type: 'track',
-            limit: 1,
-          },
-          headers: {
-            Authorization: `Bearer ${spotifyAccessToken}`,
-          },
-        })
-          .then(response => {
-            if (response.data.tracks.items.length > 0) {
-              return {
-                url: response.data.tracks.items[0].external_urls.spotify,
-                imageHigh: response.data.tracks.items[0].album.images[0].url,  // Adjusted indices to get high and low resolution images
-                imageLow: response.data.tracks.items[0].album.images[2].url,
-              };
-            } else {
-              return null;
-            }
-          })
-          .catch(error => {
-            console.error('Error during Spotify search:', error);
-            return null;
-          });
-      }
-
-      function spotifySearchArtist(artist) {
-        const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/spotify.json'), 'utf8'));
-        const spotifyAccessToken = spotifyToken.accessToken;
-
-        return axios.get('https://api.spotify.com/v1/search', {
-          params: {
-            q: 'artist:' + artist.name,
-            type: 'artist',
-            limit: 1,
-          },
-          headers: {
-            Authorization: `Bearer ${spotifyAccessToken}`,
-          },
-        })
-          .then(response => {
-            if (response.data.artists.items.length > 0) {
-              return {
-                url: response.data.artists.items[0].external_urls.spotify,
-                imageHigh: response.data.artists.items[0].images[0].url,  // Adjusted indices to get high and low resolution images
-                imageLow: response.data.artists.items[0].images[2].url,
-              };
-            } else {
-              return null;
-            }
-          })
-          .catch(error => {
-            console.error('Error during Spotify search:', error);
-            return null;
-          });
-      }
-
       const limit = 20;
-
       const lastFMOrganized = {
 
         topAlbums: lastFMAlbums.data.topalbums.album
@@ -198,59 +103,22 @@ stats.get('/stats', async (req, res) => {
         },
       };
 
-      async function updateTopTracksWithSpotify() {
-        for (const track of lastFMOrganized.topTracks) {
-          const spotifyData = await spotifySearchSong(track);
-          if (spotifyData) {
-            track.imageHigh = spotifyData.imageHigh;
-            track.imageLow = spotifyData.imageLow;
-            track.url = spotifyData.url;
-          }
-        }
-      }
-
-      async function updateTopArtistsWithSpotify() {
-        for (const artist of lastFMOrganized.topArtists) {
-          const spotifyData = await spotifySearchArtist(artist);
-          if (spotifyData) {
-            artist.imageHigh = spotifyData.imageHigh;
-            artist.imageLow = spotifyData.imageLow;
-            artist.url = spotifyData.url;
-          }
-        }
-      }
-
-      async function updateTopAlbumsWithSpotify() {
-        for (const track of lastFMOrganized.topAlbums) {
-          const spotifyData = await spotifySearchSong(track);
-          if (spotifyData) {
-            track.imageHigh = spotifyData.imageHigh;
-            track.imageLow = spotifyData.imageLow;
-            track.url = spotifyData.url;
-          }
-        }
-      }
-
-      // Update recentTracks, topTracks, and topArtists with Spotify data
-      await updateTopTracksWithSpotify();
-      await updateTopArtistsWithSpotify();
-      await updateTopAlbumsWithSpotify();
-      // console.log('Updated track and artist information with Spotify data:', {
-        // recentTracks: lastFMOrganized.recentTracks,
-        // topTracks: lastFMOrganized.topTracks,
-        // topArtists: lastFMOrganized.topArtists,
-      // });
-
-      // Cache the data and set the expiration time to 24 hours
-      cachedData = {
-        lastfm: lastFMOrganized,
-        cached_at: Date.now(),
-        isCached: true,
+      console.log('first track:', lastFMRecent.data.recenttracks.track[0].name, 'by', lastFMRecent.data.recenttracks.track[0].artist['#text']);
+      console.log('total playtime', totalPlaytime);
+      // save all of this info (lastFMOrganized, first track, total playtime) to a file
+      lastFMOrganized.cacheExpiration = cacheExpiration;
+      lastFMOrganized.firstTrack = {
+        updateTime: new Date().toISOString(),
+        name: lastFMRecent.data.recenttracks.track[0].name,
+        artist: lastFMRecent.data.recenttracks.track[0].artist['#text'],
       };
+
+      lastFMOrganized.totalPlaytime = convertToHuman(totalPlaytime);
+      fs.writeFileSync(path.resolve(__dirname, 'lastfm.json'), JSON.stringify(lastFMOrganized, null, 2));
+
       cacheExpiration = Date.now() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
-      console.log('data will be refetched in 24 hours');
-      res.json(cachedData);
-    }
+      console.log('cacheExpiration:', cacheExpiration);
+      res.json(lastFMOrganized);
   } catch (error) {
     console.error('Error during data fetch:', error);
     res.status(500).send('Error during data fetch.');
