@@ -4,6 +4,7 @@ const stats = express();
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
+const cheerio = require('cheerio');
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
 const PORT = 20004;
@@ -12,8 +13,8 @@ let cacheExpiration = null;
 
 stats.get('/stats', async (req, res) => {
   // check lastfm.json file and compare the cacheExpiration time to the current time
-  if (fs.existsSync(path.resolve(__dirname, 'lastfm.json'))) {
-    const lastFMOrganized = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'lastfm.json')));
+  if (fs.existsSync(path.resolve(__dirname, './tokens/lastfm.json'))) {
+    const lastFMOrganized = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/lastfm.json')));
     console.log('cacheExpiration:', lastFMOrganized.cacheExpiration);
     console.log('current time:', parseInt(Date.now(), 10));
     if (parseInt(lastFMOrganized.cacheExpiration, 10) > Date.now()) {
@@ -57,42 +58,36 @@ stats.get('/stats', async (req, res) => {
       }
 
       const limit = 20;
+
       const lastFMOrganized = {
+          topAlbums: lastFMAlbums.data.topalbums.album.slice(0, limit).map(album => ({
+                name: album.name,
+                artist: album.artist.name,
+                imageHigh: album.image[3]['#text'],
+                imageLow: album.image[2]['#text'],
+                url: album.url,
+                playcount: album.playcount,
+                rank: album['@attr'].rank,
+          })),
 
-        topAlbums: lastFMAlbums.data.topalbums.album
-          .map(album => ({
-            name: album.name,
-            artist: album.artist.name,
-            imageHigh: album.image[3]['#text'],
-            imageLow: album.image[2]['#text'],
-            url: album.url,
-            playcount: album.playcount,
-            rank: album['@attr'].rank,
-          }))
-          .slice(0, limit),
+          topArtists: lastFMArtists.data.topartists.artist.slice(0, limit).map(artist => ({
+              name: artist.name,
+              imageHigh: artist.image[3]['#text'],
+              imageLow: artist.image[2]['#text'],
+              url: artist.url,
+              playcount: artist.playcount,
+              rank: artist['@attr'].rank,
+          })),
 
-        topArtists: lastFMArtists.data.topartists.artist
-          .map(artist => ({
-            name: artist.name,
-            imageHigh: artist.image[3]['#text'],
-            imageLow: artist.image[2]['#text'],
-            url: artist.url,
-            playcount: artist.playcount,
-            rank: artist['@attr'].rank,
-          }))
-          .slice(0, limit),
-
-        topTracks: lastFMTracks.data.toptracks.track
-          .map(track => ({
-            name: track.name,
-            artist: track.artist.name,
-            imageHigh: track.image[3]['#text'],
-            imageLow: track.image[2]['#text'],
-            url: track.url,
-            playcount: track.playcount,
-            rank: track['@attr'].rank,
-          }))
-          .slice(0, limit),
+          topTracks: lastFMTracks.data.toptracks.track.slice(0, limit).map(track => ({
+              name: track.name,
+              artist: track.artist.name,
+              imageHigh: track.image[3]['#text'],
+              imageLow: track.image[2]['#text'],
+              url: track.url,
+              playcount: track.playcount,
+              rank: track['@attr'].rank,
+          })),
 
         userInfo: {
           total_plays: lastFMInfo.data.user.playcount,
@@ -114,7 +109,7 @@ stats.get('/stats', async (req, res) => {
       };
 
       lastFMOrganized.totalPlaytime = convertToHuman(totalPlaytime);
-      fs.writeFileSync(path.resolve(__dirname, 'lastfm.json'), JSON.stringify(lastFMOrganized, null, 2));
+      fs.writeFileSync(path.resolve(__dirname, './tokens/lastfm.json'), JSON.stringify(lastFMOrganized, null, 2));
 
       cacheExpiration = Date.now() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
       console.log('cacheExpiration:', cacheExpiration);

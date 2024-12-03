@@ -32,7 +32,7 @@ function saveSoundcloudToken(soundcloudAccessToken, soundcloudRefreshToken) {
   fs.writeFileSync(path.resolve(__dirname, './tokens/soundcloud.json'), JSON.stringify(tokens, null, 2), 'utf8');
 }
 
-player.get('/playerauth', (req, res) => {
+/* player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: process.env.SPOTIFY_CLIENT_ID,
@@ -140,7 +140,7 @@ player.get('/soundcallback', async (req, res) => {
     console.error('Error exchanging code for token:', error.message);
     res.status(500).send('Error during authentication');
   }
-});
+}); */
 
 player.get('/player', async (req, res) => {
   try {
@@ -184,7 +184,6 @@ async function getNowPlaying() {
       for (let i = 0; i < lastFMsearch.data.results.albummatches.album.length; i++) {
         const album = lastFMsearch.data.results.albummatches.album[i];
         // console log all the images
-        console.log(album.image[3]['#text']);
         if (album.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
           const artLow = album.image[2]['#text'];
           const artHigh = album.image[3]['#text'];
@@ -220,7 +219,6 @@ async function getNowPlaying() {
       for (let i = 0; i < lastFMsearch.data.results.albummatches.album.length; i++) {
         const album = lastFMsearch.data.results.albummatches.album[i];
         // console log all the images
-        console.log(album.image[3]['#text']);
         if (album.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
           const artLow = album.image[2]['#text'];
           const artHigh = album.image[3]['#text'];

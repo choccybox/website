@@ -1,0 +1,302 @@
+{
+  "topAlbums": [
+    {
+      "name": "we had good times together, don't forget that",
+      "artist": "Sewerslvt",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/c04b2abd0f8ae72b1ccdcdc37459050c.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/c04b2abd0f8ae72b1ccdcdc37459050c.png",
+      "url": "https://www.last.fm/music/Sewerslvt/we+had+good+times+together,+don%27t+forget+that",
+      "playcount": "1480",
+      "rank": "1"
+    },
+    {
+      "name": "Lines of Death",
+      "artist": "Avit",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2e321cbfa4dd9769db67eb175636e523.jpg",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2e321cbfa4dd9769db67eb175636e523.jpg",
+      "url": "https://www.last.fm/music/Avit/Lines+of+Death",
+      "playcount": "659",
+      "rank": "2"
+    },
+    {
+      "name": "Before Your Eyes (Original Soundtrack)",
+      "artist": "Oliver Lewin",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/66d5d6703a8fd2838dc9596bf3136cc5.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/66d5d6703a8fd2838dc9596bf3136cc5.png",
+      "url": "https://www.last.fm/music/Oliver+Lewin/Before+Your+Eyes+(Original+Soundtrack)",
+      "playcount": "510",
+      "rank": "3"
+    },
+    {
+      "name": "Skitzofrenia Simulation",
+      "artist": "Sewerslvt",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/613d38b236d948bfe5bc9706e2267921.jpg",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/613d38b236d948bfe5bc9706e2267921.jpg",
+      "url": "https://www.last.fm/music/Sewerslvt/Skitzofrenia+Simulation",
+      "playcount": "476",
+      "rank": "4"
+    },
+    {
+      "name": "U.U.F.O.",
+      "artist": "Camellia",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/f125c24dcdc2546cbad815b06cde04b7.jpg",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/f125c24dcdc2546cbad815b06cde04b7.jpg",
+      "url": "https://www.last.fm/music/Camellia/U.U.F.O.",
+      "playcount": "461",
+      "rank": "5"
+    },
+    {
+      "name": "A Place Where Mountains Hide",
+      "artist": "acloudyskye",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/e0d44603ec8ac29cd0a81739e73e34cc.jpg",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/e0d44603ec8ac29cd0a81739e73e34cc.jpg",
+      "url": "https://www.last.fm/music/acloudyskye/A+Place+Where+Mountains+Hide",
+      "playcount": "449",
+      "rank": "6"
+    },
+    {
+      "name": "Blood Rushing Like Current Through a Powerline",
+      "artist": "acloudyskye",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/282a5fa00b3f7cf73a4acb6e66709d5e.jpg",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/282a5fa00b3f7cf73a4acb6e66709d5e.jpg",
+      "url": "https://www.last.fm/music/acloudyskye/Blood+Rushing+Like+Current+Through+a+Powerline",
+      "playcount": "435",
+      "rank": "7"
+    },
+    {
+      "name": "fur:core VII (puppy radio 24/7)",
+      "artist": "fur:trash",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/10685eb4d2ae21b5f3dc155f18aaee79.jpg",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/10685eb4d2ae21b5f3dc155f18aaee79.jpg",
+      "url": "https://www.last.fm/music/fur:trash/fur:core+VII+(puppy+radio+24%2F7)",
+      "playcount": "397",
+      "rank": "8"
+    },
+    {
+      "name": "The World Is Fvcked",
+      "artist": "Sewerslvt",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/70b2eab12468e64ce84ace5b26c4b018.jpg",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/70b2eab12468e64ce84ace5b26c4b018.jpg",
+      "url": "https://www.last.fm/music/Sewerslvt/The+World+Is+Fvcked",
+      "playcount": "392",
+      "rank": "9"
+    },
+    {
+      "name": "What Do You Want!",
+      "artist": "acloudyskye",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/faa853928b84fa0af4d86af84cc0b8e3.jpg",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/faa853928b84fa0af4d86af84cc0b8e3.jpg",
+      "url": "https://www.last.fm/music/acloudyskye/What+Do+You+Want!",
+      "playcount": "351",
+      "rank": "10"
+    }
+  ],
+  "topArtists": [
+    {
+      "name": "Sewerslvt",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Sewerslvt",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/91515503cda413384d914249c9166027.jpg",
+      "playcount": "3143",
+      "rank": "1"
+    },
+    {
+      "name": "acloudyskye",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/acloudyskye",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/c3bf3d172ccb70a350f2190875359931.jpg",
+      "playcount": "2303",
+      "rank": "2"
+    },
+    {
+      "name": "Øneheart",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/%C3%98neheart",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/2360bd9e92e4cf59ce7ad59fd0ef56e2.jpg",
+      "playcount": "1969",
+      "rank": "3"
+    },
+    {
+      "name": "fur:trash",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/fur:trash",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/8d1fb6e030dd6cdbf103ae7bc64c5084.jpg",
+      "playcount": "1937",
+      "rank": "4"
+    },
+    {
+      "name": "Camellia",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Camellia",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/46a0ef5b2d53c31a3767b2ac274efa08.jpg",
+      "playcount": "1825",
+      "rank": "5"
+    },
+    {
+      "name": "femtanyl",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/femtanyl",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/139e2ca9cef73e747b18118da740fd52.jpg",
+      "playcount": "910",
+      "rank": "6"
+    },
+    {
+      "name": "Avit",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Avit",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/81693c74116c564c445266d90ceb2f26.jpg",
+      "playcount": "860",
+      "rank": "7"
+    },
+    {
+      "name": "nicopatty",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/nicopatty",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/0bf418d790038523e345093505fdcb7e.jpg",
+      "playcount": "700",
+      "rank": "8"
+    },
+    {
+      "name": "FlyingFish",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/FlyingFish",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/af64c6441cd3481c82e2d8568a6dafdf.jpg",
+      "playcount": "699",
+      "rank": "9"
+    },
+    {
+      "name": "Astrophysics & Murrumur",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Astrophysics+&+Murrumur",
+      "ogImage": "https://lastfm.freetls.fastly.net/i/u/ar0/2a96cbd8b46e442fc41c2b86b821562f.jpg",
+      "playcount": "556",
+      "rank": "10"
+    }
+  ],
+  "topTracks": [
+    {
+      "name": "Ghost",
+      "artist": "Astrophysics & Murrumur",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Astrophysics+&+Murrumur/_/Ghost",
+      "ogImage": null,
+      "playcount": "556",
+      "rank": "1"
+    },
+    {
+      "name": "sick, twisted, demented",
+      "artist": "Sewerslvt",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Sewerslvt/_/sick,+twisted,+demented",
+      "ogImage": null,
+      "playcount": "315",
+      "rank": "2"
+    },
+    {
+      "name": "snowfall",
+      "artist": "Øneheart",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/%C3%98neheart/_/snowfall",
+      "ogImage": null,
+      "playcount": "271",
+      "rank": "3"
+    },
+    {
+      "name": "dreamcore",
+      "artist": "Yandere",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Yandere/_/dreamcore",
+      "ogImage": null,
+      "playcount": "238",
+      "rank": "4"
+    },
+    {
+      "name": "this feeling",
+      "artist": "Øneheart",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/%C3%98neheart/_/this+feeling",
+      "ogImage": null,
+      "playcount": "188",
+      "rank": "5"
+    },
+    {
+      "name": "in my grasp",
+      "artist": "Avit",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Avit/_/in+my+grasp",
+      "ogImage": null,
+      "playcount": "173",
+      "rank": "6"
+    },
+    {
+      "name": "Blissful Overdose",
+      "artist": "Sewerslvt",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Sewerslvt/_/Blissful+Overdose",
+      "ogImage": null,
+      "playcount": "166",
+      "rank": "7"
+    },
+    {
+      "name": "all the joy in life was gone once you left",
+      "artist": "Sewerslvt",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/Sewerslvt/_/all+the+joy+in+life+was+gone+once+you+left",
+      "ogImage": null,
+      "playcount": "164",
+      "rank": "8"
+    },
+    {
+      "name": "outside",
+      "artist": "Øneheart",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/%C3%98neheart/_/outside",
+      "ogImage": null,
+      "playcount": "162",
+      "rank": "9"
+    },
+    {
+      "name": "Hide Away",
+      "artist": "Øneheart",
+      "imageHigh": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "imageLow": "https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png",
+      "url": "https://www.last.fm/music/%C3%98neheart/_/Hide+Away",
+      "ogImage": null,
+      "playcount": "159",
+      "rank": "10"
+    }
+  ],
+  "userInfo": {
+    "total_plays": "51063",
+    "total_tracks": "3040",
+    "total_albums": "2035",
+    "total_artists": "1478",
+    "total_playtime": "2mo 18d"
+  },
+  "cacheExpiration": 1733321600650,
+  "firstTrack": {
+    "updateTime": "2024-12-03T14:13:50.122Z",
+    "name": "Thinking About It Too",
+    "artist": "Wrong Organ"
+  },
+  "totalPlaytime": "2mo 18d"
+}
