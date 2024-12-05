@@ -75,7 +75,7 @@ fetch("/user")
             document.getElementById("avatar_image").src = data.avatar.high;
         }
 
-        document.getElementById("avatar_credit_text").innerHTML = `made by <a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${data.avatarCreditText}</a>`;
+        document.getElementById("avatar_credit_text").innerHTML = `<a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${data.avatarCreditText}</a>`;
     });
 
 // fetch user choccymilk from pronoun.page
