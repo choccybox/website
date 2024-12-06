@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const sharp = require('sharp');
+const NodeCache = require('node-cache');
 
 const client = new Client({
   intents: [
@@ -205,17 +206,44 @@ userinfo.get('/user', async (req, res) => {
       
         const highresizedavatarimg = await sharp(response.data).resize(300, 300).toBuffer();
         const lowresizedavatarimg = await sharp(response.data).resize(128, 128).toBuffer();
-        
-      
+
+        const myCache = new NodeCache({ stdTTL: 86400 }); // 24 hours in seconds
+
+        let pronounsString = '';
+        let flagsImg = '';
+
+        const cachedData = myCache.get('pronounsFlags');
+        if (cachedData) {
+          pronounsString = cachedData.pronounsString;
+          flagsImg = cachedData.flagsImg;
+        } else {
+          try {
+            const response = await axios.get('https://en.pronouns.page/api/profile/get/choccymilk?version=2&props=pronouns,flags');
+            const pronouns = response.data.profiles.en.pronouns.map(p => p.value.toLowerCase());
+            const flags = response.data.profiles.en.flags.map(f => f.toLowerCase());
+
+            pronounsString = pronouns.join(', ');
+            flagsImg = flags.map(flag => `
+              <a id="flag_name" href='https://www.urbandictionary.com/define.php?term=${flag}' target='_blank'>${flag}</a>
+              <img id="flag_icon" src="https://en.pronouns.page/flags/${flag.charAt(0).toUpperCase() + flag.slice(1)}.png"></img>`).join('');
+
+            myCache.set('pronounsFlags', { pronounsString, flagsImg });
+          } catch (error) {
+            console.error('Error fetching pronouns and flags:', error);
+          }
+        }
+
         const userInfo = {
           avatar: {
-            high: `data:image/webp;base64,${highresizedavatarimg.toString('base64')}`,
-            low: `data:image/webp;base64,${lowresizedavatarimg.toString('base64')}`,
-            original: originalavatarimg,
+          high: `data:image/webp;base64,${highresizedavatarimg.toString('base64')}`,
+          low: `data:image/webp;base64,${lowresizedavatarimg.toString('base64')}`,
+          original: originalavatarimg,
           },
           avatarCredit: ``,
           avatarCreditText: `discord is ${discordUsername}`,
           connections: hasLastfmConnection ? simplifiedConnections : [...simplifiedConnections, mockLastfmConnection],
+          pronouns: pronounsString,
+          flag: flagsImg,
         };
         // Send the response inside the try block
         res.json(userInfo);

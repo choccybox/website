@@ -205,7 +205,8 @@
         var isAnimating = false;
         var animationDuration = 500;
 
-        document.getElementById('moreabout').addEventListener('click', function () {
+        setTimeout(function () {
+            document.getElementById('moreabout').addEventListener('click', function () {
             if (isAnimating) {
                 return; // Ignore click if animation is already in progress
             }
@@ -296,7 +297,9 @@
                 }
             }, animationDuration / 2);
         });
+    }, 500);
     }
+
 
     for (var i = 0; i < scripts.length; i++) {
         var script = document.createElement("script");

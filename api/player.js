@@ -23,16 +23,7 @@ function saveSpotifyTokens(spotifyAccessToken, spotifyRefreshToken) {
   fs.writeFileSync(path.resolve(__dirname, './tokens/spotify.json'), JSON.stringify(tokens, null, 2), 'utf8');
 }
 
-function saveSoundcloudToken(soundcloudAccessToken, soundcloudRefreshToken) {
-  const tokens = {
-    accessToken: soundcloudAccessToken,
-    refreshToken: soundcloudRefreshToken,
-  };
-
-  fs.writeFileSync(path.resolve(__dirname, './tokens/soundcloud.json'), JSON.stringify(tokens, null, 2), 'utf8');
-}
-
-/* player.get('/playerauth', (req, res) => {
+player.get('/playerauth', (req, res) => {
   const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
     response_type: 'code',
     client_id: process.env.SPOTIFY_CLIENT_ID,
@@ -89,58 +80,6 @@ player.get('/playercallback', async (req, res) => {
   }
 });
 
-player.get('/soundauth', (req, res) => {
-  // Redirect the user to the SoundCloud authorization URL
-  const authorizeUrl = `https://soundcloud.com/connect?client_id=${process.env.SOUNDCLOUD_CLIENT_ID}&redirect_uri=${process.env.SOUNDCLOUD_REDIRECT_URI}&response_type=code&scope=non-expiring`;
-  res.redirect(authorizeUrl);
-});
-
-player.get('/soundcallback', async (req, res) => {
-  // Handle the callback after the user grants/denies authorization
-  const { code } = req.query;
-
-  // Exchange the authorization code for an access token
-  const tokenUrl = 'https://api.soundcloud.com/oauth2/token';
-  const params = new URLSearchParams({
-    client_id: process.env.SOUNDCLOUD_CLIENT_ID,
-    client_secret: process.env.SOUNDCLOUD_CLIENT_SECRET,
-    redirect_uri: process.env.SOUNDCLOUD_REDIRECT_URI,
-    grant_type: 'authorization_code',
-    code,
-  });
-
-  try {
-    const response = await axios.post(tokenUrl, params);
-    const accessToken = response.data.access_token;
-    const refreshToken = response.data.refresh_token;
-
-    fetch('https://api.soundcloud.com/me', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log(data);
-      const soundcloudURL = data.id
-      const approvedID = process.env.SOUNDCLOUD_APPROVED_ID;
-
-      if (soundcloudURL !== approvedID) {
-        res.json({ youre_not_choccy: 'what are you trying to do?? stop it' });
-        console.log('Unauthorized user tried to access userinfo.');
-        return;
-      } else {
-        res.redirect('/player');
-        console.log('Authorized user accessed userinfo.');
-        saveSoundcloudToken(accessToken, refreshToken);
-      }
-    });
-
-  } catch (error) {
-    console.error('Error exchanging code for token:', error.message);
-    res.status(500).send('Error during authentication');
-  }
-}); */
 
 player.get('/player', async (req, res) => {
   try {
