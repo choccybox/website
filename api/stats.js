@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const NodeCache = require('node-cache');
+const querystring = require('querystring');
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
 const PORT = 20004;
@@ -222,6 +223,15 @@ async function refreshSpotifyAccessToken() {
     console.error('Error refreshing Spotify access token:', error.response ? error.response.data : error.message);
     throw new Error('Error refreshing Spotify access token.');
   }
+}
+
+function saveSpotifyTokens(spotifyAccessToken, spotifyRefreshToken) {
+  const tokens = {
+    accessToken: spotifyAccessToken,
+    refreshToken: spotifyRefreshToken,
+  };
+
+  fs.writeFileSync(path.resolve(__dirname, './tokens/spotify.json'), JSON.stringify(tokens, null, 2), 'utf8');
 }
 
 function convertToHuman(total_seconds) {
