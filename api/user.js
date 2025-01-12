@@ -144,7 +144,7 @@ userinfo.get('/user', async (req, res) => {
       const avatarCredit = messagesResponse.data[0].content;
   
       // Filter connections with visibility 0, keep spotify, ignore domain type, keep spotify, ignore domain type
-      const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' && connection.type !== 'spotify');
+      const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' && connection.type !== 'spotify' && connection.type !== 'riotgames' && connection.type !== 'epicgames');
   
       // Mock Last.fm connection data
       const mockLastfmConnection = {
@@ -179,6 +179,12 @@ userinfo.get('/user', async (req, res) => {
             break;
           default:
             url = `${baseHTTPS}${connection.type}.com/${connection.name}`;
+            break;
+          case 'bluesky':
+            url = `${baseHTTPS}bsky.app/profile/${connection.name}`;
+            break;
+          case 'reddit':
+            url = `${baseHTTPS}reddit.com/user/${connection.name}`;
             break;
         }
   
