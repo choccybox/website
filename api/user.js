@@ -199,7 +199,7 @@ userinfo.get('/user', async (req, res) => {
 
       // custom sort connections
       simplifiedConnections.sort((a, b) => {
-        const typeOrder = ['twitter', 'tiktok', 'roblox', 'youtube', 'github', 'steam'];
+        const typeOrder = ['twitter', 'reddit', 'github', 'roblox', 'steam', 'tiktok', 'youtube', 'twitch', 'bluesky'];
         return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type);
       });
   

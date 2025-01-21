@@ -5,81 +5,11 @@ const player = express();
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const sharp = require('sharp');
+const { searchForMusic } = require("youtube-music-apis");
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
 
 const PORT = 20002;
-
-const spotifyScopes = 'user-read-currently-playing user-library-read user-read-recently-played user-top-read user-read-playback-state';
-const discordScopes = ['identify', 'connections'];
-
-function saveSpotifyTokens(spotifyAccessToken, spotifyRefreshToken) {
-  const tokens = {
-    accessToken: spotifyAccessToken,
-    refreshToken: spotifyRefreshToken,
-  };
-
-  fs.writeFileSync(path.resolve(__dirname, './tokens/spotify.json'), JSON.stringify(tokens, null, 2), 'utf8');
-}
-
-player.get('/playerauth', (req, res) => {
-  const authorizeUrl = `https://accounts.spotify.com/authorize?${querystring.stringify({
-    response_type: 'code',
-    client_id: process.env.SPOTIFY_CLIENT_ID,
-    scope: spotifyScopes,
-    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-  })}`;
-  res.redirect(authorizeUrl);
-});
-
-player.get('/playercallback', async (req, res) => {
-  const { code } = req.query;
-
-  try {
-    const response = await axios.post('https://accounts.spotify.com/api/token', querystring.stringify({
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-      client_id: process.env.SPOTIFY_CLIENT_ID,
-      client_secret: process.env.SPOTIFY_CLIENT_SECRET,
-    }), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-
-    const { access_token, refresh_token } = response.data;
-
-    fetch('https://api.spotify.com/v1/me', {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    })
-    .then(response => response.json())
-    .then(data => {
-      const spotifyURL = data.uri;
-      const approvedID = process.env.SPOTIFY_APPROVED_ID;
-
-      if (spotifyURL !== approvedID) {
-        res.json({ youre_not_choccy: 'what are you trying to do?? stop it' });
-        console.log('Unauthorized user tried to access userinfo.');
-        return;
-      } else {
-        res.redirect('/player');
-        console.log('Authorized user accessed userinfo.');
-        saveSpotifyTokens(access_token, refresh_token);
-      }
-    });
-
-  } catch (error) {
-    console.error('Error:', error.response ? error.response.data : error.message);
-    setTimeout(() => {
-      return res.redirect('/error');
-    }, 2000);
-  }
-});
-
 
 player.get('/player', async (req, res) => {
   try {
@@ -104,6 +34,7 @@ async function getNowPlaying() {
   
     // If the track is currently playing and has an image or is not a default image, use last.fm
     if (lastfmNowPlaying && lastfmTrack.image[3]['#text'] !== '' && lastfmTrack.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
+      console.log('lastfm now playing and showing image');
       return {
         isPlaying: true,
         name: name,
@@ -112,33 +43,28 @@ async function getNowPlaying() {
           low: lastfmTrack.image[2]['#text'],
           high: lastfmTrack.image[3]['#text'],
         },
-        source: 'lastfm'
       }
       // If the track is currently playing but has no image OR is a default image, use either spotify or soundcloud
     } else if (lastfmNowPlaying && lastfmTrack.image[3]['#text'] === '' || lastfmTrack.image[3]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
-      // combine name and artist for search query, replace spaces with %20
-      const albumSearchComb = `${name.replace(/ /g, '%20')}%20${artist.replace(/ /g, '%20')}`;
-      const lastFMsearch = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=album.search&album=${albumSearchComb}&api_key=${process.env.LASTFM_API_KEY}&format=json`);
-      // go through each entry, and find image that is not default or empty
-      for (let i = 0; i < lastFMsearch.data.results.albummatches.album.length; i++) {
-        const album = lastFMsearch.data.results.albummatches.album[i];
-        // console log all the images
-        if (album.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
-          const artLow = album.image[2]['#text'];
-          const artHigh = album.image[3]['#text'];
-          const source = 'lastfm';
-          return {
-            isPlaying: true,
-            name: name,
-            artist: artist,
-            image: {
-              low: artLow,
-              high: artHigh,
-            },
-            source
-          };
-        }
+      console.log('lastfm now playing but no image, searching with album name');
+      
+      const youtubeSearch = async () => await searchForMusic(`${name} ${artist}`);
+
+      const results = await youtubeSearch();
+      if (results && results.length > 0) {
+        const thumbnailUrl = results[0].thumbnailUrl;
+        return {
+          isPlaying: true,
+          name: name,
+          artist: artist,
+          image: {
+            low: thumbnailUrl,
+            high: thumbnailUrl,
+          },
+        };
       }
+
+      // If the track is not currently playing and has an image or is not a default image, use last.fm
     } else if (!lastfmNowPlaying && lastfmPrevTrack.image[3]['#text'] !== '' && lastfmPrevTrack.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
       return {
         isPlaying: false,
@@ -148,62 +74,26 @@ async function getNowPlaying() {
           low: lastfmPrevTrack.image[2]['#text'],
           high: lastfmPrevTrack.image[3]['#text'],
         },
-        source: 'lastfm'
       }
     } else if (!lastfmNowPlaying && lastfmPrevTrack.image[3]['#text'] === '' || lastfmPrevTrack.image[3]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
       // combine name and artist for search query, replace spaces with %20
-      const albumSearchComb = `${namePrev.replace(/ /g, '%20')}%20${artistPrev.replace(/ /g, '%20')}`;
-      const lastFMsearch = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=album.search&album=${albumSearchComb}&api_key=${process.env.LASTFM_API_KEY}&format=json`);
-      // go through each entry, and find image that is not default or empty
-      for (let i = 0; i < lastFMsearch.data.results.albummatches.album.length; i++) {
-        const album = lastFMsearch.data.results.albummatches.album[i];
-        // console log all the images
-        if (album.image[3]['#text'] !== 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
-          const artLow = album.image[2]['#text'];
-          const artHigh = album.image[3]['#text'];
-          const source = 'lastfm';
-          return {
-            isPlaying: false,
-            name: namePrev,
-            artist: artistPrev,
-            image: {
-              low: artLow,
-              high: artHigh,
-            },
-            source
-          };
-        }
+      const youtubeSearch = async () => await searchForMusic(`${name} ${artist}`);
+
+      const results = await youtubeSearch();
+      if (results && results.length > 0) {
+        const thumbnailUrl = results[0].thumbnailUrl;
+        return {
+          isPlaying: true,
+          name: name,
+          artist: artist,
+          image: {
+            low: thumbnailUrl,
+            high: thumbnailUrl,
+          },
+        };
       }
     }
 
-}
-
-async function refreshSpotifyAccessToken() {
-  try {
-    const spotifyToken = JSON.parse(fs.readFileSync(path.resolve(__dirname, './tokens/spotify.json'), 'utf8'));
-    const spotifyRefreshToken = spotifyToken.refreshToken;
-    // read from .json
-    const response = await axios.post('https://accounts.spotify.com/api/token', querystring.stringify({
-      grant_type: 'refresh_token',
-      refresh_token: spotifyRefreshToken,
-      client_id: process.env.SPOTIFY_CLIENT_ID,
-      client_secret: process.env.SPOTIFY_CLIENT_SECRET,
-    }), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-    
-    // get new tokens
-    const newAccessToken = response.data.access_token;
-
-    // write to .json
-    saveSpotifyTokens(newAccessToken, spotifyRefreshToken);
-
-  } catch (error) {
-    console.error('Error refreshing Spotify access token:', error.response ? error.response.data : error.message);
-    throw new Error('Error refreshing Spotify access token.');
-  }
 }
 
 player.listen(PORT, async () => {
