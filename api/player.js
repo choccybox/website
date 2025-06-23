@@ -5,11 +5,11 @@ const player = express();
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const { searchForMusic } = require("youtube-music-apis");
+const { youtubeMusicSearch } = require("@hydralerne/youtube-api");
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
 
-const PORT = 20002;
+const PORT = 20001;
 
 player.get('/player', async (req, res) => {
   try {
@@ -48,18 +48,17 @@ async function getNowPlaying() {
     } else if (lastfmNowPlaying && lastfmTrack.image[3]['#text'] === '' || lastfmTrack.image[3]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
       console.log('lastfm now playing but no image, searching with album name');
       
-      const youtubeSearch = async () => await searchForMusic(`${name} ${artist}`);
+      const youtubeSearch = async () => await youtubeMusicSearch(`${name} ${artist}`, 'songs');
 
       const results = await youtubeSearch();
       if (results && results.length > 0) {
-        const thumbnailUrl = results[0].thumbnailUrl;
         return {
           isPlaying: true,
           name: name,
           artist: artist,
           image: {
-            low: thumbnailUrl,
-            high: thumbnailUrl,
+            low: results[0].poster,
+            high: results[0].posterLarge,
           },
         };
       }
@@ -77,18 +76,17 @@ async function getNowPlaying() {
       }
     } else if (!lastfmNowPlaying && lastfmPrevTrack.image[3]['#text'] === '' || lastfmPrevTrack.image[3]['#text'] === 'https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png') {
       // combine name and artist for search query, replace spaces with %20
-      const youtubeSearch = async () => await searchForMusic(`${name} ${artist}`);
+      const youtubeSearch = async () => await youtubeMusicSearch(`${name} ${artist}`, 'songs');
 
       const results = await youtubeSearch();
       if (results && results.length > 0) {
-        const thumbnailUrl = results[0].thumbnailUrl;
         return {
           isPlaying: true,
           name: name,
           artist: artist,
           image: {
-            low: thumbnailUrl,
-            high: thumbnailUrl,
+            low: results[0].poster,
+            high: results[0].posterLarge,
           },
         };
       }

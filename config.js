@@ -1,1 +1,0 @@
-var custom_text = 'Hello, world!';

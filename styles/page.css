@@ -1,7 +1,7 @@
 @media (prefers-color-scheme: dark) {
     :root {
         --background: #2e2f37;
-        --timeline: #2a2b33;
+        --blob: #1a1a1e;
         --progress: #646466;
         --foreground:  #3e3f4b;
         --panel: #505161;
@@ -64,16 +64,6 @@ body {
     border-radius: var(--radius);
     width: calc(100% - 10px);
     scrollbar-width: none;
- }
-
- #main_bottom_scrollable {
-    position: absolute;
-    bottom: 0px;
-    display: flex;
-    border-radius: var(--radius);
-    width: calc(100% - 155px);
-    scrollbar-width: none;
-    overflow: scroll;
     gap: 10px;
  }
 
@@ -83,11 +73,6 @@ body {
     position: absolute;
     display: flex;
  }
-
-.social_button {
-    width: 135px;
-    height: 135px;
-}
 
 .last_social_button {
     margin-right: -10px;
@@ -118,9 +103,171 @@ body {
     width: 280px;
     height: 280px;
     border-radius: var(--radius);
-    background-color: var(--panel);
     margin-right: 10px;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--panel);
 }
+
+.skeleton_loader_big::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+    background-image:
+        linear-gradient(
+            90deg,
+            var(--panel) 0%,
+            rgb(89, 90, 105) 50%,
+            var(--panel) 100%
+        );
+    background-size:
+        200px 280px,                  /* shimmer */
+        100% 100%;                    /* card bg */
+    background-position:
+        -150% 0,                      /* shimmer */
+        0 0;                          /* card bg */
+    background-repeat: no-repeat;
+    animation: skeleton_loader_big 3s infinite;
+    z-index: 1;
+}
+
+.skeleton_loader_big_lastfm::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+    background-image:
+        linear-gradient(
+            90deg,
+            var(--panel) 0%,
+            rgb(89, 90, 105) 50%,
+            var(--panel) 100%
+        );
+    background-size:
+        200px 280px,                  /* shimmer */
+        100% 100%;                    /* card bg */
+    background-position:
+        -150% 0,                      /* shimmer */
+        0 0;                          /* card bg */
+    background-repeat: no-repeat;
+    animation: skeleton_loader_big 3s infinite;
+    z-index: 1;
+    margin-top: -280px;
+}
+
+.skeleton_loader_small::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+    background-image:
+        linear-gradient(
+            90deg,
+            var(--panel) 0%,
+            rgb(89, 90, 105) 50%,
+            var(--panel) 100%
+        );
+    background-size:
+        200px 135px,                  /* shimmer */
+        100% 100%;                    /* card bg */
+    background-position:
+        -150% 0,                      /* shimmer */
+        0 0;                          /* card bg */
+    background-repeat: no-repeat;
+    animation: skeleton_loader_small 3s infinite;
+    z-index: 1;
+}
+
+.skeleton_loader_small_lastfm::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+    background-image:
+        linear-gradient(
+            90deg,
+            var(--panel) 0%,
+            rgb(89, 90, 105) 50%,
+            var(--panel) 100%
+        );
+    background-size:
+        200px 135px,                  /* shimmer */
+        100% 100%;                    /* card bg */
+    background-position:
+        -150% 0,                      /* shimmer */
+        0 0;                          /* card bg */
+    background-repeat: no-repeat;
+    animation: skeleton_loader_small 3s infinite;
+    z-index: 1;
+    margin-top: -135px;
+}
+
+.skeleton_loader_small_track_lastfm::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+    background-image:
+        linear-gradient(
+            90deg,
+            var(--panel) 0%,
+            rgb(89, 90, 105) 50%,
+            var(--panel) 100%
+        );
+    background-size:
+        200px 135px,                  /* shimmer */
+        100% 100%;                    /* card bg */
+    background-position:
+        -150% 0,                      /* shimmer */
+        0 0;                          /* card bg */
+    background-repeat: no-repeat;
+    animation: skeleton_loader_small 3s infinite;
+    z-index: 1;
+    margin-top: -32px;
+}
+
+@keyframes skeleton_loader_big {
+    0% {
+        background-position:
+            -250% 0,                  /* shimmer */
+            0 0;                      /* card bg */
+    }
+    50% {
+        background-position:
+            350% 0,                   /* shimmer */
+            0 0;                      /* card bg */
+    }
+    100% {
+        background-position:
+            350% 0,                   /* shimmer */
+            0 0;                      /* card bg */
+    }
+}
+
+@keyframes skeleton_loader_small {
+    0% {
+        background-position:
+            250% 0,                  /* shimmer */
+            0 0;                      /* card bg */
+    }
+    50% {
+        background-position:
+            -350% 0,                   /* shimmer */
+            0 0;                      /* card bg */
+    }
+    100% {
+        background-position:
+            -350% 0,                   /* shimmer */
+            0 0;                      /* card bg */
+    }
+}
+
 .panel_loader:nth-child(3) {
     margin-bottom: 0px !important;
   }
@@ -129,13 +276,14 @@ body {
     background-color: var(--panel);
     border-radius: var(--radius);
     display: none;
+    width: 135px;
+    height: 135px;
 }
 
 .social_button_loader {
     background-color: var(--panel);
     height: 135px;
     width: 135px;
-    margin-right: 10px;
     border-radius: var(--radius);
 }
 
@@ -171,37 +319,6 @@ body {
     margin-left: calc(100% - 155px);
 }
 
-#moreabout_transition_top {
-    height: 280px;
-    background-color: var(--panel);
-    position: absolute;
-    z-index: 9999;
-    display: none;
-}
-
-#moreabout_transition_bottom {
-    height: 135px;
-    background-color: var(--panel);
-    position: absolute;
-    z-index: 9999;
-    display: none;
-}
-
-@keyframes moreabout_transition_anim_desktop {
-    0% {margin-left:0; width: 0px;}
-    25% {margin-left:0; width: calc(100% - 10px);}
-    50% {margin-left:0; width: calc(100% - 10px);}
-    75% {margin-left:0; width: calc(100% - 10px);}
-    100% {margin-left: calc(100% - 10px); width: 0px;}
-}
-
-@keyframes moreabout_transition_anim_mobile {
-    0% {margin-left: 0; width: 0px;}
-    25% {margin-left: 0; width: 100%;}
-    50% {margin-left: 0; width: 100%;}
-    75% {margin-left: 0; width: 100%;}
-    100% {margin-left: calc(100% + 1px); width: 0px;}
-}
 
 @keyframes icon_flip_anim {
     0% {transform: rotate3d(0, 0, 0, 0deg);}
@@ -221,7 +338,7 @@ body {
     display: none;
     z-index: 9999;
     position: relative;
-    background-color: var(--timeline);
+    background-color: var(--background);
     width: 100%;
     border-radius: var(--radius);
     height: 32px;
@@ -244,7 +361,7 @@ body {
 }
 .lastfm_title {
     position: relative;
-    background-color: var(--timeline);
+    background-color: var(--background);
     width: 100%;
     border-radius: var(--radius);
     height: 36px;
@@ -347,6 +464,31 @@ body {
     height: 100%;
     object-fit: cover;
     filter: brightness(0.5);
+}
+
+.lastfm_track_image::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+    background-image:
+        linear-gradient(
+            90deg,
+            var(--panel) 0%,
+            rgb(89, 90, 105) 50%,
+            var(--panel) 100%
+        );
+    background-size:
+        200px 135px,                  /* shimmer */
+        100% 100%;                    /* card bg */
+    background-position:
+        -150% 0,                      /* shimmer */
+        0 0;                          /* card bg */
+    background-repeat: no-repeat;
+    animation: skeleton_loader_small 3s infinite;
+    z-index: 1;
+    margin-top: -135px;
 }
 
 .language-name-icon-div:hover p {

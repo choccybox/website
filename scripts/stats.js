@@ -17,16 +17,12 @@ if (!isDataFetched) {
         // Reusable function to generate HTML elements for each item
         const generateItemHTML = (item, className) => {
             const itemDiv = document.createElement('div');
-            itemDiv.classList.add(className);
+            itemDiv.classList.add(...className.split(' '));
             itemDiv.setAttribute('data-rank', item.rank);
-
-/*             // if data-rank is above 4, hide all elements with data-rank above 4
-            if (item.rank > 4) {
-                itemDiv.style.display = 'none';
-            } */
+            itemDiv.classList.add('skeleton_loader_small_lastfm');
 
             const itemImage = document.createElement('img');
-            itemImage.classList.add(`${className}_image`);
+            itemImage.classList.add(`${className.split(' ')[0]}_image`);
             itemImage.src = item.imageHigh;
 
             const itemNameDiv = document.createElement('div');

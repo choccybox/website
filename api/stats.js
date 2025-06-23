@@ -8,7 +8,7 @@ const NodeCache = require('node-cache');
 const querystring = require('querystring');
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
-const PORT = 20004;
+const PORT = 20003;
 
 const cache = new NodeCache({ stdTTL: 24 * 60 * 60 }); // Cache with 24 hours TTL
 
@@ -56,52 +56,54 @@ stats.get('/stats', async (req, res) => {
 
     const lastFMOrganized = {
       topAlbums: lastFMAlbums.data.topalbums.album.slice(0, limit).map(album => ({
-        name: album.name,
-        artist: album.artist.name,
-        imageHigh: album.image[3]['#text'],
-        imageLow: album.image[2]['#text'],
-        url: album.url,
-        playcount: album.playcount,
-        rank: album['@attr'].rank,
+      name: album.name,
+      artist: album.artist.name,
+      imageHigh: album.image[3]['#text'],
+      imageLow: album.image[2]['#text'],
+      url: album.url,
+      playcount: album.playcount,
+      rank: album['@attr'].rank,
       })),
 
       topArtists: await Promise.all(
-        lastFMArtists.data.topartists.artist.slice(0, limit).map(async artist => {
-          const combName = encodeURIComponent(`${artist.name.split('&')[0].trim()}`);
-          const artistImages = await searchAlternative(combName, 'artist');
-          return {
-            name: artist.name,
-            imageHigh: artistImages ? artistImages.high : artist.image[3]['#text'],
-            imageLow: artistImages ? artistImages.low : artist.image[2]['#text'],
-            url: artist.url,
-            playcount: artist.playcount,
-            rank: artist['@attr'].rank,
-          };
-        })
+      lastFMArtists.data.topartists.artist.slice(0, limit).map(async artist => {
+        const combName = encodeURIComponent(`${artist.name.split('&')[0].trim()}`);
+        const artistImages = await searchAlternative(combName, 'artist');
+        return {
+        name: artist.name,
+        imageHigh: artistImages ? artistImages.high : artist.image[3]['#text'],
+        imageLow: artistImages ? artistImages.low : artist.image[2]['#text'],
+        url: artist.url,
+        playcount: artist.playcount,
+        rank: artist['@attr'].rank,
+        };
+      })
       ),
 
       topTracks: await Promise.all(
-        lastFMTracks.data.toptracks.track.slice(0, limit).map(async track => {
-          const combName = encodeURIComponent(`track:${track.name} artist:${track.artist.name}`);
-          const albumImages = await searchAlternative(combName, 'track');
-          return {
-            name: track.name,
-            artist: track.artist.name,
-            imageHigh: albumImages ? albumImages.high : track.image[3]['#text'],
-            imageLow: albumImages ? albumImages.low : track.image[2]['#text'],
-            url: track.url,
-            playcount: track.playcount,
-            rank: track['@attr'].rank,
-          };
-        })
+      lastFMTracks.data.toptracks.track.slice(0, limit).map(async track => {
+        // Remove anything in brackets from the track name
+        const cleanedName = track.name.replace(/\s*[\(\[].*?[\)\]]\s*/g, '').trim();
+        const combName = encodeURIComponent(`track:${cleanedName} artist:${track.artist.name}`);
+        const albumImages = await searchAlternative(combName, 'track');
+        return {
+        name: cleanedName,
+        artist: track.artist.name,
+        imageHigh: albumImages ? albumImages.high : track.image[3]['#text'],
+        imageLow: albumImages ? albumImages.low : track.image[2]['#text'],
+        url: track.url,
+        playcount: track.playcount,
+        rank: track['@attr'].rank,
+        };
+      })
       ),
 
       userInfo: {
-        total_plays: lastFMInfo.data.user.playcount,
-        total_tracks: lastFMInfo.data.user.track_count,
-        total_albums: lastFMInfo.data.user.album_count,
-        total_artists: lastFMInfo.data.user.artist_count,
-        total_playtime: convertToHuman(totalPlaytime),
+      total_plays: lastFMInfo.data.user.playcount,
+      total_tracks: lastFMInfo.data.user.track_count,
+      total_albums: lastFMInfo.data.user.album_count,
+      total_artists: lastFMInfo.data.user.artist_count,
+      total_playtime: convertToHuman(totalPlaytime),
       },
     };
 
@@ -133,6 +135,7 @@ async function searchAlternative(combName, type) {
 
   // Only search Spotify if LastFM couldn't find a valid image
   const spotifyUrl = `https://api.spotify.com/v1/search?q=${combName}&type=${type}&limit=1`;
+  console.log(`Searching Spotify for: https://api.spotify.com/v1/search?q=${combName}&type=${type}&limit=1`);
   try {
     const spotifyResponse = await axios.get(spotifyUrl, {
       headers: {

@@ -19,7 +19,7 @@ const client = new Client({
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') }); // Load environment variables from .env file
 
-const PORT = 20003;
+const PORT = 20002;
 
 const discordScopes = ['identify', 'connections'];
 

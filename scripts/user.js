@@ -2,7 +2,7 @@
 fetch("/user")
     .then(response => response.json())
     .then(data => {
-        var socialHolder = document.getElementById("main_bottom_scrollable");
+        var socialHolder = document.getElementById("main_bottom");
 
         // create social buttons
         for (var i = 0; i < data.connections.length; i++) {
@@ -22,7 +22,7 @@ fetch("/user")
             
             var infoDiv = document.createElement("div");
             infoDiv.id = "social_button";
-            infoDiv.classList.add("social_button");
+            infoDiv.classList.add("social_button", "skeleton_loader_small_lastfm");
 
             var infoIconHolder = document.createElement("div");
             infoIconHolder.className = "icon_holder";
