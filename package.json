@@ -20,7 +20,8 @@
     "fs": "^0.0.1-security",
     "node-cache": "^5.1.2",
     "querystring": "^0.2.1",
-    "sharp": "^0.33.2"
+    "sharp": "^0.33.2",
+    "youtube-api": "^3.0.2"
   },
   "description": ""
 }
