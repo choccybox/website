@@ -69,10 +69,17 @@ fetch("/user")
         console.log("📶 is cellular avatar?", isCellular);
 
         // If the user is on mobile and using cellular data, set the avatar to the low-quality version
-        if (isMobile && isCellular) {
-            document.getElementById("avatar_image").src = data.avatar.low;
-        } else {
-            document.getElementById("avatar_image").src = data.avatar.high;
+        let avatarImage = document.getElementById("avatar_image");
+        let avatarSrc = (isMobile && isCellular) ? data.avatar.low : data.avatar.high;
+        if (avatarImage.src !== avatarSrc) {
+            const tempImg = new window.Image();
+            tempImg.onload = function() {
+                avatarImage.src = avatarSrc;
+            };
+            tempImg.onerror = function() {
+                avatarImage.src = "styles/blank.png";
+            };
+            tempImg.src = avatarSrc;
         }
 
         document.getElementById("avatar_credit_text").innerHTML = `<a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${data.avatarCreditText}</a>`;

@@ -23,7 +23,15 @@ if (!isDataFetched) {
 
             const itemImage = document.createElement('img');
             itemImage.classList.add(`${className.split(' ')[0]}_image`);
-            itemImage.src = item.imageHigh;
+            // Preload image before setting src to avoid NS_BINDING_ABORTED
+            const tempImg = new window.Image();
+            tempImg.onload = function() {
+                itemImage.src = item.imageHigh;
+            };
+            tempImg.onerror = function() {
+                itemImage.src = "styles/blank.png";
+            };
+            tempImg.src = item.imageHigh;
 
             const itemNameDiv = document.createElement('div');
             itemNameDiv.style.height = '100%';
