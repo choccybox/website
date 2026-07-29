@@ -30,6 +30,7 @@ const encryptionIvLength = 12;
 const encryptionTagLength = 16;
 const refreshLeewayMs = 60 * 1000;
 const oauthStateCookie = 'discord_oauth_state';
+const pronounsCache = new NodeCache({ stdTTL: 24 * 60 * 60 });
 let refreshPromise;
 
 function getDiscordClientId() {
@@ -38,6 +39,20 @@ function getDiscordClientId() {
     throw new Error('DISCORD_CLIENT_ID must be configured before starting OAuth.');
   }
   return clientId;
+}
+
+function assertDiscordOAuthConfiguration() {
+  const requiredVariables = [
+    'DISCORD_CLIENT_ID',
+    'DISCORD_CLIENT_SECRET',
+    'DISCORD_REDIRECT_URI',
+    'DISCORD_APPROVED_ID',
+  ];
+  const missingVariables = requiredVariables.filter((name) => !process.env[name]);
+  if (missingVariables.length > 0) {
+    throw new Error(`Missing Discord OAuth configuration: ${missingVariables.join(', ')}.`);
+  }
+  getTokenEncryptionKey();
 }
 
 function getTokenEncryptionKey() {
@@ -190,12 +205,45 @@ function oauthErrorStatus(error) {
 }
 
 function logOAuthError(message, error) {
-  console.error(`${message} (HTTP ${oauthErrorStatus(error)})`);
+  const detail = error.response ? `HTTP ${oauthErrorStatus(error)}` : error.message;
+  console.error(`${message}: ${detail}`);
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;',
+  })[character]);
+}
+
+function formatPronounsPageProfile(data) {
+  const profile = data.profiles?.find((candidate) => candidate.locale === 'en') || data.profiles?.[0];
+  if (!profile) {
+    return { pronounsString: '', flagsImg: '' };
+  }
+
+  const pronounsString = (profile.pronouns || [])
+    .map((pronoun) => typeof pronoun === 'string' ? pronoun : pronoun?.value)
+    .filter(Boolean)
+    .map((pronoun) => escapeHtml(pronoun.toLowerCase()))
+    .join(', ');
+  const flagsImg = (profile.flags || [])
+    .filter((flag) => typeof flag === 'string' && flag.length > 0)
+    .map((flag) => {
+      const encodedFlag = encodeURIComponent(flag);
+      return `<a id="flag_name" href="https://www.urbandictionary.com/define.php?term=${encodedFlag}" target="_blank" rel="noopener noreferrer">${escapeHtml(flag)}</a><img id="flag_icon" src="https://en.pronouns.page/flags/${encodedFlag}.png" alt="${escapeHtml(flag)}">`;
+    })
+    .join('');
+
+  return { pronounsString, flagsImg };
 }
 
 userinfo.get('/userauth', (req, res) => {
   try {
-    getTokenEncryptionKey();
+    assertDiscordOAuthConfiguration();
     const state = crypto.randomBytes(32).toString('base64url');
     res.cookie(oauthStateCookie, state, oauthCookieOptions());
     res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${getDiscordClientId()}&redirect_uri=${encodeURIComponent(process.env.DISCORD_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(discordScopes.join(' '))}&state=${encodeURIComponent(state)}`);
@@ -289,25 +337,25 @@ userinfo.get('/user', async (req, res) => {
            Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
         },
       });
-      
+
       const avatarCredit = messagesResponse.data[0].content;
-  
+
       // Filter connections with visibility 0, keep spotify, ignore domain type, keep spotify, ignore domain type
       const filteredConnections = connectionsResponse.data.filter(connection => connection.visibility === 1 && connection.type !== 'domain' && connection.type !== 'spotify' && connection.type !== 'riotgames' && connection.type !== 'epicgames');
-  
+
       // Mock Last.fm connection data
       const mockLastfmConnection = {
         type: 'lastfm',
         url: `https://last.fm/user/${process.env.LASTFM_USERNAME}`,
       };
-  
+
       // Insert the mock last.fm
       const hasLastfmConnection = filteredConnections.some(connection => connection.type === 'lastfm');
       // Simplify connections to id, name, type, and visibility with added "url" field
       const simplifiedConnections = filteredConnections.slice(0, 10).map(connection => {
         let url;
         const baseHTTPS = "https://";
-        
+
         switch (connection.type) {
           case 'domain':
             url = `${baseHTTPS}${connection.name}`;
@@ -317,7 +365,7 @@ userinfo.get('/user', async (req, res) => {
             break;
           case 'youtube':
             url = `${baseHTTPS}youtube.com/channel/${connection.id}`;
-            break;  
+            break;
           case 'tiktok':
             url = `${baseHTTPS}tiktok.com/@${connection.name}`;
             break;
@@ -336,13 +384,13 @@ userinfo.get('/user', async (req, res) => {
             url = `${baseHTTPS}reddit.com/user/${connection.name}`;
             break;
         }
-  
+
         return {
           type: connection.type,
           url: url,
         };
       });
-  
+
       const originalavatarimg = `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.webp?size=1024`;
       const discordUsername = userResponse.data.username;
 
@@ -351,40 +399,33 @@ userinfo.get('/user', async (req, res) => {
         const typeOrder = ['twitter', 'reddit', 'github', 'roblox', 'steam', 'tiktok', 'youtube', 'twitch', 'bluesky'];
         return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type);
       });
-  
+
       try {
         const response = await axios({
           method: 'get',
           url: originalavatarimg,
           responseType: 'arraybuffer',
         });
-      
+
         const highresizedavatarimg = await sharp(response.data).resize(300, 300).toBuffer();
         const lowresizedavatarimg = await sharp(response.data).resize(128, 128).toBuffer();
-
-        const myCache = new NodeCache({ stdTTL: 86400 }); // 24 hours in seconds
 
         let pronounsString = '';
         let flagsImg = '';
 
-        const cachedData = myCache.get('pronounsFlags');
+        const cachedData = pronounsCache.get('pronounsFlags');
         if (cachedData) {
           pronounsString = cachedData.pronounsString;
           flagsImg = cachedData.flagsImg;
         } else {
           try {
-            const response = await axios.get('https://en.pronouns.page/api/profile/get/choccymilk?version=2&props=pronouns,flags');
-            const pronouns = response.data.profiles.en.pronouns.map(p => p.value.toLowerCase());
-            const flags = response.data.profiles.en.flags.map(f => f.toLowerCase());
-
-            pronounsString = pronouns.join(', ');
-            flagsImg = flags.map(flag => `
-              <a id="flag_name" href='https://www.urbandictionary.com/define.php?term=${flag}' target='_blank'>${flag}</a>
-              <img id="flag_icon" src="https://en.pronouns.page/flags/${flag.charAt(0).toUpperCase() + flag.slice(1)}.png"></img>`).join('');
-
-            myCache.set('pronounsFlags', { pronounsString, flagsImg });
+            const response = await axios.get('https://en.pronouns.page/api/public/v3/profile/get/choccymilk?version=2&props=pronouns,flags');
+            const profile = formatPronounsPageProfile(response.data);
+            pronounsString = profile.pronounsString;
+            flagsImg = profile.flagsImg;
+            pronounsCache.set('pronounsFlags', profile);
           } catch (error) {
-            console.error('Error fetching pronouns and flags:', error);
+            console.error(`Error fetching pronouns and flags (HTTP ${error.response?.status || 500}).`);
           }
         }
 
