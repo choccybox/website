@@ -222,6 +222,7 @@
                             if (xhr.status === 200) {
                                 console.log("Stats data loaded with 200 OK");
                                 var statsData = JSON.parse(xhr.responseText);
+                                window.statsData = statsData;
                                 window.statsLoaded = true;
                                 console.log("Stats data processed", statsData);
                                 

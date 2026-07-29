@@ -10,8 +10,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const PORT = 20003;
 const CACHE_TTL = 24 * 60 * 60 * 1000;
-const CACHE_DIRECTORY = path.resolve(__dirname, 'cache');
-const CACHE_FILE = path.join(CACHE_DIRECTORY, 'stats.json');
+const CACHE_FILE = path.resolve(process.env.STATS_CACHE_FILE || path.join(__dirname, 'cache', 'stats.json'));
+const CACHE_DIRECTORY = path.dirname(CACHE_FILE);
 const MUSICBRAINZ_USER_AGENT = process.env.MUSICBRAINZ_USER_AGENT?.trim()
   || 'choccynton-stats/1.0 (contact: admin@localhost)';
 const DEFAULT_LASTFM_IMAGE = '2a96cbd8b46e442fc41c2b86b821562f';
@@ -79,50 +79,62 @@ async function refreshStats() {
 
     const limit = 20;
     const lastFMOrganized = {
-      topAlbums: await Promise.all(
-        lastFMAlbums.data.topalbums.album.slice(0, limit).map(async (album) => {
-          const images = await resolveArtwork('album', album.artist.name, album.name, album.image);
-          return {
-            name: album.name,
-            artist: album.artist.name,
-            imageHigh: images.high,
-            imageLow: images.low,
-            url: album.url,
-            playcount: album.playcount,
-            rank: album['@attr'].rank,
-          };
-        }),
-      ),
+      topAlbums: lastFMAlbums.data.topalbums.album.slice(0, limit).map((album) => {
+        const item = {
+          name: album.name,
+          artist: album.artist.name,
+          imageHigh: null,
+          imageLow: null,
+          url: album.url,
+          playcount: album.playcount,
+          rank: album['@attr'].rank,
+        };
+        const images = resolveArtwork('album', album.artist.name, album.name, album.image, (resolvedImages) => {
+          item.imageHigh = resolvedImages.high;
+          item.imageLow = resolvedImages.low;
+        });
+        item.imageHigh = images.high;
+        item.imageLow = images.low;
+        return item;
+      }),
 
-      topArtists: await Promise.all(
-        lastFMArtists.data.topartists.artist.slice(0, limit).map(async (artist) => {
-          const images = await resolveArtwork('artist', artist.name, null, artist.image);
-          return {
-            name: artist.name,
-            imageHigh: images.high,
-            imageLow: images.low,
-            url: artist.url,
-            playcount: artist.playcount,
-            rank: artist['@attr'].rank,
-          };
-        }),
-      ),
+      topArtists: lastFMArtists.data.topartists.artist.slice(0, limit).map((artist) => {
+        const item = {
+          name: artist.name,
+          imageHigh: null,
+          imageLow: null,
+          url: artist.url,
+          playcount: artist.playcount,
+          rank: artist['@attr'].rank,
+        };
+        const images = resolveArtwork('artist', artist.name, null, artist.image, (resolvedImages) => {
+          item.imageHigh = resolvedImages.high;
+          item.imageLow = resolvedImages.low;
+        });
+        item.imageHigh = images.high;
+        item.imageLow = images.low;
+        return item;
+      }),
 
-      topTracks: await Promise.all(
-        lastFMTracks.data.toptracks.track.slice(0, limit).map(async (track) => {
-          const cleanedName = track.name.replace(/\s*[\(\[].*?[\)\]]\s*/g, '').trim();
-          const images = await resolveArtwork('track', track.artist.name, cleanedName, track.image);
-          return {
-            name: cleanedName,
-            artist: track.artist.name,
-            imageHigh: images.high,
-            imageLow: images.low,
-            url: track.url,
-            playcount: track.playcount,
-            rank: track['@attr'].rank,
-          };
-        }),
-      ),
+      topTracks: lastFMTracks.data.toptracks.track.slice(0, limit).map((track) => {
+        const cleanedName = track.name.replace(/\s*[\(\[].*?[\)\]]\s*/g, '').trim();
+        const item = {
+          name: cleanedName,
+          artist: track.artist.name,
+          imageHigh: null,
+          imageLow: null,
+          url: track.url,
+          playcount: track.playcount,
+          rank: track['@attr'].rank,
+        };
+        const images = resolveArtwork('track', track.artist.name, cleanedName, track.image, (resolvedImages) => {
+          item.imageHigh = resolvedImages.high;
+          item.imageLow = resolvedImages.low;
+        });
+        item.imageHigh = images.high;
+        item.imageLow = images.low;
+        return item;
+      }),
 
       userInfo: {
         total_plays: lastFMInfo.data.user.playcount,
@@ -165,21 +177,37 @@ function getLastFm(method, params = {}) {
   });
 }
 
-async function resolveArtwork(type, artist, track, lastFmImages) {
-  const originalHigh = getImageAtSize(lastFmImages, 3);
-  const originalLow = getImageAtSize(lastFmImages, 2);
-  const high = isUsableLastFmImage(originalHigh) ? originalHigh : null;
-  const low = isUsableLastFmImage(originalLow) ? originalLow : null;
+function resolveArtwork(type, artist, track, lastFmImages, onResolved) {
+  const high = isUsableLastFmImage(getImageAtSize(lastFmImages, 3))
+    ? getImageAtSize(lastFmImages, 3)
+    : null;
+  const low = isUsableLastFmImage(getImageAtSize(lastFmImages, 2))
+    ? getImageAtSize(lastFmImages, 2)
+    : null;
 
   if (high && low) {
     return { high, low };
   }
 
-  const fallback = await getCachedArtwork(type, artist, track);
-  return {
-    high: high || fallback || originalHigh,
-    low: low || fallback || originalLow,
-  };
+  const key = artworkCacheKey(type, artist, track);
+  const applyArtwork = (fallback) => ({
+    high: high || fallback || null,
+    low: low || fallback || null,
+  });
+
+  if (Object.prototype.hasOwnProperty.call(cacheState.artwork, key)) {
+    return applyArtwork(cacheState.artwork[key]);
+  }
+
+  // Artwork lookups are rate-limited; never make the stats endpoint wait for them.
+  void getCachedArtwork(type, artist, track)
+    .then((fallback) => {
+      onResolved(applyArtwork(fallback));
+      saveCache();
+    })
+    .catch(() => undefined);
+
+  return applyArtwork(null);
 }
 
 function getImageAtSize(images, index) {

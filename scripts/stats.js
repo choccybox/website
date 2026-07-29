@@ -1,9 +1,16 @@
 let isDataFetched = false;
 
 if (!isDataFetched) {
-    fetch('/stats')
-        .then(response => response.json())
-        .then(data => {
+    const statsRequest = window.statsData
+        ? Promise.resolve(window.statsData)
+        : fetch('/stats').then(response => {
+            if (!response.ok) {
+                throw new Error(`Stats request failed with status ${response.status}`);
+            }
+            return response.json();
+        });
+
+    statsRequest.then(data => {
         const topAlbumsHolder = document.getElementById('lastfm1scrollable');
         const topArtistHolder = document.getElementById('lastfm2scrollable');
         const topTracksHolder = document.getElementById('lastfm3scrollable');
