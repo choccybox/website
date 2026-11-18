@@ -16,11 +16,11 @@ function player() {
 
             let playerImage = document.getElementById("player_image");
             let newSrc = null;
-            if (isMobile && isCellular) {
-                newSrc = data.image.low;
-            } else if (data.art === null) {
+            if (data.art === null) {
                 newSrc = "../styles/spong.webp";
                 document.getElementById("player_timeline").style.display = "none";
+            } else if (isMobile && isCellular) {
+                newSrc = data.image.low;
             } else {
                 newSrc = data.image.high;
             }
