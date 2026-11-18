@@ -234,7 +234,7 @@ function formatPronounsPageProfile(data) {
     .filter((flag) => typeof flag === 'string' && flag.length > 0)
     .map((flag) => {
       const encodedFlag = encodeURIComponent(flag);
-      return `<a id="flag_name" href="https://www.urbandictionary.com/define.php?term=${encodedFlag}" target="_blank" rel="noopener noreferrer">${escapeHtml(flag)}</a><img id="flag_icon" src="https://en.pronouns.page/flags/${encodedFlag}.png" alt="${escapeHtml(flag)}">`;
+      return `<a id="flag_name" href="https://www.urbandictionary.com/define.php?term=${encodedFlag}" target="_blank" rel="noopener noreferrer">${escapeHtml(flag.toLowerCase())}</a><img id="flag_icon" src="https://en.pronouns.page/flags/${encodedFlag}.png" alt="${escapeHtml(flag.toLowerCase())}">`;
     })
     .join('');
 

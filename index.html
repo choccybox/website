@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="fonts/stylesheet.css">
     <link rel="stylesheet" href="styles/reactive.css">
     <link rel="stylesheet" href="styles/page.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
 <style>
      ::-webkit-scrollbar {
         display: none !important;
     }
-    
+
 
     .noselect {
         -webkit-touch-callout: none; /* iOS Safari */
@@ -38,11 +38,11 @@
 
         <div id="avatar" class="panel noselect">
             <img id="avatar_image" class="panel noselect norightclick" src="styles/blank.png"></img>
-                
+
             <div id="avatar_credit" class="popup">
                 <p id="avatar_credit_text" class="noselect popup_title"></p>
             </div>
-            
+
         </div>
 
         <div id="text" class="panel noselect">
@@ -55,12 +55,12 @@
                     <p id="age"></p>
                     <p id="pronouns"></p>
                     <p id="flag"></p>
-            </div> 
+            </div>
         </div>
 
         <div id="player" class="panel noselect">
             <img id="player_image" class="panel noselect norightclick" src="./styles/blank.png"></img>
-            
+
             <div id="player_timeline" class="popup">
                 <p id="player_title" class="noselect popup_title"></p>
             </div>
@@ -85,7 +85,7 @@
                 <p class="lastfm_title">top tracks</p>
                 <div id="lastfm3scrollable" class="lastfm_scrollable"></div>
             </div>
-        </div>                    
+        </div>
     </div>
 
     <div id="main_bottom">
@@ -225,12 +225,12 @@
                                 window.statsData = statsData;
                                 window.statsLoaded = true;
                                 console.log("Stats data processed", statsData);
-                                
+
                                 // Load stats.js
                                 var statsScript = document.createElement("script");
                                 statsScript.src = "scripts/stats.js";
                                 document.head.appendChild(statsScript);
-                                
+
                                 // Remove skeleton loaders from lastfm divs
                                 document.getElementById('lastfm1').classList.remove('skeleton_loader_big_lastfm');
                                 document.getElementById('lastfm2').classList.remove('skeleton_loader_big_lastfm');

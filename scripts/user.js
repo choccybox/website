@@ -19,7 +19,7 @@ fetch("/user")
             var info = document.createElement("a");
             info.id = "lastfminfo" + i;
             info.style.display = "none";
-            
+
             var infoDiv = document.createElement("div");
             infoDiv.id = "social_button";
             infoDiv.classList.add("social_button", "skeleton_loader_small_lastfm");
@@ -84,6 +84,6 @@ fetch("/user")
 
         document.getElementById("avatar_credit_text").innerHTML = `<a id="avatar_credit_link" href='${data.avatarCredit}' target='_blank'>${data.avatarCreditText}</a>`;
 
-        document.getElementById("pronouns").innerHTML = data.pronouns;
+        document.getElementById("pronouns").innerHTML = data.pronouns + ` pronouns`;
         document.getElementById("flag").innerHTML = data.flag;
     });
