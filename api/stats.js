@@ -1,11 +1,11 @@
 const express = require('express');
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
-const crypto = require('crypto');
 const { pipeline } = require('stream/promises');
 const dotenv = require('dotenv');
+const { requestListenBrainz, getListenBrainzUser } = require('./listenbrainz');
+const { resolveArtwork, IMAGE_ROUTE, router: imageRouter } = require('./artwork');
 
 const stats = express();
 
@@ -17,14 +17,7 @@ const CACHE_FILE = path.resolve(process.env.STATS_CACHE_FILE || path.join(__dirn
 const CACHE_DIRECTORY = path.dirname(CACHE_FILE);
 const LIBRARY_FILE = path.join(CACHE_DIRECTORY, `${path.basename(CACHE_FILE, path.extname(CACHE_FILE))}-library.json`);
 const LIBRARY_VERSION = 1;
-const IMAGE_DIRECTORY = path.join(CACHE_DIRECTORY, 'images');
-const IMAGE_ROUTE = '/stats/images';
-const IMAGE_EXTENSIONS = ['jpg', 'png', 'webp'];
-const USER_AGENT = process.env.MUSICBRAINZ_USER_AGENT?.trim()
-  || 'choccynton-stats/1.0 (contact: admin@localhost)';
 
-const LISTENBRAINZ_API = 'https://api.listenbrainz.org';
-const LISTENBRAINZ_MIN_INTERVAL = 1000;
 const LISTEN_PAGE_SIZE = 1000;
 // ListenBrainz asks clients to use the listens endpoint for roughly ten pages or fewer.
 const MAX_INCREMENTAL_PAGES = 10;
@@ -45,14 +38,8 @@ let cacheState = loadCache();
 let library = loadLibrary();
 let refreshPromise = null;
 let lastFailure = null;
-let listenBrainzUser = null;
-let artworkPromises = new Map();
-let imageDownloads = new Map();
-let deezerQueue = Promise.resolve();
-let lastDeezerRequestAt = 0;
-let listenBrainzQueue = Promise.resolve();
-let lastListenBrainzRequestAt = 0;
-let listenBrainzBlockedUntil = 0;
+
+stats.use(imageRouter);
 
 stats.get('/stats', async (req, res) => {
   if (hasFreshStats()) {
@@ -240,6 +227,7 @@ function attachArtwork(item, type, artist, name) {
   const images = resolveArtwork(type, artist, name, (resolvedImages) => {
     item.imageHigh = resolvedImages.high;
     item.imageLow = resolvedImages.low;
+    saveCache();
   });
   item.imageHigh = images.high;
   item.imageLow = images.low;
@@ -677,298 +665,6 @@ async function* readArchiveListenFiles(file) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// ListenBrainz HTTP client
-// ---------------------------------------------------------------------------
-
-async function getListenBrainzUser() {
-  if (!listenBrainzUser) {
-    const response = await requestListenBrainz('get', '/1/validate-token');
-    if (!response.data || !response.data.valid || !response.data.user_name) {
-      throw new Error('LISTENBRAINZ_USER_TOKEN is not a valid ListenBrainz token.');
-    }
-    listenBrainzUser = response.data.user_name;
-  }
-  return listenBrainzUser;
-}
-
-// Every call is authenticated with LISTENBRAINZ_USER_TOKEN and goes through one queue so the
-// one-request-per-second guideline and the server's rate limit headers are always respected.
-function requestListenBrainz(method, url, config = {}) {
-  const request = listenBrainzQueue.then(() => sendListenBrainzRequest(method, url, config));
-  listenBrainzQueue = request.catch(() => undefined);
-  return request;
-}
-
-async function sendListenBrainzRequest(method, url, config) {
-  const token = process.env.LISTENBRAINZ_USER_TOKEN?.trim();
-  if (!token) {
-    throw new Error('LISTENBRAINZ_USER_TOKEN is not set.');
-  }
-
-  const maxAttempts = 4;
-  for (let attempt = 1; ; attempt++) {
-    const wait = Math.max(listenBrainzBlockedUntil, lastListenBrainzRequestAt + LISTENBRAINZ_MIN_INTERVAL) - Date.now();
-    if (wait > 0) {
-      await delay(wait);
-    }
-    lastListenBrainzRequestAt = Date.now();
-
-    try {
-      const response = await axios({
-        method,
-        url: `${LISTENBRAINZ_API}${url}`,
-        ...config,
-        headers: {
-          Authorization: `Token ${token}`,
-          'User-Agent': USER_AGENT,
-        },
-      });
-      noteRateLimit(response.headers);
-      return response;
-    } catch (error) {
-      const status = error.response && error.response.status;
-      if (error.response) {
-        noteRateLimit(error.response.headers, status === 429);
-        if (error.response.data && typeof error.response.data.destroy === 'function') {
-          error.response.data.destroy();
-        }
-      }
-
-      const retryable = !error.response || status === 429 || status >= 500;
-      if (!retryable || attempt >= maxAttempts) {
-        throw new Error(`ListenBrainz request ${method.toUpperCase()} ${url} failed${status ? ` with status ${status}` : `: ${error.message}`}.`);
-      }
-
-      if (status !== 429) {
-        listenBrainzBlockedUntil = Math.max(listenBrainzBlockedUntil, Date.now() + 2000 * 2 ** (attempt - 1));
-      }
-    }
-  }
-}
-
-function noteRateLimit(headers = {}, limited = false) {
-  const remaining = Number(headers['x-ratelimit-remaining']);
-  const resetIn = Number(headers['x-ratelimit-reset-in']);
-
-  if ((limited || remaining <= 0) && Number.isFinite(resetIn)) {
-    listenBrainzBlockedUntil = Math.max(listenBrainzBlockedUntil, Date.now() + (resetIn + 1) * 1000);
-  } else if (limited) {
-    listenBrainzBlockedUntil = Math.max(listenBrainzBlockedUntil, Date.now() + 10 * 1000);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Artwork (found through Deezer, downloaded once and then served from this server)
-// ---------------------------------------------------------------------------
-
-function resolveArtwork(type, artist, name, onResolved) {
-  const key = artworkCacheKey(type, artist, name);
-  const applyArtwork = (image) => ({
-    high: image || null,
-    low: image || null,
-  });
-
-  if (Object.prototype.hasOwnProperty.call(cacheState.artwork, key)) {
-    const cached = cacheState.artwork[key];
-    // A cached "no image" is kept; a cached image is only trusted while its file still exists.
-    if (!cached || imageFileExists(cached)) {
-      return applyArtwork(cached);
-    }
-  }
-
-  // Artwork lookups are rate-limited; never make the stats endpoint wait for them.
-  void getCachedArtwork(type, artist, name)
-    .then((image) => {
-      onResolved(applyArtwork(image));
-      saveCache();
-    })
-    .catch(() => undefined);
-
-  return applyArtwork(null);
-}
-
-function getCachedArtwork(type, artist, name) {
-  const key = artworkCacheKey(type, artist, name);
-
-  if (artworkPromises.has(key)) {
-    return artworkPromises.get(key);
-  }
-
-  const artworkPromise = findCoverArt(type, artist, name)
-    .then((image) => {
-      cacheState.artwork[key] = image;
-      return image;
-    })
-    .finally(() => {
-      artworkPromises.delete(key);
-    });
-  artworkPromises.set(key, artworkPromise);
-  return artworkPromise;
-}
-
-function artworkCacheKey(type, artist, name) {
-  // The prefix versions the cache so entries from earlier artwork sources are never reused.
-  if (type === 'artist') {
-    return `deezer:artist:${normalize(artist)}`;
-  }
-  return `deezer:${type}:${normalize(artist)}\u0000${normalize(name)}`;
-}
-
-// Resolves to a local image path, or null when Deezer has nothing. Network failures throw so
-// that they are retried later instead of being cached as "no image".
-async function findCoverArt(type, artist, name) {
-  const remote = type === 'artist'
-    ? await findDeezerArtistImage(artist)
-    : await findDeezerReleaseImage(type, artist, name);
-
-  return remote ? cacheImage(remote) : null;
-}
-
-async function findDeezerArtistImage(artist) {
-  const image = await searchDeezerArtistImage(artist);
-  if (image) {
-    return image;
-  }
-
-  // Collaboration credits ("A & B", "A feat. B") have no page of their own; use the lead artist.
-  const lead = artist.split(/\s+(?:&|x|feat\.?|ft\.?|with)\s+|\s*,\s*/i)[0].trim();
-  return lead && normalize(lead) !== normalize(artist) ? searchDeezerArtistImage(lead) : null;
-}
-
-async function searchDeezerArtistImage(artist) {
-  const results = await searchDeezer('artist', { q: artist });
-
-  // Only trust an exact name match; a loosely related artist would show the wrong person.
-  const match = results.find((result) => normalize(result.name) === normalize(artist));
-  return usableDeezerImage(match && (match.picture_big || match.picture_xl));
-}
-
-async function findDeezerReleaseImage(type, artist, name) {
-  const field = type === 'album' ? 'album' : 'track';
-  const quote = (value) => String(value).replace(/"/g, ' ').trim();
-  const queries = [
-    `artist:"${quote(artist)}" ${field}:"${quote(name)}"`,
-    `${quote(artist)} ${quote(name)}`,
-  ];
-
-  for (const q of queries) {
-    const results = await searchDeezer(field, { q });
-    const candidates = results.filter((result) => sameArtist(result.artist && result.artist.name, artist));
-    const title = (result) => normalize(type === 'album' ? result.title : result.title_short || result.title);
-    const wanted = normalize(name);
-
-    const match = candidates.find((result) => title(result) === wanted)
-      || candidates.find((result) => title(result).startsWith(wanted) || wanted.startsWith(title(result)));
-    const cover = type === 'album' ? match : match && match.album;
-    const image = usableDeezerImage(cover && (cover.cover_big || cover.cover_xl));
-    if (image) {
-      return image;
-    }
-  }
-
-  return null;
-}
-
-function sameArtist(candidate, artist) {
-  const a = normalize(candidate);
-  const b = normalize(artist);
-  return Boolean(a) && Boolean(b) && (a === b || a.includes(b) || b.includes(a));
-}
-
-async function searchDeezer(kind, params) {
-  const response = await requestDeezer(`https://api.deezer.com/search/${kind}`, {
-    params: { limit: 10, ...params },
-  });
-  return Array.isArray(response.data && response.data.data) ? response.data.data : [];
-}
-
-// Deezer serves a generic placeholder (empty image hash) for entries without artwork.
-function usableDeezerImage(url) {
-  return url && !/\/images\/[^/]+\/\//.test(url) ? url : null;
-}
-
-function requestDeezer(url, config) {
-  const request = deezerQueue.then(async () => {
-    const wait = Math.max(0, 250 - (Date.now() - lastDeezerRequestAt));
-    if (wait > 0) {
-      await delay(wait);
-    }
-
-    lastDeezerRequestAt = Date.now();
-    return axios.get(url, { timeout: 10000, headers: { 'User-Agent': USER_AGENT }, ...config });
-  });
-
-  deezerQueue = request.catch(() => undefined);
-  return request;
-}
-
-// ---------------------------------------------------------------------------
-// Image cache
-// ---------------------------------------------------------------------------
-
-function imageFileExists(localPath) {
-  return fs.existsSync(path.join(IMAGE_DIRECTORY, path.basename(localPath)));
-}
-
-// Downloads an image once and returns the local path it is served from. The file name is a
-// hash of the source URL, so every item sharing a cover (several tracks of one album) ends
-// up with the same file and the cover is only ever downloaded a single time.
-async function cacheImage(url) {
-  const id = crypto.createHash('sha1').update(url).digest('hex');
-
-  for (const extension of IMAGE_EXTENSIONS) {
-    if (fs.existsSync(path.join(IMAGE_DIRECTORY, `${id}.${extension}`))) {
-      return `${IMAGE_ROUTE}/${id}.${extension}`;
-    }
-  }
-
-  if (imageDownloads.has(id)) {
-    return imageDownloads.get(id);
-  }
-
-  const download = (async () => {
-    const response = await axios.get(url, {
-      responseType: 'arraybuffer',
-      timeout: 15000,
-      maxContentLength: 10 * 1024 * 1024,
-      headers: { 'User-Agent': USER_AGENT },
-    });
-
-    const type = String(response.headers['content-type'] || '').toLowerCase();
-    const extension = type.includes('png') ? 'png' : type.includes('webp') ? 'webp' : type.includes('jpeg') || type.includes('jpg') ? 'jpg' : null;
-    if (!extension) {
-      throw new Error('The artwork URL did not return an image.');
-    }
-
-    fs.mkdirSync(IMAGE_DIRECTORY, { recursive: true, mode: 0o700 });
-    const file = path.join(IMAGE_DIRECTORY, `${id}.${extension}`);
-    const temporaryFile = `${file}.${process.pid}.tmp`;
-    fs.writeFileSync(temporaryFile, response.data, { mode: 0o600 });
-    fs.renameSync(temporaryFile, file);
-    return `${IMAGE_ROUTE}/${id}.${extension}`;
-  })().finally(() => {
-    imageDownloads.delete(id);
-  });
-
-  imageDownloads.set(id, download);
-  return download;
-}
-
-stats.get(`${IMAGE_ROUTE}/:file`, (req, res) => {
-  if (!/^[a-f0-9]{40}\.(?:jpg|png|webp)$/.test(req.params.file)) {
-    return res.sendStatus(404);
-  }
-
-  // The file name is a hash of the source URL, so the content behind it never changes.
-  res.set('Cache-Control', 'public, max-age=604800, immutable');
-  return res.sendFile(req.params.file, { root: IMAGE_DIRECTORY, cacheControl: false }, (error) => {
-    if (error && !res.headersSent) {
-      res.sendStatus(404);
-    }
-  });
-});
-
 function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
@@ -988,7 +684,7 @@ function hasFreshStats() {
 }
 
 function loadCache() {
-  const emptyCache = { stats: null, artwork: {} };
+  const emptyCache = { stats: null };
 
   try {
     ensureCacheDirectory();
@@ -1000,7 +696,6 @@ function loadCache() {
     const parsed = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
     return {
       stats: parsed && parsed.stats && parsed.stats.data ? parsed.stats : null,
-      artwork: parsed && parsed.artwork && typeof parsed.artwork === 'object' ? parsed.artwork : {},
     };
   } catch (error) {
     console.error('Unable to read the persistent stats cache.');
@@ -1130,6 +825,7 @@ function resolveMissingArtwork() {
       const apply = (images) => {
         item.imageHigh = images.high;
         item.imageLow = images.low;
+        saveCache();
       };
       // Anything not already served from the local image cache (including entries stored by
       // older versions) is looked up again; the old image stays in place until then.
