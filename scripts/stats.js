@@ -1,5 +1,21 @@
 let isDataFetched = false;
 
+// Tracks and albums often share the same cover, so each image URL is only requested once
+// and every item that uses it waits on the same load.
+const imageLoads = new Map();
+
+function loadImageOnce(url) {
+    if (!imageLoads.has(url)) {
+        imageLoads.set(url, new Promise(resolve => {
+            const tempImg = new window.Image();
+            tempImg.onload = () => resolve(url);
+            tempImg.onerror = () => resolve('styles/blank.png');
+            tempImg.src = url;
+        }));
+    }
+    return imageLoads.get(url);
+}
+
 if (!isDataFetched) {
     const statsRequest = window.statsData
         ? Promise.resolve(window.statsData)
@@ -31,14 +47,13 @@ if (!isDataFetched) {
             const itemImage = document.createElement('img');
             itemImage.classList.add(`${className.split(' ')[0]}_image`);
             // Preload image before setting src to avoid NS_BINDING_ABORTED
-            const tempImg = new window.Image();
-            tempImg.onload = function() {
-                itemImage.src = item.imageHigh;
-            };
-            tempImg.onerror = function() {
+            if (item.imageHigh) {
+                loadImageOnce(item.imageHigh).then(src => {
+                    itemImage.src = src;
+                });
+            } else {
                 itemImage.src = "styles/blank.png";
-            };
-            tempImg.src = item.imageHigh;
+            }
 
             const itemNameDiv = document.createElement('div');
             itemNameDiv.style.height = '100%';

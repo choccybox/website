@@ -314,11 +314,6 @@ body {
     display: block;
 }
 
-#moreabout {
-    position: fixed;
-    margin-left: calc(100% - 155px);
-}
-
 
 @keyframes icon_flip_anim {
     0% {transform: rotate3d(0, 0, 0, 0deg);}
@@ -497,4 +492,6 @@ body {
 
 .lastfmTextTop {
     color: white !important;
+    margin-left: 2px;
+    margin-right: 2px;
 }
